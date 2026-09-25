@@ -106,7 +106,18 @@ async function syncDown(quiet=false){
       // on a new/incognito browser, whose freshly-created local DB may have a
       // newer timestamp but contains no user data.
       db=remote;
+      // Keep built-in official question-bank content when the user's cloud data
+      // predates a new app release. User data remains the source of truth for
+      // personal content; only missing official seeded questions are merged in.
+      db.bankQuestions=db.bankQuestions||[];
+      db.bankAttempts=db.bankAttempts||[];
+      db.bankAnnotations=db.bankAnnotations||{};
+      let addedOfficial=false;
+      for(const item of SUS26_1){
+        if(!db.bankQuestions.some(x=>x.id===item.id)){db.bankQuestions.push(item);addedOfficial=true}
+      }
       localStorage.setItem(KEY,JSON.stringify(db));
+      if(addedOfficial) await syncUp();
       render();
     } else {
       await syncUp();
