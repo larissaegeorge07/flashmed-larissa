@@ -98,7 +98,7 @@ db.activeStudy=db.activeStudy||{byDay:{},byType:{},lastActivity:0,lastType:'',ac
 const ACTIVE_IDLE_MS=5*60*1000;
 function activeStudyTotal(date=day()){return Math.round((db.activeStudy.byDay?.[date]||0)/60000)}
 function activeStudyType(type,date=day()){return Math.round((db.activeStudy.byType?.[date]?.[type]||0)/60000)}
-function isStudyRoute(){return ['Revisão','Aleatório','Banco de Questões','Questões erradas'].includes(route)||!!activeSubject}
+function isStudyRoute(){return ['Revisão','Aleatório','Banco de Questões','Questões erradas'].includes(route)}
 function studyType(){if(route==='Banco de Questões')return 'Questões';if(route==='Questões erradas')return 'Caderno de erros';return 'Flashcards'}
 function markStudyActivity(type=studyType()){
  if(!isStudyRoute()||timer.on)return;
