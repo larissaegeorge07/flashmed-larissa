@@ -58,8 +58,16 @@ async function syncDown(quiet=false){
     const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
     if(q.error)throw q.error;
     const remote=q.data?.settings?.flashmed_data;
-    if(remote&&(!db.updatedAt||remote.updatedAt>db.updatedAt)){db=remote;localStorage.setItem(KEY,JSON.stringify(db));render()}
-    else if(!remote){await syncUp()}
+    if(remote){
+      // After authentication, Supabase is the source of truth. This is essential
+      // on a new/incognito browser, whose freshly-created local DB may have a
+      // newer timestamp but contains no user data.
+      db=remote;
+      localStorage.setItem(KEY,JSON.stringify(db));
+      render();
+    } else {
+      await syncUp();
+    }
     cloudDot.classList.add('ok');saveState.textContent='nuvem sincronizada';if(!quiet)toast('Sincronizado ♡');
   }catch(e){console.error(e);cloudDot.classList.remove('ok');if(!quiet)toast('Não foi possível sincronizar')}
 }
