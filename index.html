@@ -14,6 +14,36 @@ body.fm-compact .panel,body.fm-compact .kpi{padding:13px}body.fm-compact .grid{g
 body.fm-font-small .bankQuestion{font-size:.92em}body.fm-font-large .bankQuestion{font-size:1.14em;line-height:1.7}
 .customizeGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.customizeOption{border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card)}.customizeOption label{font-weight:800;display:flex;gap:9px;align-items:center}.customizeOption select{margin-top:8px}
 @media(max-width:700px){.customizeGrid{grid-template-columns:1fr}}
+
+/* FlashMed responsive shell: desktop sidebar + mobile app navigation */
+.mobileBrand{display:none}
+@media(max-width:780px){
+  body{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+  .app{display:block;min-height:100vh}
+  .side{position:static;height:auto;overflow:visible;padding:14px 15px 10px;border-right:0;background:linear-gradient(135deg,#9d2f68,#71234f)}
+  .brand{padding:0;font-size:21px}.owner,.sideSignature,.navTitle{display:none!important}
+  .nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;overflow:visible;padding:7px 6px calc(7px + env(safe-area-inset-bottom));background:rgba(78,28,57,.97);border-top:1px solid #ffffff22;box-shadow:0 -10px 28px rgba(66,24,49,.18)}
+  .nav button{min-width:0!important;width:auto;margin:0;padding:7px 2px 6px;border-radius:11px;text-align:center;font-size:10px;line-height:1.15;white-space:normal;color:#f8e8f0}
+  .nav button .navIcon{display:block;font-size:19px;line-height:22px;margin-bottom:2px}
+  .nav button.on{background:#ffffff20;color:#fff}
+  .nav button[data-mobile-extra="1"]{display:none}
+  .main{padding:14px 12px 22px;max-width:none}
+  .top{display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .top h1{font-size:23px;margin:5px 0 2px}.top .row{justify-content:flex-end}.clock{font-size:13px}.cloud{font-size:10px;padding:6px 8px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:12px 0}.kpi,.panel{border-radius:17px;padding:14px}.kpi b{font-size:23px}
+  .cols,.split,.subjectGrid,.deck,.missionGrid,.customizeGrid{grid-template-columns:1fr}
+  .row{gap:7px}.btn{min-height:42px;padding:10px 12px}.field{font-size:16px}
+  .tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.tabs>*{flex:0 0 auto}
+  .flash{min-height:280px;padding:18px 14px}.bankQuestion{font-size:16px;line-height:1.62}.bankChoice{padding:12px 10px}
+  .questionTools{top:5px}.metricTable{display:block;overflow-x:auto;white-space:nowrap}
+  .toast{left:12px;right:12px;bottom:calc(86px + env(safe-area-inset-bottom));text-align:center}
+}
+@media(min-width:781px){
+  .nav button .navIcon{display:inline-block;width:24px;text-align:center;margin-right:4px}
+}
+@media(max-width:390px){
+  .main{padding-left:9px;padding-right:9px}.grid{grid-template-columns:1fr}.top .cloud{display:none}
+}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><p id="authError" class="authError"></p></div></div><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes • Study Space ♡</div><div class="sideSignature"><b>Medicina, constância & propósito.</b><small>um passo por dia ✦</small></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20250927-full75"></script><script src="sus241-lessons.js?v=20250927-lessons"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -113,7 +143,7 @@ for(const item of [...SUS262,...SUS251,...SUS252,...SUS241,...SUS231]){if(!db.ba
  let timer={on:false,start:0,elapsed:0,subject:'Geral'},route='Dashboard',study=[],idx=0,reveal=false,cloud=null,cloudTimer=null;
 const navGroups=[['INÍCIO',['Dashboard']],['ESTUDAR',['Banco de Questões','Revisão','Flashcards','Decorebas','Casos Clínicos']],['ACOMPANHAR',['Métricas']],['PERSONALIZAR',['Meu FlashMed']]];
 const icons={'Banco de Questões':'📝',Dashboard:'🏠',Matérias:'🃏','Adicionar flashcard':'＋',Revisão:'🔄','Aleatório':'⤨','Questões erradas':'✎','Importar do ChatGPT':'✦',Métricas:'📊','Cronômetro':'⏱️',Lembretes:'⏰','Nuvem & Backup':'☁️','Casos Clínicos':'🩺','Decorebas':'📒','Meu FlashMed':'⚙️'};
-function renderNav(){nav.innerHTML=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x;return `<button class='${route==target?'on':''}' onclick="go('${target}')">${icons[x]||icons[target]||'▦'} ${x}</button>`}).join('')}`).join('')}function go(x){if(x==='Banco de Questões')bankSelectionIds=null;route=x;renderNav();render()}
+function renderNav(){let mobileMain=new Set(['Dashboard','Banco de Questões','Revisão','Flashcards','Métricas']);nav.innerHTML=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}')"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('')}`).join('')}function go(x){if(x==='Banco de Questões')bankSelectionIds=null;route=x;renderNav();render()}
 function save(){db.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(db));saveState.textContent=cloud?'salvo • sincronizando':'salvo automaticamente'; if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}} function toast(s){let e=toastEl();e.textContent=s;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)} function toastEl(){return document.querySelector('#toast')}
 function mins(){return Math.round(db.sessions.reduce((a,s)=>a+s.minutes,0))}function stats(){let r=db.cards.reduce((a,c)=>(a.ok+=c.ok||0,a.bad+=c.bad||0,a),{ok:0,bad:0});return {...r,total:r.ok+r.bad,acc:r.ok+r.bad?Math.round(100*r.ok/(r.ok+r.bad)):0}}function due(c){return !c.due||new Date(c.due)<=now()}
 function subjStats(){return db.subjects.map(x=>{let cs=db.cards.filter(c=>c.subject==x),o=cs.reduce((a,c)=>a+(c.ok||0),0),b=cs.reduce((a,c)=>a+(c.bad||0),0),attempts=o+b;return{x,cards:cs.length,o,b,attempts,acc:attempts?Math.round(100*o/attempts):0,due:cs.filter(due).length}})}function subjectWeak(){return subjStats().filter(x=>x.attempts).sort((a,b)=>a.acc-b.acc)[0]?.x||'—'}
