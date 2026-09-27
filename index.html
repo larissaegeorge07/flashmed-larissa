@@ -201,7 +201,8 @@ async function syncDown(quiet=false){
       db.bankAttempts=db.bankAttempts||[];
       db.bankAnnotations=db.bankAnnotations||{};
       let addedOfficial=false;
-      for(const q of db.bankQuestions){if(String(q.id||'').startsWith('sus26-')){q.exam='SUS-BA 2026.1';q.family='SUS-BA Oficial'}}\n      for(const item of [...SUS261_ALL,...SUS262]){
+      for(const q of db.bankQuestions){if(String(q.id||'').startsWith('sus26-')){q.exam='SUS-BA 2026.1';q.family='SUS-BA Oficial'}}
+      for(const item of [...SUS261_ALL,...SUS262]){
         if(!db.bankQuestions.some(x=>x.id===item.id)){db.bankQuestions.push(item);addedOfficial=true}
       }
       const correctedOfficial=applyExactOfficialText();
