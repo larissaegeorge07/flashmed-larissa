@@ -253,6 +253,23 @@ async function syncDown(quiet=false){
       // on a new/incognito browser, whose freshly-created local DB may have a
       // newer timestamp but contains no user data.
       db=remote;
+      // Normalize preferences when loading older cloud data. This keeps
+      // "Meu FlashMed" compatible with accounts created before personalization.
+      db.settings=db.settings||{};
+      db.settings.appearance=db.settings.appearance||'light';
+      db.settings.questionFont=db.settings.questionFont||'normal';
+      db.settings.density=db.settings.density||'comfortable';
+      db.settings.dashboard=Object.assign(
+        {missions:true,kpis:true,focus:true,exams:true,study:true},
+        db.settings.dashboard||{}
+      );
+      db.subjects=db.subjects||[];
+      db.subjectIcons=db.subjectIcons||{};
+      db.cards=db.cards||[];
+      db.questions=db.questions||[];
+      db.sessions=db.sessions||[];
+      db.reminders=db.reminders||[];
+      db.decorebas=db.decorebas||[];
       // Keep built-in official question-bank content when the user's cloud data
       // predates a new app release. User data remains the source of truth for
       // personal content; only missing official seeded questions are merged in.
