@@ -44,8 +44,13 @@ function applySUS251MiniLessons(){
  let changed=false;
  for(const q of SUS251){
   const lesson=SUS251_LESSONS[q.number]; if(!lesson)continue;
-  const L=q.annulled?'ANULADA':'ABCD'[q.correctIndex];
-  const html=`<h3>📚 Mini-aula — ${q.topic}</h3><p><b>O que a questão está te contando?</b> Identifique as pistas do caso antes de olhar as alternativas.</p><p><b>🧠 O que você precisava saber:</b> ${lesson}</p><p><b>🔎 Como eliminar as demais?</b> Compare cada opção com o conceito central acima: as erradas misturam outro momento da conduta, indicação inadequada ou um mecanismo que não explica o caso.</p><p><b>✅ Gabarito preliminar oficial: ${L}.</b></p><p><b>💡 Leve para a prova:</b> ${lesson}</p>`;
+  let html;
+  if(q.type==='short'){
+   html=`<h3>📚 Mini-aula — ${q.topic}</h3><p><b>O que a questão está te contando?</b> Identifique as pistas do caso e responda somente o que foi solicitado.</p><p><b>🧠 O que você precisava saber:</b> ${lesson}</p><p><b>✍️ Como responder na prova:</b> Seja objetivo e use um dos termos equivalentes aceitos pela banca.</p><p><b>✅ Padrão de resposta definitivo:</b> ${q.expected}.</p><p><b>💡 Leve para a prova:</b> ${lesson}</p>`;
+  }else{
+   const L=q.annulled?'ANULADA':'ABCD'[q.correctIndex];
+   html=`<h3>📚 Mini-aula — ${q.topic}</h3><p><b>O que a questão está te contando?</b> Identifique as pistas do caso antes de olhar as alternativas.</p><p><b>🧠 O que você precisava saber:</b> ${lesson}</p><p><b>🔎 Como eliminar as demais?</b> Compare cada opção com o conceito central acima: as erradas misturam outro momento da conduta, indicação inadequada ou um mecanismo que não explica o caso.</p><p><b>✅ Gabarito preliminar oficial: ${L}.</b></p><p><b>💡 Leve para a prova:</b> ${lesson}</p>`;
+  }
   if(q.resolution!==html){q.resolution=html;changed=true}
  }
  return changed;
