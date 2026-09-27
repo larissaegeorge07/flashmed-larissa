@@ -208,8 +208,13 @@ async function syncDown(quiet=false){
       }
       const correctedOfficial=applyExactOfficialText();
       const expandedLessons=applySUS261MiniLessons();
+      let expanded262=false;
+      for(const seed of SUS262){
+        const saved=db.bankQuestions.find(x=>x.id===seed.id);
+        if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded262=true}
+      }
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(addedOfficial||correctedOfficial||expandedLessons) await syncUp();
+      if(addedOfficial||correctedOfficial||expandedLessons||expanded262) await syncUp();
       render();
     } else {
       await syncUp();
