@@ -316,9 +316,21 @@ function setupBankInkFloatControls(){
 function resetPageZoom(){
  let meta=document.querySelector('meta[name="viewport"]');if(!meta)return;
  let normal='width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes,viewport-fit=cover';
- meta.setAttribute('content','width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');
- requestAnimationFrame(()=>window.scrollTo(0,0));
- setTimeout(()=>{meta.setAttribute('content',normal);requestAnimationFrame(positionBankInkFloat)},220);
+ let force='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+ meta.setAttribute('content',force);
+ document.documentElement.style.zoom='1';
+ void document.documentElement.offsetWidth;
+ window.scrollTo({left:0,top:0,behavior:'auto'});
+ setTimeout(()=>{
+   meta.setAttribute('content','width=device-width,initial-scale=1.0001,minimum-scale=1,maximum-scale=1.0001,user-scalable=no,viewport-fit=cover');
+   void document.documentElement.offsetWidth;
+   setTimeout(()=>{
+     meta.setAttribute('content',normal);
+     document.documentElement.style.zoom='';
+     window.scrollTo({left:0,top:0,behavior:'auto'});
+     requestAnimationFrame(()=>{positionBankInkFloat();setTimeout(positionBankInkFloat,80)});
+   },80);
+ },80);
 }
 let bankInkFloatPos=null;
 function positionBankInkFloat(){
