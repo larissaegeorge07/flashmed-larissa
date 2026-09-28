@@ -293,11 +293,12 @@ function setupBankCaseInk(){
  let rect=wrap.getBoundingClientRect(),ratio=window.devicePixelRatio||1,w=Math.max(1,Math.round(rect.width)),h=Math.max(1,Math.round(rect.height));
  canvas.width=w*ratio;canvas.height=h*ratio;canvas.style.width=w+'px';canvas.style.height=h+'px';
  let x=canvas.getContext('2d');x.setTransform(ratio,0,0,ratio,0,0);x.lineCap='round';x.lineJoin='round';bankCaseInkCtx=x;
- const point=e=>{let r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
- canvas.onpointerdown=e=>{if(bankCaseInkMode==='off')return;e.preventDefault();canvas.setPointerCapture?.(e.pointerId);bankCaseInkDrawing=true;bankCaseInkLast=point(e)};
- canvas.onpointermove=e=>{if(!bankCaseInkDrawing||bankCaseInkMode==='off')return;e.preventDefault();let p=point(e),ctx=bankCaseInkCtx;if(!ctx)return;ctx.save();if(bankCaseInkMode==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;ctx.lineWidth=18}else if(bankCaseInkMode==='highlighter'){ctx.globalCompositeOperation='source-over';ctx.globalAlpha=.32;ctx.strokeStyle='#ffd92f';ctx.lineWidth=18}else{ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.strokeStyle='#7b3157';ctx.lineWidth=2.4}ctx.beginPath();ctx.moveTo(bankCaseInkLast.x,bankCaseInkLast.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.restore();bankCaseInkLast=p};
- const stop=e=>{bankCaseInkDrawing=false;bankCaseInkLast=null;try{if(e?.pointerId!=null&&canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch(_){}};
- canvas.onpointerup=stop;canvas.onpointercancel=stop;
+ const point=e=>{let r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top,pressure:e.pressure||.5}};
+ const paint=(from,to)=>{let ctx=bankCaseInkCtx;if(!ctx)return;ctx.save();if(bankCaseInkMode==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;ctx.lineWidth=20}else if(bankCaseInkMode==='highlighter'){ctx.globalCompositeOperation='source-over';ctx.globalAlpha=.42;ctx.strokeStyle='#ffd51f';ctx.lineWidth=20}else{ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.strokeStyle='#7b3157';ctx.lineWidth=Math.max(2.4,2.4*(to.pressure||.5))}ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();ctx.restore()};
+ canvas.onpointerdown=e=>{if(bankCaseInkMode==='off')return;e.preventDefault();try{canvas.setPointerCapture(e.pointerId)}catch(_){}bankCaseInkDrawing=true;bankCaseInkLast=point(e);paint(bankCaseInkLast,{...bankCaseInkLast,x:bankCaseInkLast.x+.01})};
+ canvas.onpointermove=e=>{if(!bankCaseInkDrawing||bankCaseInkMode==='off')return;e.preventDefault();let events=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of events){let p=point(ev);paint(bankCaseInkLast,p);bankCaseInkLast=p}};
+ const stop=e=>{if(bankCaseInkDrawing&&bankCaseInkLast&&bankCaseInkMode!=='off')paint(bankCaseInkLast,point(e));bankCaseInkDrawing=false;bankCaseInkLast=null;try{if(e?.pointerId!=null&&canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch(_){}};
+ canvas.onpointerup=stop;canvas.onpointercancel=stop;canvas.onpointerout=e=>{if(e.pointerType==='pen'&&bankCaseInkDrawing)stop(e)};
 }
 function setBankCaseInkMode(mode){
  let canvas=document.getElementById('bankCaseInk'),wrap=document.getElementById('bankCaseInkWrap');if(!canvas)return toast('Esta questão não possui situação-problema');
