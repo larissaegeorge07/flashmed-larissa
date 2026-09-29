@@ -211,7 +211,7 @@ function finish(){
  clearInterval(timer);const total=deck.length;shell('🏆 Partida concluída');
  const errors=[...new Map(gameMistakes.map(x=>[cardSignature(x),x])).values()];
  const recap=errors.length?'<div class="game-recap"><h3>📌 Para reforçar ('+errors.length+')</h3>'+errors.map(x=>'<div class="recap-card"><b>'+esc(x.question)+'</b><p>'+esc(x.answer)+'</p></div>').join('')+'</div>':'<p class="muted">✨ Nenhuma dificuldade registrada nesta partida!</p>';
- $('stage').innerHTML='<div class="finish-card"><div class="finish-medal">🏆</div><h2>Você concluiu a partida!</h2><h1>'+score+' / '+total+'</h1><p class="muted">Os resultados deste módulo não alteram as estatísticas oficiais das provas. '+(window.gameRotationNotice||'')+'</p>'+recap+'<div class="row" style="justify-content:center"><button class="btn" onclick="start(\''+mode+'\')">Nova partida</button><button class="btn ghost" onclick="back()">Outros jogos</button></div></div>';
+ $('stage').innerHTML='<div class="finish-card"><div class="finish-medal">🏆</div><h2>Você concluiu a partida!</h2><h1>'+score+' / '+total+'</h1><p class="muted">Os resultados deste módulo não alteram as estatísticas oficiais das provas. '+(window.gameRotationNotice||'')+'</p>'+recap+'<div class="row" style="justify-content:center"><button class="btn" onclick="'+(mode==='review'?'reviewMistakes()':'start(\''+mode+'\')')+'">Nova partida</button><button class="btn ghost" onclick="back()">Outros jogos</button></div></div>';
 }
 $('area').onchange=refresh;$('source').onchange=refresh;$('count').onchange=refresh;load();
 </script></body></html>
