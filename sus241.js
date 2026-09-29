@@ -1422,6 +1422,15 @@ const SUS241=[
 }
 ];
 
+// The uploaded 2024.1 booklet puts giardiasis at Q31–33 and pediatric CPR at Q34–36.
+// An earlier extraction inverted the two adjacent case blocks. Restore booklet order
+// BEFORE applying the definitive key by official question number.
+const SUS241_CORRECT_31_36=[34,35,36,31,32,33];
+const SUS241_ORIGINAL_31_36=SUS241.slice(30,36).map(q=>({...q}));
+for(let i=0;i<6;i++){
+ const target=SUS241[30+i],source=SUS241_ORIGINAL_31_36[SUS241_CORRECT_31_36[i]-31];
+ for(const field of ['area','topic','caseText','prompt','alternatives','resolution'])target[field]=source[field];
+}
 // SUS241_DEFINITIVE_2024_1 — Strix, gabarito definitivo de 23/01/2024.
 // Questões 2, 12, 14, 29 e 36 foram anuladas. A banca não atribui letra a elas.
 const SUS241_DEFINITIVE_2024_1=["C","X","C","B","A","C","B","A","A","C","B","X","D","X","D","B","C","D","A","C","D","A","B","D","D","B","B","C","X","C","A","D","B","C","B","X","B","A","B","C","B","A","C","A","A"];
