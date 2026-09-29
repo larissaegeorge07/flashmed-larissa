@@ -563,7 +563,7 @@ function bankFlashcardQuestion(q){
   const first=context.slice(0,235),cut=Math.max(first.lastIndexOf('. '),first.lastIndexOf('; '));
   context=(cut>100?first.slice(0,cut+1):first.trim())+' […] '+context.slice(-115).trim();
  }
- let request=prompt;
+ let request=prompt.replace(/^Indique\s+(a|o)\s+/i,'Qual é $1 ').replace(/^Indique\s+/i,'Qual é ');
  if(!request||/^(assinale|marque|selecione|escolha)\s+(a\s+)?(alternativa|op[cç][aã]o)\s+(correta|incorreta)/i.test(request)){
   const topic=clean(q.topic||q.area||'o caso clínico');
   request='Qual é a resposta correta sobre '+topic+' para este caso?';
