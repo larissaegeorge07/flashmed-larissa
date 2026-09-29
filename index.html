@@ -629,6 +629,35 @@ async function syncUp(){
     cloudDot.classList.add('ok'); saveState.textContent='salvo na nuvem';
   }catch(e){cloudDot.classList.remove('ok');saveState.textContent='erro na nuvem';console.error(e)}
 }
+// Keep study attempts when a cloud refresh replaces the local card collection.
+// Use a multiset merge: repeated ratings on the same day are genuine separate attempts.
+function mergeCardStudyHistory(remote,local){
+ if(!remote||!local||!Array.isArray(remote.cards)||!Array.isArray(local.cards))return false;
+ const localById=new Map(local.cards.map(c=>[String(c.id),c]));
+ let changed=false;
+ for(const card of remote.cards){
+  const old=localById.get(String(card.id));if(!old)continue;
+  const existing=Array.isArray(card.history)?card.history:[];
+  const previous=Array.isArray(old.history)?old.history:[];
+  const count=new Map();
+  const signature=h=>JSON.stringify([h.date||'',h.rating||'',h.at||h.timestamp||'']);
+  for(const h of existing){const k=signature(h);count.set(k,(count.get(k)||0)+1)}
+  for(const h of previous){
+   const k=signature(h),n=count.get(k)||0;
+   if(n>0){count.set(k,n-1);continue}
+   existing.push(h);changed=true;
+  }
+  if(changed)card.history=existing;
+  const good=existing.filter(h=>h.rating==='ok'||h.rating==='easy').length;
+  const bad=existing.filter(h=>h.rating!=='ok'&&h.rating!=='easy').length;
+  const newOk=Math.max(card.ok||0,old.ok||0,good),newBad=Math.max(card.bad||0,old.bad||0,bad);
+  if(newOk!==(card.ok||0)||newBad!==(card.bad||0)){card.ok=newOk;card.bad=newBad;changed=true}
+  if(previous.length>0&&(!card.due||((old.history||[]).length>=(card.history||[]).length&&old.due&&old.due>card.due))){
+   if(old.due&&old.due!==card.due){card.due=old.due;card.interval=Math.max(card.interval||0,old.interval||0);changed=true}
+  }
+ }
+ return changed;
+}
 async function syncDown(quiet=false){
   if(!cloud||!currentUser)return;
   try{
@@ -636,6 +665,8 @@ async function syncDown(quiet=false){
     if(q.error)throw q.error;
     const remote=q.data?.settings?.flashmed_data;
     if(remote){
+      const localBeforeSync=db;
+      const recoveredLocalStudy=mergeCardStudyHistory(remote,localBeforeSync);
       // After authentication, Supabase is the source of truth. This is essential
       // on a new/incognito browser, whose freshly-created local DB may have a
       // newer timestamp but contains no user data.
@@ -690,7 +721,7 @@ async function syncDown(quiet=false){
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
+      if(recoveredLocalStudy||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
       render();
     } else {
       await syncUp();
