@@ -85,6 +85,17 @@ body.fm-side-collapsed .sidebarToggle{left:12px}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20250927-full75"></script><script src="sus241-lessons.js?v=20250927-lessons"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 let db=JSON.parse(localStorage.getItem(KEY)||'null')||{owner:'Larissa Fernandes',subjects:['Obstetrícia','Pediatria'],subjectIcons:{'Obstetrícia':'🤰','Pediatria':'🧸'},cards:[],questions:[],sessions:[],reminders:[],settings:{goal:60},updatedAt:Date.now()}; db.subjectIcons=db.subjectIcons||{}; db.bankQuestions=db.bankQuestions||[]; db.bankAttempts=db.bankAttempts||[]; db.bankAnnotations=db.bankAnnotations||{}; db.bankSavedInk=db.bankSavedInk||{}; db.decorebas=db.decorebas||[]; db.settings=db.settings||{}; db.settings.appearance=db.settings.appearance||'light'; db.settings.questionFont=db.settings.questionFont||'normal'; db.settings.density=db.settings.density||'comfortable'; db.settings.dashboard=db.settings.dashboard||{missions:true,kpis:true,focus:true,exams:true,study:true};
+// Remove only the original placeholder flashcard whose two sides are Teste 1 / Teste 2.
+function removeOriginalTestCard(){
+ const norm=v=>String(v||'').replace(/<[^>]*>/g,' ').replace(/&nbsp;/gi,' ').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR').replace(/[.!?]+$/,'');
+ const before=(db.cards||[]).length;
+ db.cards=(db.cards||[]).filter(c=>{
+  const a=norm(c.front),b=norm(c.back);
+  return !((a==='teste 1'&&b==='teste 2')||(a==='teste 2'&&b==='teste 1'));
+ });
+ return before-db.cards.length;
+}
+removeOriginalTestCard();
 const SUS26_1=[
 {id:'sus26-1',number:1,exam:'SUS-BA 2026',area:'Clínica Médica',topic:'Tuberculose',caseText:'Homem, 35 anos, trabalhador da construção civil, com tosse produtiva há quatro semanas, febre vespertina, sudorese noturna e perda de 5 kg. Teve contato recente com colega tratado para tuberculose. Ao exame, está emagrecido e apresenta estertores em ápice direito. Radiografia: infiltrado com cavitação em lobo superior direito. Reside com esposa e dois filhos, de 4 e 8 anos.',prompt:'Indique a conduta prioritária para a confirmação diagnóstica do paciente:',alternatives:['Solicitar teste tuberculínico (PPD) e aguardar o resultado em 72 horas para definir a conduta.','Coletar duas amostras de escarro para baciloscopia e teste rápido molecular (TRM-TB).','Realizar broncoscopia com lavado broncoalveolar e cultura em meio de Lowenstein-Jensen.','Iniciar imediatamente o esquema terapêutico padrão e observar a resposta clínica do paciente.'],correctIndex:1,resolution:'<h3>🧠 Resolução comentada</h3><p>O quadro é altamente sugestivo de tuberculose pulmonar bacilífera. A confirmação deve priorizar investigação bacteriológica do escarro, incluindo TRM-TB, em vez de PPD, broncoscopia de rotina ou teste terapêutico.</p><p><b>Por que as demais não são a melhor resposta?</b> PPD avalia infecção e não confirma doença pulmonar ativa; broncoscopia não é o primeiro passo quando há escarro disponível; resposta ao tratamento não deve substituir confirmação microbiológica quando esta é factível.</p><p><b>💡 Leve para a prova:</b> suspeita de TB pulmonar + escarro disponível → investigação bacteriológica/TRM-TB.</p>'},
 {id:'sus26-2',number:2,exam:'SUS-BA 2026',area:'Clínica Médica',topic:'Tuberculose',caseText:'Homem, 35 anos, trabalhador da construção civil, com tosse produtiva há quatro semanas, febre vespertina, sudorese noturna e perda de 5 kg. Radiografia mostra infiltrado cavitário em lobo superior direito.',prompt:'Indique o esquema de tratamento de primeira linha recomendado pelo Ministério da Saúde para esse paciente:',alternatives:['Rifampicina, isoniazida e pirazinamida por 6 meses, associado a etambutol nos 2 primeiros meses.','Rifampicina, isoniazida, pirazinamida e etambutol (RIPE) por 2 meses, seguido por rifampicina e isoniazida (RI) por 4 meses.','RIPE por 4 meses, seguido por RI por 2 meses.','Isoniazida, pirazinamida e etambutol por 4 meses, seguido por isoniazida e rifampicina por 2 meses.'],correctIndex:1,resolution:'<h3>🧠 Resolução comentada</h3><p>Para o adulto com TB pulmonar sensível, o esquema básico é 2 meses de RHZE (RIPE) na fase intensiva e 4 meses de RH na manutenção.</p><p><b>💡 Leve para a prova:</b> TB sensível no adulto = 2RHZE/4RH.</p>'},
@@ -532,8 +543,9 @@ async function syncDown(quiet=false){
         const saved=db.bankQuestions.find(x=>x.id===seed.id);
         if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded241=true}
       }
+      const removedOriginalTest=removeOriginalTestCard();
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
+      if(removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
       render();
     } else {
       await syncUp();
