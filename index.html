@@ -595,7 +595,7 @@ const MEMORY_PAIRS=[
 function gameDayNumber(){return Math.max(0,Math.floor((new Date(day()+'T12:00:00')-new Date('2026-09-27T12:00:00'))/86400000))}
 function dailyGameInfo(){let n=gameDayNumber(),unlocked=(n+1)*10;return {day:n+1,unlocked}}
 let memoryState={cards:[],open:[],matched:new Set(),moves:0};
-function gamesView(){return `<div class='panel' style='padding:0;overflow:hidden'><iframe id='flashmedGamesFrame' title='FlashMed Games' src='games.html?embedded=1&build=20260929-games-four-upgrades-v9' style='width:100%;height:calc(100vh - 155px);min-height:760px;border:0;display:block;background:#fff6fb' loading='eager'></iframe></div>`}
+function gamesView(){return `<div class='panel' style='padding:0;overflow:hidden'><iframe id='flashmedGamesFrame' title='FlashMed Games' src='games.html?embedded=1&build=20260929-wheel-v10' style='width:100%;height:calc(100vh - 155px);min-height:760px;border:0;display:block;background:#fff6fb' loading='eager'></iframe></div>`}
 
 function shuffleGame(a){let x=a.slice();for(let i=x.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
 function startMemoryGame(){let pairs=shuffleGame(MEMORY_PAIRS).slice(0,6),cards=[];pairs.forEach((p,i)=>{cards.push({id:i+'a',pair:i,text:p[0]},{id:i+'b',pair:i,text:p[1]})});memoryState={cards:shuffleGame(cards),open:[],matched:new Set(),moves:0};renderMemoryGame()}
