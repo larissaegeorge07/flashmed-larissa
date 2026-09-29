@@ -46,6 +46,7 @@ const SUS241_CORES={
 function applySUS241MiniLessons(){
  let changed=false;
  for(const q of SUS241){
+  if(q.annulled)continue; // Definitive official annulments must never receive a letter-based mini-lesson.
   const core=SUS241_CORES[q.topic]||('Revise o conceito central de '+q.topic+'.');
   const isShort=q.type==='short';
   const official=isShort?(q.expected||'Padrão oficial cadastrado'):(q.alternatives?.[q.correctIndex]||'');
