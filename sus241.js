@@ -1421,3 +1421,19 @@ const SUS241=[
   "resolution": "<h3>📚 Resolução comentada</h3><p><b>Padrão de resposta preliminar:</b> Teleconsulta.</p>"
 }
 ];
+
+// SUS241_DEFINITIVE_2024_1 — Strix, gabarito definitivo de 23/01/2024.
+// Questões 2, 12, 14, 29 e 36 foram anuladas. A banca não atribui letra a elas.
+const SUS241_DEFINITIVE_2024_1=["C","X","C","B","A","C","B","A","A","C","B","X","D","X","D","B","C","D","A","C","D","A","B","D","D","B","B","C","X","C","A","D","B","C","B","X","B","A","B","C","B","A","C","A","A"];
+for(const q of SUS241){
+ if(q.number<1||q.number>45)continue;
+ const key=SUS241_DEFINITIVE_2024_1[q.number-1];
+ if(key==='X'){
+  q.annulled=true;
+  q.correctIndex=null;
+  q.resolution='<h3>⚪ Questão anulada — gabarito definitivo SUS-BA 2024.1</h3><p>A Strix anulou oficialmente a questão '+q.number+'. Nenhuma das alternativas A–D deve ser tratada como gabarito. A questão é pontuada independentemente da alternativa assinalada.</p><p><b>Fonte:</b> <a href="https://strixeducacao.com.br/wp-content/uploads/2024/01/AD_GAB_PR_DEFINITIVO_2024.1.pdf" target="_blank" rel="noopener noreferrer">Strix — gabarito definitivo de 23/01/2024</a>.</p>';
+ }else{
+  q.annulled=false;
+  q.correctIndex='ABCD'.indexOf(key);
+ }
+}
