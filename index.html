@@ -81,6 +81,40 @@ body.fm-side-collapsed .sidebarToggle{left:12px}
 @media(max-width:430px){.gameGrid{grid-template-columns:1fr}}
 
 .mobileGamesShortcut{display:none}@media(max-width:780px){.mobileGamesShortcut{display:flex;justify-content:flex-end;margin:2px 0 10px}.mobileGamesShortcut .btn{font-size:13px;min-height:36px;padding:8px 13px;border-radius:999px;background:linear-gradient(115deg,#d24b9b,#8f4ec6);box-shadow:0 4px 12px #b34e8d30}.nav button[data-mobile-extra="0"]{display:block!important}.nav button[data-mobile-extra="1"]{display:none!important}}
+
+/* FlashMed visual refresh v12: lightweight CSS-only styling shared by the main tabs. */
+:root{--fm-lilac:#9462ca;--fm-mint:#36aa91;--fm-peach:#f6aa6d;--fm-sky:#699fe4}
+.main>.top{padding:12px 16px;margin-bottom:15px;border:1px solid var(--line);border-radius:19px;background:var(--card);box-shadow:0 5px 18px rgba(115,45,82,.045)}
+.main .panel,.main .kpi,.main .subjectCard,.main .examCard,.main .qbox{border-radius:19px;box-shadow:0 5px 19px rgba(115,45,82,.055)}
+.main .grid>.kpi{position:relative;overflow:hidden;border-top:3px solid var(--pink)}
+.main .grid>.kpi:nth-child(4n+2){border-top-color:var(--fm-lilac)}
+.main .grid>.kpi:nth-child(4n+3){border-top-color:var(--fm-mint)}
+.main .grid>.kpi:nth-child(4n+4){border-top-color:var(--fm-peach)}
+.main .grid>.kpi b{color:var(--deep)}
+.main .subjectGrid>.subjectCard:nth-child(4n+1),.main .deck>.panel:nth-child(4n+1){border-left:4px solid var(--pink)}
+.main .subjectGrid>.subjectCard:nth-child(4n+2),.main .deck>.panel:nth-child(4n+2){border-left:4px solid var(--fm-lilac)}
+.main .subjectGrid>.subjectCard:nth-child(4n+3),.main .deck>.panel:nth-child(4n+3){border-left:4px solid var(--fm-mint)}
+.main .subjectGrid>.subjectCard:nth-child(4n+4),.main .deck>.panel:nth-child(4n+4){border-left:4px solid var(--fm-peach)}
+.main .subjectCard{background:var(--card)}
+.main .subjectCard .icon{display:inline-grid;place-items:center;width:43px;height:43px;border-radius:14px;background:var(--rose2)}
+.main .pill,.main .tag{border-radius:999px;font-weight:750}
+.main .btn,.main .field,.main .gameOption{transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease}
+.main .btn:focus-visible,.main button:focus-visible,.nav button:focus-visible{outline:3px solid var(--fm-lilac);outline-offset:2px}
+.main .btn.ghost{background:var(--rose2)}
+.main .bankChoice:hover,.main .gameOption:hover{border-color:var(--fm-lilac)}
+.main .qbox{border-left:3px solid var(--fm-sky)}
+.main .noteBox{border-left-color:var(--fm-lilac)}
+.main .gameCard:nth-child(4n+1){border-top:3px solid var(--pink)}
+.main .gameCard:nth-child(4n+2){border-top:3px solid var(--fm-lilac)}
+.main .gameCard:nth-child(4n+3){border-top:3px solid var(--fm-mint)}
+.main .gameCard:nth-child(4n+4){border-top:3px solid var(--fm-peach)}
+.main .missionGrid>.panel:nth-child(3n+2){border-top:3px solid var(--fm-lilac)}
+.main .missionGrid>.panel:nth-child(3n+3){border-top:3px solid var(--fm-mint)}
+body.fm-dark{--fm-lilac:#b89ae5;--fm-mint:#75cbb4;--fm-peach:#f4bf95;--fm-sky:#94b9f1}
+body.fm-dark .main>.top,body.fm-dark .main .subjectCard{background:var(--card)}
+body.fm-dark .main .grid>.kpi b{color:var(--ink)}
+@media(max-width:780px){.main>.top{padding:10px 12px;border-radius:15px}.main .panel,.main .kpi,.main .subjectCard,.main .qbox{border-radius:16px}}
+@media(prefers-reduced-motion:reduce){.main .btn,.main .field,.main .gameOption{transition:none}}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes • Study Space ♡</div><div class="sideSignature"><b>Medicina, constância & propósito.</b><small>um passo por dia ✦</small></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span></div></div><div class="mobileGamesShortcut"><button class="btn" onclick="go('Jogos')">🎮 Abrir Jogos</button></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20250927-full75"></script><script src="sus241-lessons.js?v=20250927-lessons"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
