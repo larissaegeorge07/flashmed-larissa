@@ -572,22 +572,34 @@ function bankFlashcardQuestion(q){
  return (context?context+'\n\n':'')+request;
 }
 function createBankErrorFlashcard(id){let q=db.bankQuestions.find(x=>x.id===id);if(!q)return;let subject='Erros do Banco de Questões';if(!db.subjects.includes(subject))db.subjects.push(subject);db.subjectIcons[subject]='🧠';let tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number,exists=db.cards.some(c=>c.bankQuestionId===q.id);if(exists)return toast('Este erro já virou flashcard ♡');let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));db.cards.push({id:Date.now(),subject,front,back,media:'',tags:tag,ok:0,bad:0,interval:0,due:day(),history:[],bankQuestionId:q.id,bankAutoFront:front,bankAutoBack:back,bankCardVersion:2});save();toast('Flashcard do erro criado ♡')}
-function refreshBankErrorFlashcards(){
- let changed=false;
+function refreshBankErrorFlashcards(options={}){
+ // Migrate only flashcards linked to bank questions; keep manually edited cards intact.
+ // The migration is idempotent and preserves all study history, intervals and due dates.
+ let changed=false,updated=0,skipped=0;
  const oldPattern=/^(Em .+, qual exame ou teste|Em .+, qual é a conduta|Qual é o principal agente ou causa|Qual é o critério ou definição|Qual é a principal medida de prevenção|Qual é o ponto-chave cobrado)/i;
+ const questions=new Map((db.bankQuestions||[]).map(q=>[String(q.id),q]));
  for(const card of db.cards||[]){
-  if(!card.bankQuestionId)continue;
-  const q=(db.bankQuestions||[]).find(x=>x.id===card.bankQuestionId);if(!q)continue;
-  const front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));
-  const canUpdate=card.bankAutoFront?card.front===card.bankAutoFront:oldPattern.test(stripBankHtml(card.front));
-  if(!canUpdate)continue; // Preserve cards the student has already rewritten.
-  const canUpdateBack=card.bankAutoBack?card.back===card.bankAutoBack:true;
-  if(card.front!==front){card.front=front;changed=true}
-  if(canUpdateBack&&card.back!==back){card.back=back;changed=true}
-  card.bankAutoFront=front;if(canUpdateBack)card.bankAutoBack=back;
-  card.bankCardVersion=2;
+  if(card.bankQuestionId==null)continue;
+  const q=questions.get(String(card.bankQuestionId));if(!q){skipped++;continue}
+  const front=esc(bankFlashcardQuestion(q));
+  const back=esc(bankFlashcardTakeaway(q));
+  const previous=stripBankHtml(card.front||'').trim();
+  const autoFront=card.bankAutoFront?card.front===card.bankAutoFront:oldPattern.test(previous);
+  if(!autoFront){skipped++;continue}
+  const autoBack=card.bankAutoBack?card.back===card.bankAutoBack:true;
+  if(card.front!==front){card.front=front;changed=true;updated++}
+  if(autoBack&&card.back!==back){card.back=back;changed=true}
+  if(card.bankAutoFront!==front||card.bankCardVersion!==2){card.bankAutoFront=front;card.bankCardVersion=2;changed=true}
+  if(autoBack&&card.bankAutoBack!==back){card.bankAutoBack=back;changed=true}
  }
- if(changed){db.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(db));if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}}
+ if(changed){
+  db.updatedAt=Date.now();
+  if(!options.deferSave){
+   localStorage.setItem(KEY,JSON.stringify(db));
+   if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}
+  }
+ }
+ return {changed,updated,skipped};
 }
 function bankErrorReasonLabel(k){return ({knowledge:'🧠 Não sabia',confusion:'🔀 Confundi conceitos',distractor:'🎯 Caí no distrator',attention:'👀 Interpretação/desatenção',memory:'🔢 Esqueci critério/número',guess:'🎲 Chutei'})[k]||k}
 function bankErrorReasonBox(attemptId,q){let opts=[['knowledge','🧠 Não sabia'],['confusion','🔀 Confundi conceitos'],['distractor','🎯 Caí no distrator'],['attention','👀 Interpretação/desatenção'],['memory','🔢 Esqueci critério/número'],['guess','🎲 Chutei']];return `<div class=qbox style='margin-top:14px'><b>🔎 Por que você acha que errou?</b><p class=muted>Um clique. Isso ajuda o FlashMed a separar falta de conteúdo de erro de prova.</p><div class=row>${opts.map(x=>`<button class='btn ghost mini' onclick="tagBankError(${attemptId},'${x[0]}','${q.id}')">${x[1]}</button>`).join('')}</div><div id='errorDetail-${attemptId}'></div></div>`}
@@ -676,8 +688,9 @@ async function syncDown(quiet=false){
         if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded241=true}
       }
       const removedOriginalTest=removeOriginalTestCard();
+      const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
+      if(migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
       render();
     } else {
       await syncUp();
