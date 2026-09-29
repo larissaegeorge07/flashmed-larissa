@@ -102,8 +102,8 @@ function memoryDeck(source){
  const seen=new Set(),out=[];
  for(const x of source.filter(x=>x.kind==='cards')){
   const question=clean(x.question),answer=clean(x.answer),key=question.toLocaleLowerCase('pt-BR')+'|'+answer.toLocaleLowerCase('pt-BR');
-  if(question.length<5||question.length>68||answer.length<2||answer.length>48||seen.has(key))continue;
-  seen.add(key);out.push({...x,question,answer});
+  if(question.length<5||question.length>68||answer.length<2||answer.length>48||seen.has(key)||answers.has(answer.toLocaleLowerCase('pt-BR')))continue;
+  seen.add(key);answers.add(answer.toLocaleLowerCase('pt-BR'));out.push({...x,question,answer});
  }
  return out;
 }
