@@ -43,7 +43,9 @@ jobs:
               print('2024 endoscopy',xref,im.size)
             else:
               # Original 2023 question 61–63 case is on the final short-answer pages.
-              pages=[i for i,p in enumerate(doc) if '61 a 63' in p.get_text().lower() or 'radiografia de abdome' in p.get_text().lower()]
+              pages=[i for i,p in enumerate(doc) if 'artroplastia' in p.get_text().lower() and 'quadril' in p.get_text().lower()]
+              print('2023 exact case pages', [i+1 for i in pages])
+              if not pages:raise RuntimeError('2023 case text not found; abort to avoid incorrect image')
               candidates=[]
               for i in set(j for n in pages for j in (n-1,n,n+1) if 0<=j<len(doc)):
                 p=doc[i]
