@@ -260,17 +260,27 @@ applyExactOfficialText();
 // Retain every original attempt and selected alternative; repair grading and stored seed metadata.
 function reconcileSUS241Definitive(){
  let changed=false;
- const seeds=new Map(SUS241.filter(q=>q.number<=45).map(q=>[q.id,q]));
+ // Rebuild the FULL official exam from the original source on every local/cloud load.
+ // A previously saved question may have the correct ID but a shifted stem or choices.
+ const seeds=new Map(SUS241.map(q=>[q.id,q]));
+ const officialFields=['number','exam','area','topic','type','caseText','prompt','alternatives','correctIndex','annulled','resolution'];
+ const seen=new Set();
  for(const saved of db.bankQuestions||[]){
   const seed=seeds.get(saved.id);if(!seed)continue;
-  for(const k of ['correctIndex','annulled','resolution']){
-   if(saved[k]!==seed[k]){saved[k]=seed[k];changed=true}
+  seen.add(seed.id);
+  for(const k of officialFields){
+   if(JSON.stringify(saved[k])!==JSON.stringify(seed[k])){
+    if(seed[k]===undefined)delete saved[k];else saved[k]=seed[k];
+    changed=true;
+   }
   }
  }
+ for(const seed of SUS241){if(!seen.has(seed.id)){db.bankQuestions.push({...seed});changed=true}}
+ // Correct previous grading without deleting attempts or changing selected answers.
  for(const attempt of db.bankAttempts||[]){
-  const seed=seeds.get(attempt.questionId);
-  if(!seed||!seed.annulled)continue;
-  if(attempt.correct!==true){attempt.correct=true;attempt.correctedByDefinitive=true;changed=true}
+  const seed=seeds.get(attempt.questionId);if(!seed||seed.number>45)continue;
+  const correct=seed.annulled?true:attempt.answer===seed.correctIndex;
+  if(attempt.correct!==correct){attempt.correct=correct;attempt.correctedByDefinitive=true;changed=true}
  }
  return changed;
 }
