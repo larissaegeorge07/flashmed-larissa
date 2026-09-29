@@ -1,0 +1,68 @@
+name: Extract original exam figures
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-exam-figures.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  figures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pymupdf requests pillow
+      - name: Extract verified clinical figures
+        run: |
+          python - <<'PY'
+          import fitz,requests,io,os
+          from PIL import Image
+          os.makedirs('assets',exist_ok=True)
+          sources={
+            '2024':'https://strixeducacao.com.br/wp-content/uploads/2023/11/CEREMBA_2024_ACESSO-DIRETO2.pdf',
+            '2023':'https://strixeducacao.com.br/wp-content/uploads/2022/11/CEREMBA_2023_ACESSO-DIRETO.pdf'
+          }
+          for year,url in sources.items():
+            r=requests.get(url,timeout=90,headers={'User-Agent':'Mozilla/5.0'});r.raise_for_status()
+            doc=fitz.open(stream=r.content,filetype='pdf')
+            if year=='2024':
+              page=doc[5]
+              matches=[]
+              for im in page.get_images(full=True):
+                for rect in page.get_image_rects(im[0]):
+                  if rect.width>150 and rect.height>150:matches.append((rect.width*rect.height,im[0]))
+              if not matches:raise RuntimeError('2024 endoscopy not found')
+              xref=max(matches)[1]
+              pix=fitz.Pixmap(doc,xref)
+              if pix.n>4:pix=fitz.Pixmap(fitz.csRGB,pix)
+              im=Image.open(io.BytesIO(pix.tobytes('png'))).convert('RGB')
+              im.save('assets/sus241-endoscopia.jpg',quality=88,optimize=True)
+              print('2024 endoscopy',xref,im.size)
+            else:
+              # Original 2023 question 61–63 case is on the final short-answer pages.
+              pages=[i for i,p in enumerate(doc) if '61 a 63' in p.get_text().lower() or 'radiografia de abdome' in p.get_text().lower()]
+              candidates=[]
+              for i in set(j for n in pages for j in (n-1,n,n+1) if 0<=j<len(doc)):
+                p=doc[i]
+                for item in p.get_images(full=True):
+                  for rect in p.get_image_rects(item[0]):
+                    if rect.width>130 and rect.height>130 and rect.y0>70 and rect.y0<650:
+                      candidates.append((rect.width*rect.height,item[0],i,rect))
+              if not candidates:raise RuntimeError('2023 abdominal X-ray not found; no file written')
+              candidates.sort(reverse=True)
+              area,xref,pageno,rect=candidates[0]
+              pix=fitz.Pixmap(doc,xref)
+              if pix.n>4:pix=fitz.Pixmap(fitz.csRGB,pix)
+              im=Image.open(io.BytesIO(pix.tobytes('png'))).convert('RGB')
+              im.save('assets/sus231-radiografia.jpg',quality=88,optimize=True)
+              print('2023 abdominal X-ray candidate',xref,'page',pageno+1,im.size,rect)
+          PY
+      - name: Commit only extracted figures
+        run: |
+          git config user.name "FlashMed figures"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/sus241-endoscopia.jpg assets/sus231-radiografia.jpg
+          git diff --cached --quiet || (git commit -m "Add original exam figures for 2023.1 and 2024.1" && git push)
