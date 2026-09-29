@@ -99,7 +99,7 @@ function medicalIllustration(x,small=false){const key=artKey(x);if(!key)return '
 // Memory is a visual recognition game: picture on one card, a brief answer on its mate.
 // Only use the flashcard's actual answer; never synthesize a new medical diagnosis.
 function memoryDeck(source){
- const seen=new Set(),out=[];
+ const seen=new Set(),answers=new Set(),out=[];
  for(const x of source.filter(x=>x.kind==='cards')){
   const question=clean(x.question),answer=clean(x.answer),key=question.toLocaleLowerCase('pt-BR')+'|'+answer.toLocaleLowerCase('pt-BR');
   if(question.length<5||question.length>68||answer.length<2||answer.length>48||seen.has(key)||answers.has(answer.toLocaleLowerCase('pt-BR')))continue;
