@@ -555,8 +555,8 @@ function bankFlashcardTakeaway(q){if(q.type==='short'&&q.expected)return q.expec
 function bankFlashcardQuestion(q){
  // Anchor the question in the original clinical scenario and the examiner's actual request.
  // Never infer the task from unrelated words in the resolution or answer choices.
- const clean=x=>stripBankHtml(String(x||'')).replace(/\\s+/g,' ').trim();
- const prompt=clean(q.prompt).replace(/[:;\\s]+$/,'').replace(/[.!]+$/,'').trim();
+ const clean=x=>stripBankHtml(String(x||'')).replace(/\s+/g,' ').trim();
+ const prompt=clean(q.prompt).replace(/[:;\s]+$/,'').replace(/[.!]+$/,'').trim();
  const rawCase=clean(q.caseText||q.case||'');
  let context=rawCase;
  if(context.length>320){
@@ -564,12 +564,12 @@ function bankFlashcardQuestion(q){
   context=(cut>100?first.slice(0,cut+1):first.trim())+' […] '+context.slice(-115).trim();
  }
  let request=prompt;
- if(!request||/^(assinale|marque|selecione|escolha)\\s+(a\\s+)?(alternativa|op[cç][aã]o)\\s+(correta|incorreta)/i.test(request)){
+ if(!request||/^(assinale|marque|selecione|escolha)\s+(a\s+)?(alternativa|op[cç][aã]o)\s+(correta|incorreta)/i.test(request)){
   const topic=clean(q.topic||q.area||'o caso clínico');
   request='Qual é a resposta correta sobre '+topic+' para este caso?';
  }
  if(request&&!/[?]$/.test(request))request=request+'?';
- return (context?context+'\\n\\n':'')+request;
+ return (context?context+'\n\n':'')+request;
 }
 function createBankErrorFlashcard(id){let q=db.bankQuestions.find(x=>x.id===id);if(!q)return;let subject='Erros do Banco de Questões';if(!db.subjects.includes(subject))db.subjects.push(subject);db.subjectIcons[subject]='🧠';let tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number,exists=db.cards.some(c=>c.bankQuestionId===q.id);if(exists)return toast('Este erro já virou flashcard ♡');let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));db.cards.push({id:Date.now(),subject,front,back,media:'',tags:tag,ok:0,bad:0,interval:0,due:day(),history:[],bankQuestionId:q.id,bankAutoFront:front,bankAutoBack:back,bankCardVersion:2});save();toast('Flashcard do erro criado ♡')}
 function refreshBankErrorFlashcards(){
