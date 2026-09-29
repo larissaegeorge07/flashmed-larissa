@@ -700,6 +700,13 @@ async function syncDown(quiet=false){
         if(!db.bankQuestions.some(x=>x.id===item.id)){db.bankQuestions.push(item);addedOfficial=true}
       }
       const correctedOfficial=applyExactOfficialText();
+      // Update this individually reviewed commentary in existing cloud question banks.
+      let evidenceResolutionUpdated=false;
+      const reviewedTB1=SUS26_1.find(x=>x.id==='sus26-1');
+      const storedTB1=db.bankQuestions.find(x=>x.id==='sus26-1');
+      if(reviewedTB1&&storedTB1&&storedTB1.resolution!==reviewedTB1.resolution){
+       storedTB1.resolution=reviewedTB1.resolution;evidenceResolutionUpdated=true;
+      }
       const expandedLessons=applySUS261MiniLessons();
       let expanded251=applySUS251MiniLessons();
       for(const seed of SUS251){const saved=db.bankQuestions.find(x=>x.id===seed.id);if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded251=true}}
@@ -721,7 +728,7 @@ async function syncDown(quiet=false){
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(recoveredLocalStudy||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
+      if(evidenceResolutionUpdated||recoveredLocalStudy||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241) await syncUp();
       render();
     } else {
       await syncUp();
