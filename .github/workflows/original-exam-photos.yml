@@ -1,0 +1,53 @@
+name: Restore exact original exam photos
+on:
+  push:
+    paths:
+      - '.github/workflows/original-exam-photos.yml'
+permissions:
+  contents: write
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pymupdf requests
+      - name: Extract unmodified embedded images from original exam PDFs
+        run: |
+          python - <<'PY'
+          import fitz,requests,os
+          os.makedirs('assets',exist_ok=True)
+          cases=[
+            ('2024','https://strixeducacao.com.br/wp-content/uploads/2023/11/CEREMBA_2024_ACESSO-DIRETO2.pdf','endoscop','assets/sus241-endoscopia-original'),
+            ('2023','https://strixeducacao.com.br/wp-content/uploads/2022/11/CEREMBA_2023_ACESSO-DIRETO.pdf','artroplastia','assets/sus231-radiografia-original'),
+          ]
+          for year,url,keyword,out in cases:
+            r=requests.get(url,timeout=90,verify=False,headers={'User-Agent':'Mozilla/5.0'});r.raise_for_status()
+            doc=fitz.open(stream=r.content,filetype='pdf')
+            pages=[i for i,p in enumerate(doc) if keyword in p.get_text().lower()]
+            if year=='2024':
+              pages=[i for i in pages if any(im[2]>=400 and im[3]>=400 for im in doc[i].get_images(full=True))]
+            if not pages:raise RuntimeError('Case not found '+year)
+            p=doc[pages[0]]
+            ims=[]
+            for im in p.get_images(full=True):
+              for rect in p.get_image_rects(im[0]):
+                if year=='2024' and im[2]>=400 and im[3]>=400 and rect.width>200:ims.append((rect.width*rect.height,im[0],rect))
+                if year=='2023' and im[2]>=300 and im[3]>=300 and rect.width>120 and rect.height>120:ims.append((rect.width*rect.height,im[0],rect))
+            if not ims:raise RuntimeError('Original photo not found '+year)
+            area,xref,rect=max(ims)
+            img=doc.extract_image(xref)
+            ext=img['ext']
+            if ext not in ('jpeg','jpg','png'):raise RuntimeError('Unexpected format '+ext)
+            path=out+'.'+('jpg' if ext in ('jpeg','jpg') else ext)
+            with open(path,'wb') as f:f.write(img['image'])
+            print(year,'original photo',path,'PDF page',pages[0]+1,'xref',xref,'pixels',img['width'],img['height'],'bytes',len(img['image']),'rectangle',rect)
+          PY
+      - name: Commit exact source images
+        run: |
+          git config user.name "FlashMed figures"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/*-original.*
+          git diff --cached --quiet || (git commit -m "Add unmodified original embedded exam photographs" && git push)
