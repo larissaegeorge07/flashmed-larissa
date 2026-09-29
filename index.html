@@ -552,9 +552,43 @@ function normBankText(s){return (s||'').toLowerCase().normalize('NFD').replace(/
 function gradeShortBank(q,answer){let a=normBankText(answer);if(!a)return{level:'Não corresponde',hit:[],miss:q.concepts||[]};let accepted=(q.accepted||[]).some(x=>a.includes(normBankText(x))||normBankText(x).includes(a));let concepts=(q.concepts||[]),hit=concepts.filter(x=>a.includes(normBankText(x))),need=q.requiredCount||concepts.length||1;if(accepted||hit.length>=need)return{level:'Corresponde totalmente',hit,miss:[]};if(hit.length)return{level:'Corresponde parcialmente',hit,miss:concepts.filter(x=>!hit.includes(x))};let exp=normBankText(q.expected),words=a.split(' ').filter(x=>x.length>4),idea=words.some(w=>exp.includes(w));return{level:idea?'Traz a ideia — precisa melhorar a escrita':'Não corresponde',hit:idea?words.filter(w=>exp.includes(w)):[],miss:concepts}}
 function stripBankHtml(s){let d=document.createElement('div');d.innerHTML=s||'';return (d.textContent||d.innerText||'').replace(/\s+/g,' ').trim()}
 function bankFlashcardTakeaway(q){if(q.type==='short'&&q.expected)return q.expected;let correct=q.alternatives?.[q.correctIndex];if(correct)return correct;let txt=stripBankHtml(q.resolution||''),m=txt.match(/Leve para a prova[:\s-]*(.+?)(?=(?:Pegadinha|Gabarito|Resposta|$))/i),take=m?.[1]?.trim();return take&&take.length>20?take.slice(0,650):'Revise o conceito central deste tema.'}
-function bankFlashcardQuestion(q){let topic=(q.topic||q.area||'este tema').trim(),ans=bankFlashcardTakeaway(q),ctx=normBankSearch((q.prompt||'')+' '+ans+' '+(q.resolution||''));if(ctx.includes('confirmacao diagnostica')||ctx.includes('diagnost')||ctx.includes('teste')||ctx.includes('exame'))return 'Em '+topic+', qual exame ou teste é indicado para a confirmação diagnóstica?';if(ctx.includes('tratamento')||ctx.includes('conduta')||ctx.includes('terapia')||ctx.includes('medic'))return 'Em '+topic+', qual é a conduta ou tratamento indicado neste contexto?';if(ctx.includes('agente')||ctx.includes('etiolog')||ctx.includes('causa'))return 'Qual é o principal agente ou causa relacionado a '+topic+'?';if(ctx.includes('criterio')||ctx.includes('defin')||ctx.includes('classific'))return 'Qual é o critério ou definição essencial de '+topic+'?';if(ctx.includes('prevenc')||ctx.includes('profilax'))return 'Qual é a principal medida de prevenção ou profilaxia em '+topic+'?';return 'Qual é o ponto-chave cobrado sobre '+topic+' neste contexto?'}
-function createBankErrorFlashcard(id){let q=db.bankQuestions.find(x=>x.id===id);if(!q)return;let subject='Erros do Banco de Questões';if(!db.subjects.includes(subject))db.subjects.push(subject);db.subjectIcons[subject]='🧠';let tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number,exists=db.cards.some(c=>c.bankQuestionId===q.id);if(exists)return toast('Este erro já virou flashcard ♡');let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));db.cards.push({id:Date.now(),subject,front,back,media:'',tags:tag,ok:0,bad:0,interval:0,due:day(),history:[],bankQuestionId:q.id});save();toast('Flashcard do erro criado ♡')}
-function refreshBankErrorFlashcards(){let changed=false;for(const card of db.cards||[]){if(!card.bankQuestionId)continue;let q=(db.bankQuestions||[]).find(x=>x.id===card.bankQuestionId);if(!q)continue;let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q)),tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number;if(card.front!==front||card.back!==back||card.tags!==tag){card.front=front;card.back=back;card.tags=tag;changed=true}}if(changed){db.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(db));if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}}}
+function bankFlashcardQuestion(q){
+ // Anchor the question in the original clinical scenario and the examiner's actual request.
+ // Never infer the task from unrelated words in the resolution or answer choices.
+ const clean=x=>stripBankHtml(String(x||'')).replace(/\\s+/g,' ').trim();
+ const prompt=clean(q.prompt).replace(/[:;\\s]+$/,'').replace(/[.!]+$/,'').trim();
+ const rawCase=clean(q.caseText||q.case||'');
+ let context=rawCase;
+ if(context.length>320){
+  const first=context.slice(0,235),cut=Math.max(first.lastIndexOf('. '),first.lastIndexOf('; '));
+  context=(cut>100?first.slice(0,cut+1):first.trim())+' […] '+context.slice(-115).trim();
+ }
+ let request=prompt;
+ if(!request||/^(assinale|marque|selecione|escolha)\\s+(a\\s+)?(alternativa|op[cç][aã]o)\\s+(correta|incorreta)/i.test(request)){
+  const topic=clean(q.topic||q.area||'o caso clínico');
+  request='Qual é a resposta correta sobre '+topic+' para este caso?';
+ }
+ if(request&&!/[?]$/.test(request))request=request+'?';
+ return (context?context+'\\n\\n':'')+request;
+}
+function createBankErrorFlashcard(id){let q=db.bankQuestions.find(x=>x.id===id);if(!q)return;let subject='Erros do Banco de Questões';if(!db.subjects.includes(subject))db.subjects.push(subject);db.subjectIcons[subject]='🧠';let tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number,exists=db.cards.some(c=>c.bankQuestionId===q.id);if(exists)return toast('Este erro já virou flashcard ♡');let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));db.cards.push({id:Date.now(),subject,front,back,media:'',tags:tag,ok:0,bad:0,interval:0,due:day(),history:[],bankQuestionId:q.id,bankAutoFront:front,bankAutoBack:back,bankCardVersion:2});save();toast('Flashcard do erro criado ♡')}
+function refreshBankErrorFlashcards(){
+ let changed=false;
+ const oldPattern=/^(Em .+, qual exame ou teste|Em .+, qual é a conduta|Qual é o principal agente ou causa|Qual é o critério ou definição|Qual é a principal medida de prevenção|Qual é o ponto-chave cobrado)/i;
+ for(const card of db.cards||[]){
+  if(!card.bankQuestionId)continue;
+  const q=(db.bankQuestions||[]).find(x=>x.id===card.bankQuestionId);if(!q)continue;
+  const front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));
+  const canUpdate=card.bankAutoFront?card.front===card.bankAutoFront:oldPattern.test(stripBankHtml(card.front));
+  if(!canUpdate)continue; // Preserve cards the student has already rewritten.
+  const canUpdateBack=card.bankAutoBack?card.back===card.bankAutoBack:true;
+  if(card.front!==front){card.front=front;changed=true}
+  if(canUpdateBack&&card.back!==back){card.back=back;changed=true}
+  card.bankAutoFront=front;if(canUpdateBack)card.bankAutoBack=back;
+  card.bankCardVersion=2;
+ }
+ if(changed){db.updatedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(db));if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}}
+}
 function bankErrorReasonLabel(k){return ({knowledge:'🧠 Não sabia',confusion:'🔀 Confundi conceitos',distractor:'🎯 Caí no distrator',attention:'👀 Interpretação/desatenção',memory:'🔢 Esqueci critério/número',guess:'🎲 Chutei'})[k]||k}
 function bankErrorReasonBox(attemptId,q){let opts=[['knowledge','🧠 Não sabia'],['confusion','🔀 Confundi conceitos'],['distractor','🎯 Caí no distrator'],['attention','👀 Interpretação/desatenção'],['memory','🔢 Esqueci critério/número'],['guess','🎲 Chutei']];return `<div class=qbox style='margin-top:14px'><b>🔎 Por que você acha que errou?</b><p class=muted>Um clique. Isso ajuda o FlashMed a separar falta de conteúdo de erro de prova.</p><div class=row>${opts.map(x=>`<button class='btn ghost mini' onclick="tagBankError(${attemptId},'${x[0]}','${q.id}')">${x[1]}</button>`).join('')}</div><div id='errorDetail-${attemptId}'></div></div>`}
 function tagBankError(attemptId,reason,qid){let a=(db.bankAttempts||[]).find(x=>x.id==attemptId);if(!a)return;a.errorReason=reason;if(reason==='distractor'){let q=(db.bankQuestions||[]).find(x=>x.id===qid),picked=typeof a.answer==='number'?(q?.alternatives?.[a.answer]||''):'';a.distractorText=picked;let box=document.getElementById('errorDetail-'+attemptId);if(box)box.innerHTML=`<label style='display:block;margin-top:10px'>Qual palavra/trecho te derrubou? <span class=muted>(opcional)</span><input id='distractorNote-${attemptId}' class=field placeholder='Ex.: EXCETO, primeira conduta, sempre, número do critério…'><button class='btn mini' onclick='saveDistractorNote(${attemptId})'>Salvar detalhe</button></label>`}save();toast(bankErrorReasonLabel(reason)+' registrado ♡');if(route==='Métricas')render()}
