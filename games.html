@@ -39,10 +39,36 @@ const MINI=[
 ['Infectologia','🐌','Contato com água doce','Esquistossomose','Cercárias penetram a pele em água contaminada.']
 ].map((v,i)=>({id:'mini-'+i,kind:'mini',area:v[0],icon:v[1],question:v[2],answer:v[3],tip:v[4],wrong:false}));
 const short=s=>clean(s).replace(/^(assinale|considerando|sobre o caso|em relação).*/i,'').slice(0,74).trim();
-function compactPairs(source){const cards=source.filter(x=>x.kind==='mini').map(x=>({...x}));const seen=new Set(cards.map(x=>x.question.toLowerCase()+'|'+x.answer.toLowerCase()));for(const x of source.filter(x=>x.kind==='cards')){let q=short(x.question),a=short(x.answer);if(q.length>4&&q.length<=65&&a.length>2&&a.length<=65&&!seen.has(q.toLowerCase()+'|'+a.toLowerCase())){cards.push({...x,question:q,answer:a,icon:'🩺'});seen.add(q.toLowerCase()+'|'+a.toLowerCase())}}return cards}
+function compactPairs(source){
+ const result=[],seen=new Set(),usedAnswers=new Set();
+ const add=x=>{
+  const q=clean(x.question),a=clean(x.answer),key=q.toLocaleLowerCase('pt-BR')+'|'+a.toLocaleLowerCase('pt-BR');
+  if(!q||!a||q.length>68||a.length>68||seen.has(key)||usedAnswers.has(a.toLocaleLowerCase('pt-BR')))return;
+  seen.add(key);usedAnswers.add(a.toLocaleLowerCase('pt-BR'));result.push({...x,question:q,answer:a,icon:x.icon||'🩺'});
+ };
+ // Future flashcards enter automatically when their front and back fit on a card.
+ for(const x of shuffle(source.filter(x=>x.kind==='cards'))){
+  const q=clean(x.question),a=clean(x.answer);
+  if(q.length>=5&&q.length<=68&&a.length>=3&&a.length<=68)add(x);
+ }
+ // Future bank questions enter automatically when a short, unambiguous prompt and answer exist.
+ // Do not cut off medical answers or turn a full clinical vignette into a misleading clue.
+ for(const x of shuffle(source.filter(x=>x.kind==='bank'))){
+  const prompt=clean(x.prompt||''),answer=clean(x.answer),topic=clean(x.topic||'');
+  if(answer.length<3||answer.length>68)continue;
+  if(prompt.length>=8&&prompt.length<=68&&!/^(assinale|marque|sobre|considerando)/i.test(prompt)){
+   add({...x,question:prompt,answer,icon:'🩺'});
+  }else if(topic.length>=5&&topic.length<=45&&/^(qual|o que|como|cite|indique)/i.test(prompt)&&prompt.length<=90){
+   add({...x,question:topic+' • '+prompt,answer,icon:'🩺'});
+  }
+ }
+ // Curated starter cards are a fallback, not a fixed ceiling or the only source.
+ for(const x of shuffle(source.filter(x=>x.kind==='mini')))add(x);
+ return result;
+}
 
-function load(){try{db=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){db={}};const wrong=new Set((db.bankAttempts||[]).filter(x=>x.correct===false).map(x=>String(x.questionId)));items=[...MINI,...(db.bankQuestions||[]).filter(q=>!q.annulled&&Array.isArray(q.alternatives)&&q.alternatives.length>=2&&Number.isInteger(q.correctIndex)&&q.alternatives[q.correctIndex]).map(q=>({id:String(q.id),kind:'bank',area:q.area||q.topic||'Geral',question:clean((q.caseText||'')+' '+(q.prompt||'')),options:q.alternatives.map(clean),correct:q.correctIndex,answer:clean(q.alternatives[q.correctIndex]),tip:clean(q.resolution).slice(0,700),wrong:wrong.has(String(q.id))})),...(db.cards||[]).filter(c=>c.front&&c.back).map(c=>({id:String(c.id),kind:'cards',area:c.subject||'Geral',question:clean(c.front),answer:clean(c.back),tip:'Revisão de flashcard',wrong:(c.bad||0)>(c.ok||0)}))];const areas=[...new Set(items.map(x=>x.area))].sort();$('area').innerHTML='<option value="">Todas</option>'+areas.map(x=>'<option>'+esc(x)+'</option>').join('');refresh()}
-function refresh(){const a=$('area').value,s=$('source').value;pool=items.filter(x=>(!a||x.area===a)&&(s==='all'||s==='wrong'&&x.wrong||x.kind===s||x.kind==='mini'&&s==='cards'));$('status').textContent=pool.length+' conteúdos disponíveis • '+pool.filter(x=>x.kind==='bank').length+' questões • '+pool.filter(x=>x.kind==='cards').length+' flashcards • '+pool.filter(x=>x.kind==='mini').length+' minidesafios. Novos conteúdos cadastrados no FlashMed entram aqui após sincronizar e reabrir esta página.';renderHome()}
+function load(){try{db=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){db={}};const wrong=new Set((db.bankAttempts||[]).filter(x=>x.correct===false).map(x=>String(x.questionId)));items=[...MINI,...(db.bankQuestions||[]).filter(q=>!q.annulled&&Array.isArray(q.alternatives)&&q.alternatives.length>=2&&Number.isInteger(q.correctIndex)&&q.alternatives[q.correctIndex]).map(q=>({id:String(q.id),kind:'bank',area:q.area||q.topic||'Geral',topic:q.topic||'',prompt:clean(q.prompt||''),question:clean((q.caseText||'')+' '+(q.prompt||'')),options:q.alternatives.map(clean),correct:q.correctIndex,answer:clean(q.alternatives[q.correctIndex]),tip:clean(q.resolution).slice(0,700),wrong:wrong.has(String(q.id))})),...(db.cards||[]).filter(c=>c.front&&c.back).map(c=>({id:String(c.id),kind:'cards',area:c.subject||'Geral',question:clean(c.front),answer:clean(c.back),tip:'Revisão de flashcard',wrong:(c.bad||0)>(c.ok||0)}))];const areas=[...new Set(items.map(x=>x.area))].sort();$('area').innerHTML='<option value="">Todas</option>'+areas.map(x=>'<option>'+esc(x)+'</option>').join('');refresh()}
+function refresh(){const a=$('area').value,s=$('source').value;pool=items.filter(x=>(!a||x.area===a)&&(s==='all'||s==='wrong'&&x.wrong||x.kind===s||x.kind==='mini'&&s==='cards'));$('status').textContent=pool.length+' conteúdos disponíveis • '+pool.filter(x=>x.kind==='bank').length+' questões • '+pool.filter(x=>x.kind==='cards').length+' flashcards • '+pool.filter(x=>x.kind==='mini').length+' minidesafios. Novas questões e flashcards curtos entram automaticamente nos jogos após sincronizar e reabrir esta aba.';renderHome()}
 function renderHome(){const games=[['quiz','⚡','Quiz Relâmpago','Alternativas, cronômetro e pontos'],['pairs','🧩','Combinar Pares','Ligue pergunta e resposta'],['wheel','🎡','Roleta Médica','Sorteie um desafio do seu banco'],['memory','🧠','Memória Médica','Encontre cartas correspondentes']];$('home').innerHTML=games.map(g=>'<button class="tile" onclick="start(\''+g[0]+'\')"><span class="emoji">'+g[1]+'</span><b>'+g[2]+'</b><span class="muted">'+g[3]+'</span><span class="play-cta">Jogar agora →</span></button>').join('')}
 function start(m){mode=m;score=0;round=0;selected=null;matched=new Set();clearInterval(timer);const base=m==='quiz'?pool.filter(x=>x.kind==='bank'):m==='pairs'||m==='memory'?compactPairs(pool):pool;if(!base.length){alert('Não há conteúdos compatíveis com este jogo e estes filtros. Escolha outra fonte.');return}deck=shuffle(base).slice(0,Math.min(+$('count').value,base.length));$('home').classList.add('hidden');$('play').classList.remove('hidden');if(m==='memory'||m==='pairs')makePairs();else next()}
 function back(){clearInterval(timer);$('play').classList.add('hidden');$('home').classList.remove('hidden');refresh()}
