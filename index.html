@@ -662,16 +662,46 @@ function timerView(){let t=timer.elapsed+(timer.on?(Date.now()-timer.start):0);r
 function reminders(){return `<div class=panel><h2>Lembretes</h2><div class=row><input id=rt type=datetime-local class=field style='max-width:260px'><input id=rx class=field placeholder='Ex.: Revisar HELLP' style='max-width:420px'><button class=btn onclick=addR()>Adicionar</button></div>${db.reminders.map((r,i)=>`<div class=qbox><b>${new Date(r.when).toLocaleString('pt-BR')}</b><p>${esc(r.text)}</p><button class='btn ghost' onclick='db.reminders.splice(${i},1);save();render()'>Excluir</button></div>`).join('')||'<p class=muted>Nenhum lembrete.</p>'}<p class=muted>Alertas do navegador dependem da página estar aberta. Em uma versão hospedada como PWA, notificações podem ser ampliadas.</p></div>`}function addR(){if(rt.value&&rx.value){db.reminders.push({when:rt.value,text:rx.value});save();render()}}
 function cloudView(){return `<div class="cols"><div class="panel"><h2>☁ Conta & sincronização</h2><p><b>Supabase conectado.</b> Seus dados ficam associados ao seu usuário.</p><div class="row"><button class="btn" onclick="syncDown()">Sincronizar agora</button><button class="btn ghost" onclick="logoutFlashMed()">Sair da conta</button></div><p class="muted">As alterações são salvas neste aparelho e sincronizadas automaticamente com sua conta.</p></div><div class="panel"><h2>Backup manual</h2><div class="row"><button class="btn" onclick="exportDB()">Exportar JSON</button><label class="btn ghost">Importar JSON<input type="file" accept=".json" hidden onchange="importDB(this)"></label></div><h3>Status</h3><p>🟢 Conta conectada e sincronização ativa</p></div></div>`}
 
+let flashmedSyncQueue=Promise.resolve();
+function flashmedRecoverySnapshot(label,data){try{let key='flashmed_recovery_'+Date.now()+'_'+label;localStorage.setItem(key,JSON.stringify(data));let keys=Object.keys(localStorage).filter(x=>x.startsWith('flashmed_recovery_')).sort();while(keys.length>12)localStorage.removeItem(keys.shift())}catch(e){console.warn('Backup de recuperação indisponível',e)}}
+function flashmedMergePersonal(remote,local){
+ if(!remote||!local)return false;let changed=false;
+ for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id']]){
+  let a=Array.isArray(remote[key])?remote[key]:[],b=Array.isArray(local[key])?local[key]:[];
+  let seen=new Set(a.map(x=>String(x?.[idKey]??'')));
+  for(const item of b){let id=String(item?.[idKey]??'');if(!id||seen.has(id))continue;a.push(item);seen.add(id);changed=true}
+  remote[key]=a;
+ }
+ for(const key of ['bankAnnotations','bankSavedInk','bankReviewState','bankReviewSchedule']){
+  if(local[key]&&typeof local[key]==='object'&&!Array.isArray(local[key])){
+   remote[key]=remote[key]||{};
+   for(const [k,v] of Object.entries(local[key]))if(!(k in remote[key])){remote[key][k]=v;changed=true}
+  }
+ }
+ return changed;
+}
 async function syncUp(){
-  if(!cloud||!currentUser)return;
+ if(!cloud||!currentUser)return;
+ const snapshot=JSON.parse(JSON.stringify(db));
+ flashmedRecoverySnapshot('before_upload',snapshot);
+ flashmedSyncQueue=flashmedSyncQueue.catch(()=>{}).then(async()=>{
   try{
-    const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
-    if(q.error)throw q.error;
-    const settings=Object.assign({},q.data?.settings||{},{flashmed_data:db});
-    const u=await cloud.from('profiles').update({settings,updated_at:new Date().toISOString()}).eq('user_id',currentUser.id);
-    if(u.error)throw u.error;
-    cloudDot.classList.add('ok'); saveState.textContent='salvo na nuvem';
-  }catch(e){cloudDot.classList.remove('ok');saveState.textContent='erro na nuvem';console.error(e)}
+   const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
+   if(q.error)throw q.error;
+   const settings=Object.assign({},q.data?.settings||{});
+   const remote=settings.flashmed_data;
+   if(remote){flashmedRecoverySnapshot('remote_before_merge',remote);flashmedMergePersonal(snapshot,remote);mergeCardStudyHistory(snapshot,remote)}
+   // Also merge changes made locally while this upload was waiting.
+   flashmedMergePersonal(snapshot,db);mergeCardStudyHistory(snapshot,db);
+   settings.flashmed_data=snapshot;
+   const u=await cloud.from('profiles').update({settings,updated_at:new Date().toISOString()}).eq('user_id',currentUser.id);
+   if(u.error)throw u.error;
+   flashmedMergePersonal(db,snapshot);mergeCardStudyHistory(db,snapshot);
+   localStorage.setItem(KEY,JSON.stringify(db));
+   cloudDot.classList.add('ok');saveState.textContent='salvo na nuvem';
+  }catch(e){cloudDot.classList.remove('ok');saveState.textContent='erro na nuvem — dados locais preservados';console.error(e)}
+ });
+ return flashmedSyncQueue;
 }
 // Keep study attempts when a cloud refresh replaces the local card collection.
 // Use a multiset merge: repeated ratings on the same day are genuine separate attempts.
@@ -710,6 +740,9 @@ async function syncDown(quiet=false){
     const remote=q.data?.settings?.flashmed_data;
     if(remote){
       const localBeforeSync=db;
+      flashmedRecoverySnapshot('local_before_download',localBeforeSync);
+      flashmedRecoverySnapshot('cloud_before_download',remote);
+      const recoveredLocalPersonal=flashmedMergePersonal(remote,localBeforeSync);
       const recoveredLocalStudy=mergeCardStudyHistory(remote,localBeforeSync);
       // After authentication, Supabase is the source of truth. This is essential
       // on a new/incognito browser, whose freshly-created local DB may have a
@@ -773,7 +806,7 @@ async function syncDown(quiet=false){
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(db));
-      if(evidenceResolutionUpdated||recoveredLocalStudy||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
+      if(evidenceResolutionUpdated||recoveredLocalPersonal||recoveredLocalStudy||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
       render();
     } else {
       await syncUp();
@@ -782,6 +815,7 @@ async function syncDown(quiet=false){
   }catch(e){console.error(e);cloudDot.classList.remove('ok');if(!quiet)toast('Não foi possível sincronizar')}
 }
 async function logoutFlashMed(){await cloud.auth.signOut();location.reload()}
+function exportFlashMedRecovery(){let keys=Object.keys(localStorage).filter(k=>k.startsWith('flashmed_recovery_')).sort().reverse();if(!keys.length)return toast('Ainda não há snapshots de recuperação neste navegador');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(keys.map(k=>({key:k,data:JSON.parse(localStorage.getItem(k))})),null,2)],{type:'application/json'}));a.download='flashmed-recuperacao-'+day()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
 function exportDB(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='flashmed-larissa-backup.json';a.click()}function importDB(i){let f=i.files[0],r=new FileReader;r.onload=()=>{try{db=JSON.parse(r.result);save();render();toast('Backup importado')}catch{toast('Arquivo inválido')}};r.readAsText(f)}
 
 
