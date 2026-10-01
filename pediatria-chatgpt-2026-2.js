@@ -987,5 +987,100 @@ window.PEDCHAT262 = [
     ],
     "correctIndex": 1,
     "resolution": "<h3>🧠 Resolução comentada — B</h3><p>Hipertonia, sucção débil, sonolência e retrocolo em recém-nascido com hiperbilirrubinemia indireta grave indicam <b>encefalopatia bilirrubínica aguda</b>.</p><p>É necessária <b>fototerapia intensiva imediata</b> enquanto se organiza <b>exsanguíneotransfusão urgente</b>. A presença de sinais neurológicos muda a urgência e a decisão não depende apenas de um valor isolado de bilirrubina.</p><p>A imunoglobulina pode ter papel adjuvante em hemólise isoimune selecionada, mas não substitui a terapia definitiva quando há sinais de neurotoxicidade.</p>"
+  },
+  {
+    "id": "pedchat262-51",
+    "number": 51,
+    "exam": "QUESTÕES DE PEDIATRIA DO CHATGPT 2026.2",
+    "family": "ChatGPT • Pediatria",
+    "area": "Pediatria",
+    "type": "multiple",
+    "topic": "Artrite séptica do quadril",
+    "caseText": "Um menino de 3 anos é levado ao pronto-socorro por febre de 39,1 °C e recusa súbita para andar há 24 horas. Mantém o quadril direito em flexão e rotação externa e chora intensamente à tentativa de mobilização passiva. Não houve trauma. Está hemodinamicamente estável. Exames: leucócitos 15.800/mm³, PCR 8,4 mg/dL e VHS 58 mm/h. A ultrassonografia mostra derrame articular significativo no quadril direito.",
+    "prompt": "Qual é a conduta mais adequada neste momento?",
+    "alternatives": [
+      "Diagnosticar sinovite transitória e prescrever anti-inflamatório, com retorno ambulatorial em 48 horas.",
+      "Solicitar ressonância magnética e aguardar o resultado antes de realizar punção ou iniciar qualquer tratamento.",
+      "Acionar ortopedia com urgência, colher hemoculturas e realizar artrocentese para análise e cultura; iniciar antibiótico intravenoso empírico logo após as coletas, sem retardar drenagem e tratamento.",
+      "Iniciar corticosteroide sistêmico para reduzir rapidamente a inflamação e repetir a ultrassonografia em 24 horas."
+    ],
+    "correctIndex": 2,
+    "resolution": "<h3>🧠 Resolução comentada — C</h3><p>Febre alta, incapacidade de apoiar o membro, dor intensa à mobilização passiva, marcadores inflamatórios elevados e derrame articular levantam forte suspeita de <b>artrite séptica do quadril</b>, uma emergência ortopédica.</p><p>Deve-se acionar ortopedia, obter hemoculturas e líquido sinovial para Gram, celularidade e cultura quando isso não atrasar o tratamento, e iniciar <b>antibiótico IV empírico</b> logo após as coletas, além de garantir drenagem adequada.</p><p><b>💡 Pegadinha:</b> sinovite transitória costuma ocorrer em criança bem, frequentemente após virose, com marcadores inflamatórios bem menos exuberantes.</p>"
+  },
+  {
+    "id": "pedchat262-52",
+    "number": 52,
+    "exam": "QUESTÕES DE PEDIATRIA DO CHATGPT 2026.2",
+    "family": "ChatGPT • Pediatria",
+    "area": "Pediatria",
+    "type": "multiple",
+    "topic": "Intussuscepção intestinal",
+    "caseText": "Um lactente de 9 meses apresenta episódios súbitos de choro intenso, durante os quais flexiona as pernas sobre o abdome. Entre as crises, fica sonolento e relativamente assintomático. Evoluiu com dois episódios de vômitos e eliminação de fezes com muco e sangue. Ao exame, está hemodinamicamente estável, sem sinais de peritonite. A ultrassonografia abdominal demonstra imagem em alvo no quadrante superior direito.",
+    "prompt": "Qual é a conduta mais adequada?",
+    "alternatives": [
+      "Realizar redução por enema pneumático ou hidrostático, em ambiente adequado e com suporte cirúrgico disponível, desde que não haja perfuração, peritonite ou instabilidade.",
+      "Indicar laparotomia imediata em todos os casos, mesmo quando a criança está estável e sem sinais de perfuração.",
+      "Prescrever antibiótico oral e observar, pois a maioria dos casos regride espontaneamente após eliminação das fezes com sangue.",
+      "Realizar colonoscopia para redução manual, pois o enema é contraindicado em lactentes."
+    ],
+    "correctIndex": 0,
+    "resolution": "<h3>🧠 Resolução comentada — A</h3><p>O quadro é típico de <b>intussuscepção intestinal</b>: dor em cólica intermitente, flexão das pernas, períodos de prostração, vômitos e fezes com muco e sangue. A ultrassonografia com <b>sinal do alvo</b> reforça o diagnóstico.</p><p>Na criança estável, sem peritonite ou perfuração, a redução não cirúrgica por <b>enema pneumático ou hidrostático</b> é tratamento de escolha, com equipe cirúrgica disponível caso haja falha ou complicação.</p><p><b>💡 Decoreba:</b> intussuscepção = dor em crises + alvo no USG + enema se estável.</p>"
+  },
+  {
+    "id": "pedchat262-53",
+    "number": 53,
+    "exam": "QUESTÕES DE PEDIATRIA DO CHATGPT 2026.2",
+    "family": "ChatGPT • Pediatria",
+    "area": "Pediatria",
+    "type": "multiple",
+    "topic": "Síndrome nefrótica — trombose",
+    "caseText": "Um menino de 6 anos com síndrome nefrótica em recaída apresenta edema importante e albumina sérica de 1,6 g/dL. Durante a internação, passa a referir dor súbita em flanco esquerdo e hematúria macroscópica. Está afebril, com pressão arterial normal. Doppler demonstra redução do fluxo na veia renal esquerda.",
+    "prompt": "Qual é a interpretação e a conduta mais adequadas?",
+    "alternatives": [
+      "O quadro sugere pielonefrite; iniciar ceftriaxona e dispensar investigação vascular.",
+      "A síndrome nefrótica aumenta o risco de trombose por perda urinária de anticoagulantes naturais e aumento de fatores pró-coagulantes; diante de trombose venosa renal confirmada, é necessária avaliação imediata para anticoagulação terapêutica conforme protocolo.",
+      "Hematúria macroscópica exclui trombose venosa renal e indica glomerulonefrite pós-estreptocócica.",
+      "A hipoalbuminemia protege contra eventos trombóticos, portanto a alteração do Doppler deve ser considerada artefato."
+    ],
+    "correctIndex": 1,
+    "resolution": "<h3>🧠 Resolução comentada — B</h3><p>A síndrome nefrótica é um estado de <b>hipercoagulabilidade</b>, relacionado à perda urinária de anticoagulantes naturais, como antitrombina, além de aumento de fatores pró-coagulantes, hemoconcentração e outros fatores.</p><p>Dor súbita em flanco, hematúria e alteração do fluxo venoso sugerem <b>trombose de veia renal</b>. Confirmado o diagnóstico, é necessária avaliação imediata para <b>anticoagulação terapêutica</b> e investigação de complicações, individualizando conforme o contexto clínico.</p><p><b>💡 Decoreba:</b> síndrome nefrótica não é só edema — pense também em infecção e trombose.</p>"
+  },
+  {
+    "id": "pedchat262-54",
+    "number": 54,
+    "exam": "QUESTÕES DE PEDIATRIA DO CHATGPT 2026.2",
+    "family": "ChatGPT • Pediatria",
+    "area": "Pediatria",
+    "type": "multiple",
+    "topic": "Púrpura trombocitopênica imune",
+    "caseText": "Uma menina de 4 anos, previamente saudável, apresenta petéquias e equimoses há dois dias, três semanas após quadro viral de vias aéreas superiores. Está ativa, afebril, sem hepatoesplenomegalia ou linfonodomegalias. Hemograma: Hb 12,4 g/dL, leucócitos 7.800/mm³ e plaquetas 18.000/mm³. Esfregaço mostra trombocitopenia isolada, sem blastos. Há apenas sangramento gengival discreto, sem hemorragia importante.",
+    "prompt": "Qual é a conduta mais adequada?",
+    "alternatives": [
+      "Realizar transfusão profilática de plaquetas apenas pelo valor abaixo de 20.000/mm³, mesmo sem sangramento significativo.",
+      "Considerar púrpura trombocitopênica imune; a decisão entre observação e tratamento depende principalmente da gravidade do sangramento e do impacto clínico, e não apenas da contagem de plaquetas.",
+      "Iniciar quimioterapia imediatamente, pois trombocitopenia isolada após virose é apresentação típica de leucemia aguda.",
+      "Indicar esplenectomia na primeira apresentação para evitar recorrência."
+    ],
+    "correctIndex": 1,
+    "resolution": "<h3>🧠 Resolução comentada — B</h3><p>O quadro é compatível com <b>púrpura trombocitopênica imune (PTI)</b>: criança bem, trombocitopenia isolada após infecção viral, sem organomegalias ou alterações das outras linhagens.</p><p>Na PTI pediátrica, a conduta é guiada principalmente pela <b>gravidade do sangramento</b>, e não pelo número isolado de plaquetas. Crianças com sangramento ausente ou leve podem ser observadas em muitos cenários; imunoglobulina IV ou corticosteroide podem ser usados quando há indicação clínica.</p><p><b>💡 Pegadinha:</b> plaqueta muito baixa assusta, mas transfusão não é rotina sem hemorragia grave ou situação específica.</p>"
+  },
+  {
+    "id": "pedchat262-55",
+    "number": 55,
+    "exam": "QUESTÕES DE PEDIATRIA DO CHATGPT 2026.2",
+    "family": "ChatGPT • Pediatria",
+    "area": "Pediatria",
+    "type": "multiple",
+    "topic": "Doença de Kawasaki — resistência à IVIG",
+    "caseText": "Uma menina de 3 anos recebeu imunoglobulina intravenosa 2 g/kg e ácido acetilsalicílico por quadro compatível com doença de Kawasaki. Trinta e seis horas após o término da infusão de imunoglobulina, permanece com febre de 39 °C e marcadores inflamatórios elevados. O ecocardiograma mostra discreta dilatação coronariana.",
+    "prompt": "Qual é a conduta mais adequada?",
+    "alternatives": [
+      "Considerar resposta adequada, pois a febre pode persistir por até 7 dias sem modificar a conduta.",
+      "Considerar resistência à imunoglobulina e reavaliar tratamento, podendo ser indicada nova dose de IVIG e/ou terapias anti-inflamatórias adicionais conforme protocolo e risco coronariano.",
+      "Suspender todo tratamento anti-inflamatório e iniciar apenas antibiótico de amplo espectro por 14 dias.",
+      "Indicar cirurgia coronariana imediata, pois qualquer dilatação após o primeiro tratamento exige correção anatômica."
+    ],
+    "correctIndex": 1,
+    "resolution": "<h3>🧠 Resolução comentada — B</h3><p>Persistência ou recorrência da febre por pelo menos cerca de <b>36 horas após o término da IVIG</b> levanta suspeita de <b>resistência à imunoglobulina</b>.</p><p>Esses pacientes precisam de reavaliação terapêutica e do risco coronariano. Dependendo do protocolo e do perfil de risco, pode ser indicada <b>segunda dose de IVIG</b> e/ou terapias anti-inflamatórias adicionais.</p><p><b>💡 Decoreba:</b> Kawasaki não acabou só porque recebeu IVIG — febre persistente após o tratamento exige nova avaliação.</p>"
   }
 ];
