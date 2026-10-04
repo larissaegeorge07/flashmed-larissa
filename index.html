@@ -336,6 +336,17 @@ function flashmedAssetDB(){return new Promise((resolve,reject)=>{let req=indexed
 async function flashmedAssetPut(id,value){let d=await flashmedAssetDB();return new Promise((resolve,reject)=>{let tx=d.transaction(FLASHMED_ASSET_STORE,'readwrite');tx.objectStore(FLASHMED_ASSET_STORE).put(value,id);tx.oncomplete=()=>{d.close();resolve(true)};tx.onerror=()=>{d.close();reject(tx.error)}})}
 async function flashmedAssetGet(id){let d=await flashmedAssetDB();return new Promise((resolve,reject)=>{let tx=d.transaction(FLASHMED_ASSET_STORE,'readonly'),q=tx.objectStore(FLASHMED_ASSET_STORE).get(id);q.onsuccess=()=>resolve(q.result||null);q.onerror=()=>reject(q.error);tx.oncomplete=()=>d.close()})}
 async function flashmedAssetDelete(id){let d=await flashmedAssetDB();return new Promise((resolve,reject)=>{let tx=d.transaction(FLASHMED_ASSET_STORE,'readwrite');tx.objectStore(FLASHMED_ASSET_STORE).delete(id);tx.oncomplete=()=>{d.close();resolve(true)};tx.onerror=()=>{d.close();reject(tx.error)}})}
+const OCCLUSION_CARDS_STORE_KEY='__flashmed_occlusion_cards_v1__';
+async function occlusionLoadDedicatedCards(target=db){
+  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];target.cards=target.cards||[];let seen=new Set(target.cards.map(c=>String(c.id)));let added=0;for(const c of saved){if(!seen.has(String(c.id))){target.cards.push(c);seen.add(String(c.id));added++}}return added}catch(e){console.warn('Não foi possível carregar cartões de oclusão',e);return 0}
+}
+async function occlusionSaveDedicatedCards(cards){
+  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];let byId=new Map(saved.map(c=>[String(c.id),c]));for(const c of cards)byId.set(String(c.id),JSON.parse(JSON.stringify(c)));await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,{cards:[...byId.values()],savedAt:Date.now()});return true}catch(e){console.error('Falha no banco dedicado de oclusão',e);return false}
+}
+async function occlusionDeleteDedicatedCard(id){
+  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);if(!box||!Array.isArray(box.cards))return true;box.cards=box.cards.filter(c=>String(c.id)!==String(id));box.savedAt=Date.now();await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,box);return true}catch(e){console.warn('Falha ao remover cartão dedicado',e);return false}
+}
+
 function flashmedReferencedAssetIds(source=db){return [...new Set((source.cards||[]).map(c=>c&&c.occlusion&&c.occlusion.assetId).filter(Boolean))]}
 async function occlusionHydrateAssets(source=db){source.imageAssets=source.imageAssets||{};let ids=flashmedReferencedAssetIds(source);for(const id of ids){let existing=source.imageAssets[id];if(existing&&existing.data){try{await flashmedAssetPut(id,existing)}catch(e){console.warn('Não foi possível migrar imagem de oclusão',e)}continue}try{let local=await flashmedAssetGet(id);if(local)source.imageAssets[id]=local}catch(e){console.warn('Não foi possível carregar imagem de oclusão',e)}}return source}
 async function occlusionPersistRemoteAssets(source=db){source.imageAssets=source.imageAssets||{};for(const [id,a] of Object.entries(source.imageAssets)){if(a&&a.data){try{await flashmedAssetPut(id,a)}catch(e){console.warn('Não foi possível persistir imagem sincronizada',e)}}}}
@@ -417,7 +428,7 @@ function renderSubject(){let s=activeSubject,cs=db.cards.filter(c=>c.subject===s
 function startSubjectStudy(s,random=false){study=db.cards.filter(c=>c.subject===s&&(random||due(c)));if(random)study.sort(()=>Math.random()-.5);else study.sort((a,b)=>(b.bad||0)-(a.bad||0));idx=0;reveal=false;scratchData='';scratchOpen=false;renderStudy('subject')}
 function editCard(id){let c=db.cards.find(x=>x.id==id);if(!c)return;view.innerHTML=`<div class=panel><div class=row><button class='btn ghost' onclick='renderSubject()'>← Voltar</button><h2 style='margin:0'>Editar flashcard</h2></div><label>Matéria</label><select id=ecs class=field>${db.subjects.map(s=>`<option ${s===c.subject?'selected':''}>${esc(s)}</option>`).join('')}</select><label>Frente / pergunta</label>${editor('ecf','Pergunta')}<label>Verso / resposta</label>${editor('ecb','Resposta')}<label>Mídia incorporada</label><input id=ecm class=field value='${esc(c.media||'')}'><label>Tags</label><input id=ect class=field value='${esc(c.tags||'')}'><div class=row><button class=btn onclick='saveCardEdit(${id})'>Salvar alterações</button><button class='btn ghost' onclick='renderSubject()'>Cancelar</button></div></div>`;setTimeout(()=>{ecf.innerHTML=c.front;ecb.innerHTML=c.back},0)}
 function saveCardEdit(id){let c=db.cards.find(x=>x.id==id);if(!c)return;let f=ecf.innerHTML.trim(),b=ecb.innerHTML.trim();if(!f||!b)return toast('Preencha frente e verso');let oldSubject=c.subject;c.subject=ecs.value;c.front=f;c.back=b;c.media=ecm.value;c.tags=ect.value;save();toast('Flashcard atualizado ♡');if(c.subject!==oldSubject)activeSubject=c.subject;renderSubject()}
-async function deleteCard(id){let c=db.cards.find(x=>x.id==id);if(!c||!confirm('Excluir este flashcard?'))return;let assetId=c.occlusion&&c.occlusion.assetId;db.cards=db.cards.filter(x=>x.id!=id);if(assetId&&!db.cards.some(x=>x.occlusion&&x.occlusion.assetId===assetId)){delete db.imageAssets[assetId];try{await flashmedAssetDelete(assetId)}catch(e){}}save();renderSubject();toast('Flashcard excluído')}
+async function deleteCard(id){let c=db.cards.find(x=>x.id==id);if(!c||!confirm('Excluir este flashcard?'))return;let assetId=c.occlusion&&c.occlusion.assetId;db.cards=db.cards.filter(x=>x.id!=id);if(c.occlusion)await occlusionDeleteDedicatedCard(id);if(assetId&&!db.cards.some(x=>x.occlusion&&x.occlusion.assetId===assetId)){delete db.imageAssets[assetId];try{await flashmedAssetDelete(assetId)}catch(e){}}if(!c.occlusion)save();renderSubject();toast('Flashcard excluído')}
 function toolbar(id){return `<div class=toolbar><button type=button onclick="cmd('${id}','bold')"><b>B</b></button><button type=button onclick="cmd('${id}','italic')"><i>I</i></button><button type=button onclick="cmd('${id}','underline')"><u>U</u></button><button type=button onclick="cmd('${id}','hiliteColor','#ffe08a')">🖍</button><select onchange="fontClass('${id}',this.value)"><option value=''>Fonte</option><option value=serif>Serif</option><option value=scribble>Manuscrita</option><option value=mono>Mono</option></select><label class='btn ghost mini'>📷 imagem<input type=file accept='image/*' hidden onchange="insertImage('${id}',this)"></label></div>`}function editor(id,ph='Escreva aqui…'){return `<div class=editorWrap>${toolbar(id)}<div id='${id}' class='editor rich' contenteditable=true data-placeholder='${ph}'></div></div>`}function cmd(id,c,v=null){document.getElementById(id).focus();document.execCommand(c,false,v)}function fontClass(id,c){let e=document.getElementById(id);e.classList.remove('serif','scribble','mono');if(c)e.classList.add(c)}function insertImage(id,input){let f=input.files[0];if(!f)return;let r=new FileReader;r.onload=()=>{let e=document.getElementById(id);e.focus();document.execCommand('insertImage',false,r.result)};r.readAsDataURL(f)}
 let occlusionImageData='',occlusionRects=[],occlusionDrag=null;
 function occlusionImageHtml(c,reveal){
@@ -497,27 +508,19 @@ async function occlusionCreateCards(){
   let assetId='occ_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),asset={data:occlusionImageData,createdAt:Date.now()},base=Date.now();
   state('1/3 Salvando a imagem…');
   try{await flashmedAssetPut(assetId,asset)}catch(e){console.error(e);if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Erro ao salvar a imagem. O rascunho foi mantido.',true);return toast('Não consegui salvar a imagem')}
-  db.imageAssets=db.imageAssets||{};db.imageAssets[assetId]=asset;db.cards=db.cards||[];
   let cards=occlusionRects.map(function(r,i){return {id:base+i,subject:subject,front:'Identifique a estrutura ocultada.',back:esc(r.answer||''),media:'',tags:tags||'oclusão de imagem',ok:0,bad:0,interval:0,due:day(),history:[],occlusion:{assetId:assetId,rect:{x:r.x,y:r.y,w:r.w,h:r.h}}}});
-  for(const c of cards)db.cards.push(c);
-  state('2/3 Protegendo os cartões…');
-  let emergencyOK=await flashmedEmergencySave(db);
-  if(!emergencyOK){
-    db.cards=db.cards.filter(c=>!cards.some(n=>n.id===c.id));delete db.imageAssets[assetId];try{await flashmedAssetDelete(assetId)}catch(e){}
-    if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Não consegui proteger os cartões. O rascunho continua salvo.',true);return toast('Não foi possível salvar os cartões')
-  }
-  // At this point the cards are safely persisted independently from localStorage.
-  let n=cards.length;
-  state('3/3 '+n+' cartão'+(n===1?' criado':'ões criados')+' ✓');
+  state('2/3 Salvando os cartões…');
+  let dedicatedOK=await occlusionSaveDedicatedCards(cards);
+  if(!dedicatedOK){try{await flashmedAssetDelete(assetId)}catch(e){}if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Não consegui salvar os cartões. O rascunho continua protegido.',true);return toast('Não foi possível salvar os cartões')}
+  db.imageAssets=db.imageAssets||{};db.imageAssets[assetId]=asset;db.cards=db.cards||[];let seen=new Set(db.cards.map(c=>String(c.id)));for(const c of cards)if(!seen.has(String(c.id)))db.cards.push(c);
+  let n=cards.length;state('3/3 '+n+' cartão'+(n===1?' criado':'ões criados')+' ✓');
+  flashmedSaveOK();
+  if(saveState)saveState.textContent='flashcards de oclusão salvos';
   activeSubject=subject;
-  await occlusionClearDraft();
-  occlusionImageData='';occlusionRects=[];
-  renderSubject();
-  toast(n+' flashcard'+(n===1?' salvo':'s salvos')+' ♡');
-  // Full local/cloud persistence is best-effort and cannot block card creation.
-  setTimeout(async function(){
-    try{let ok=save();if(!ok)await flashmedEmergencySave(db);if(cloud&&currentUser)await syncUp()}catch(e){console.error('Persistência secundária da oclusão',e);try{await flashmedEmergencySave(db)}catch(_){}}
-  },0);
+  await occlusionClearDraft();occlusionImageData='';occlusionRects=[];
+  renderSubject();toast(n+' flashcard'+(n===1?' salvo':'s salvos')+' ♡');
+  // Cloud sync is optional and must never block or undo the dedicated local save.
+  if(cloud&&currentUser){setTimeout(async()=>{try{await syncUp()}catch(e){console.warn('Sincronização posterior da oclusão falhou; cartão local preservado',e)}},0)}
 }
 function imageOcclusionPasteHandler(e){
   if(route!=='Oclusão de imagem')return;let items=Array.from((e.clipboardData&&e.clipboardData.items)||[]),it=items.find(function(x){return String(x.type||'').startsWith('image/')});if(it){e.preventDefault();occlusionLoadFile(it.getAsFile())}
@@ -892,6 +895,7 @@ async function syncDown(quiet=false){
       const recoveredJournal=flashmedJournalRestore(remote);
       const recoveredLocalStudy=mergeCardStudyHistory(remote,localBeforeSync);
       const recoveredEmergency=await flashmedEmergencyRestore(remote);
+      const recoveredOcclusionCards=await occlusionLoadDedicatedCards(remote);
       // After authentication, Supabase is the source of truth. This is essential
       // on a new/incognito browser, whose freshly-created local DB may have a
       // newer timestamp but contains no user data.
@@ -957,7 +961,7 @@ async function syncDown(quiet=false){
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
-      if(evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
+      if(evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
       render();
     } else {
       await syncUp();
@@ -1051,5 +1055,5 @@ function flashmedPageBanner(currentRoute){
 }
 function render(){applyPersonalization();title.textContent=route==='Matérias'?'Flashcards':route;title.setAttribute('data-route',route);date.textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});view.innerHTML=flashmedPageBanner(route)+(route==='Dashboard'?dashboard():route==='Matérias'?subjects():route==='Adicionar flashcard'?addCardView():route==='Revisão'?review('due'):route==='Aleatório'?review('random'):route==='Banco de Questões'?bankView():route==='Questões erradas'?questions():route==='Importar do ChatGPT'?importChat():route==='Flashcards IA'?importChat():route==='Oclusão de imagem'?imageOcclusionView():route==='Métricas'?metrics():route==='Meu FlashMed'?myFlashMed():route==='Decorebas'?decorebasView():route==='Jogos'?gamesView():route==='Casos Clínicos'?clinicalCasesView():route==='Cronômetro'?timerView():route==='Lembretes'?reminders():cloudView())}
 setInterval(()=>{clock.textContent=now().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});if(route==='Cronômetro'&&timer.on){let e=document.querySelector('#timerText');if(e)e.textContent=fmt(timer.elapsed+Date.now()-timer.start)}db.reminders.forEach(r=>{if(!r.done&&new Date(r.when)<=now()){r.done=true;save();alert('⏰ '+r.text)}})},1000);renderNav();render();
-let currentUser=null;async function bootAuth(){cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);flashmedPruneRecoverySnapshots(false);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db);let z=await cloud.auth.getSession(),session=z.data.session;if(session&&session.user){currentUser=session.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render()}else{authGate.classList.remove('hidden');appRoot.classList.add('authHidden')}} loginBtn.onclick=async function(){authError.textContent='';loginBtn.disabled=true;loginBtn.textContent='Entrando…';let z=await cloud.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});loginBtn.disabled=false;loginBtn.textContent='Entrar';if(z.error){authError.textContent='E-mail ou senha incorretos.';return}currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render()};bootAuth();
+let currentUser=null;async function bootAuth(){cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);flashmedPruneRecoverySnapshots(false);await occlusionLoadDedicatedCards(db);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db);let z=await cloud.auth.getSession(),session=z.data.session;if(session&&session.user){currentUser=session.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render()}else{authGate.classList.remove('hidden');appRoot.classList.add('authHidden')}} loginBtn.onclick=async function(){authError.textContent='';loginBtn.disabled=true;loginBtn.textContent='Entrando…';let z=await cloud.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});loginBtn.disabled=false;loginBtn.textContent='Entrar';if(z.error){authError.textContent='E-mail ou senha incorretos.';return}currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render()};bootAuth();
 </script></body></html>
