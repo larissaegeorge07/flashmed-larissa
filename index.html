@@ -339,7 +339,7 @@ async function flashmedAssetDelete(id){let d=await flashmedAssetDB();return new 
 function flashmedReferencedAssetIds(source=db){return [...new Set((source.cards||[]).map(c=>c&&c.occlusion&&c.occlusion.assetId).filter(Boolean))]}
 async function occlusionHydrateAssets(source=db){source.imageAssets=source.imageAssets||{};let ids=flashmedReferencedAssetIds(source);for(const id of ids){let existing=source.imageAssets[id];if(existing&&existing.data){try{await flashmedAssetPut(id,existing)}catch(e){console.warn('Não foi possível migrar imagem de oclusão',e)}continue}try{let local=await flashmedAssetGet(id);if(local)source.imageAssets[id]=local}catch(e){console.warn('Não foi possível carregar imagem de oclusão',e)}}return source}
 async function occlusionPersistRemoteAssets(source=db){source.imageAssets=source.imageAssets||{};for(const [id,a] of Object.entries(source.imageAssets)){if(a&&a.data){try{await flashmedAssetPut(id,a)}catch(e){console.warn('Não foi possível persistir imagem sincronizada',e)}}}}
-function flashmedLocalPayload(source=db){let x=JSON.parse(JSON.stringify(source));x.imageAssets={};return x}
+function flashmedLocalPayload(source=db){let lean=Object.assign({},source,{imageAssets:{}});return JSON.parse(JSON.stringify(lean))}
 function flashmedPruneRecoverySnapshots(all=false){try{let keys=Object.keys(localStorage).filter(k=>k.startsWith('flashmed_recovery_')).sort();let remove=all?keys:keys.slice(0,Math.max(0,keys.length-3));for(const k of remove)localStorage.removeItem(k);return remove.length}catch(e){return 0}}
 async function flashmedEmergencySave(source=db){try{await flashmedAssetPut('__flashmed_emergency_db__',{data:flashmedLocalPayload(source),savedAt:Date.now()});return true}catch(e){console.error('FlashMed emergency save error',e);return false}}
 async function flashmedEmergencyRestore(target){try{let e=await flashmedAssetGet('__flashmed_emergency_db__');if(!e||!e.data)return false;let changed=flashmedMergePersonal(target,e.data);if(changed){target.updatedAt=Math.max(target.updatedAt||0,e.data.updatedAt||0)}return changed}catch(err){console.warn('Emergency restore unavailable',err);return false}}
@@ -434,7 +434,7 @@ function imageOcclusionView(){
   return '<div class="panel hero"><h2>▣ Oclusão de imagem</h2><p>Envie ou cole uma imagem, arraste sobre cada estrutura que quer esconder e gere um flashcard por marcação.</p><div class="row"><span class="pill">1 imagem → vários cards</span><span class="pill">mouse + toque</span><span class="pill">rascunho automático</span></div></div>'
   +'<div class="panel" style="margin-top:16px"><div class="split"><label>Matéria<select id="occSubject" class="field" onchange="occlusionScheduleDraftSave()">'+opts+'</select></label><label>Tags<input id="occTags" class="field" value="oclusão de imagem" placeholder="ex.: anatomia, obstetrícia" oninput="occlusionScheduleDraftSave()"></label></div>'
   +'<div class="occlusionDrop" id="occDrop"><b>📷 Escolha ou cole uma imagem</b><p class="muted">Use o botão abaixo ou Ctrl+V / ⌘V para colar uma captura de tela.</p><label class="btn">Escolher imagem<input type="file" accept="image/*" hidden onchange="occlusionLoadFile(this.files[0])"></label></div>'
-  +'<div id="occWorkspace" class="hidden" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b>Arraste sobre o que deseja esconder</b><div class="muted">Cada retângulo gera um cartão separado. O rascunho é salvo automaticamente.</div></div><div class="row"><button class="btn ghost" onclick="occlusionUndo()">↶ Desfazer</button><button class="btn ghost" onclick="occlusionClear()">Limpar marcações</button><button class="btn ghost" onclick="occlusionResetImage()">Trocar imagem</button></div></div><div style="overflow:auto;margin-top:12px;text-align:center"><div id="occStage" class="occlusionStage"><img id="occImg" alt="Imagem para oclusão"><div id="occLayer"></div></div></div><div id="occAnswers" class="occlusionList"></div><div class="occlusionSaveBar row" style="justify-content:space-between"><div><b>Rascunho protegido</b><div id="occDraftStatus" class="muted">Salvando automaticamente…</div></div><div class="row"><span id="occCount" class="pill">0 marcações</span><button class="btn ok" onclick="occlusionCreateCards()">Salvar flashcards</button></div></div></div></div>';
+  +'<div id="occWorkspace" class="hidden" style="margin-top:14px"><div class="row" style="justify-content:space-between"><div><b>Arraste sobre o que deseja esconder</b><div class="muted">Cada retângulo gera um cartão separado. O rascunho é salvo automaticamente.</div></div><div class="row"><button class="btn ghost" onclick="occlusionUndo()">↶ Desfazer</button><button class="btn ghost" onclick="occlusionClear()">Limpar marcações</button><button class="btn ghost" onclick="occlusionResetImage()">Trocar imagem</button></div></div><div style="overflow:auto;margin-top:12px;text-align:center"><div id="occStage" class="occlusionStage"><img id="occImg" alt="Imagem para oclusão"><div id="occLayer"></div></div></div><div id="occAnswers" class="occlusionList"></div><div class="occlusionSaveBar row" style="justify-content:space-between"><div><b>Rascunho protegido</b><div id="occDraftStatus" class="muted">Salvando automaticamente…</div><div id="occSaveState" class="muted"></div></div><div class="row"><span id="occCount" class="pill">0 marcações</span><button id="occSaveBtn" class="btn ok" onclick="occlusionCreateCards()">Salvar flashcards</button></div></div></div></div>';
 }
 
 const OCC_DRAFT_KEY='flashmed_occlusion_draft_v1',OCC_DRAFT_ASSET='__flashmed_occlusion_draft_image__';
@@ -488,16 +488,36 @@ function occlusionUndo(){if(occlusionRects.length){occlusionRects.pop();occlusio
 function occlusionClear(){occlusionRects=[];occlusionRenderRects();occlusionScheduleDraftSave()}
 async function occlusionResetImage(){occlusionImageData='';occlusionRects=[];await occlusionClearDraft();let d=document.getElementById('occDrop'),w=document.getElementById('occWorkspace');if(d)d.classList.remove('hidden');if(w)w.classList.add('hidden')}
 async function occlusionCreateCards(){
-  if(!occlusionImageData)return toast('Escolha uma imagem primeiro');if(!occlusionRects.length)return toast('Marque pelo menos uma área na imagem');
+  let status=document.getElementById('occSaveState'),btn=document.getElementById('occSaveBtn');
+  function state(msg,bad=false){if(status){status.textContent=msg;status.style.color=bad?'#a31836':''}}
+  if(!occlusionImageData){state('Escolha uma imagem primeiro.',true);return toast('Escolha uma imagem primeiro')}
+  if(!occlusionRects.length){state('Marque pelo menos uma área.',true);return toast('Marque pelo menos uma área na imagem')}
+  if(btn){btn.disabled=true;btn.textContent='Salvando…'}
   let subjectEl=document.getElementById('occSubject'),tagsEl=document.getElementById('occTags'),subject=subjectEl?subjectEl.value:(db.subjects[0]||'Geral'),tags=tagsEl?tagsEl.value:'oclusão de imagem';
-  let assetId='occ_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),asset={data:occlusionImageData,createdAt:Date.now()},base=Date.now(),newIds=[];
-  try{await flashmedAssetPut(assetId,asset)}catch(e){console.error(e);return toast('Não consegui salvar a imagem neste navegador')};
-  db.imageAssets=db.imageAssets||{};db.imageAssets[assetId]=asset;
-  occlusionRects.forEach(function(r,i){let id=base+i;newIds.push(id);db.cards.push({id:id,subject:subject,front:'Identifique a estrutura ocultada.',back:esc(r.answer||''),media:'',tags:tags||'oclusão de imagem',ok:0,bad:0,interval:0,due:day(),history:[],occlusion:{assetId:assetId,rect:{x:r.x,y:r.y,w:r.w,h:r.h}}})});
-  let n=occlusionRects.length,ok=save(),emergencyOK=true;
-  if(!ok){emergencyOK=await flashmedEmergencySave(db);if(emergencyOK){saveState.textContent='salvo no cofre de emergência • sincronizando';if(cloud&&currentUser){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,250)}}}
-  if(!ok&&!emergencyOK){db.cards=db.cards.filter(c=>!newIds.includes(c.id));delete db.imageAssets[assetId];try{await flashmedAssetDelete(assetId)}catch(e){}return toast('Falha de armazenamento. O rascunho foi mantido para você tentar novamente')};
-  await occlusionClearDraft();occlusionImageData='';occlusionRects=[];toast(n+' flashcard'+(n===1?' salvo':'s salvos')+' ♡');activeSubject=subject;renderSubject();
+  let assetId='occ_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),asset={data:occlusionImageData,createdAt:Date.now()},base=Date.now();
+  state('1/3 Salvando a imagem…');
+  try{await flashmedAssetPut(assetId,asset)}catch(e){console.error(e);if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Erro ao salvar a imagem. O rascunho foi mantido.',true);return toast('Não consegui salvar a imagem')}
+  db.imageAssets=db.imageAssets||{};db.imageAssets[assetId]=asset;db.cards=db.cards||[];
+  let cards=occlusionRects.map(function(r,i){return {id:base+i,subject:subject,front:'Identifique a estrutura ocultada.',back:esc(r.answer||''),media:'',tags:tags||'oclusão de imagem',ok:0,bad:0,interval:0,due:day(),history:[],occlusion:{assetId:assetId,rect:{x:r.x,y:r.y,w:r.w,h:r.h}}}});
+  for(const c of cards)db.cards.push(c);
+  state('2/3 Protegendo os cartões…');
+  let emergencyOK=await flashmedEmergencySave(db);
+  if(!emergencyOK){
+    db.cards=db.cards.filter(c=>!cards.some(n=>n.id===c.id));delete db.imageAssets[assetId];try{await flashmedAssetDelete(assetId)}catch(e){}
+    if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Não consegui proteger os cartões. O rascunho continua salvo.',true);return toast('Não foi possível salvar os cartões')
+  }
+  // At this point the cards are safely persisted independently from localStorage.
+  let n=cards.length;
+  state('3/3 '+n+' cartão'+(n===1?' criado':'ões criados')+' ✓');
+  activeSubject=subject;
+  await occlusionClearDraft();
+  occlusionImageData='';occlusionRects=[];
+  renderSubject();
+  toast(n+' flashcard'+(n===1?' salvo':'s salvos')+' ♡');
+  // Full local/cloud persistence is best-effort and cannot block card creation.
+  setTimeout(async function(){
+    try{let ok=save();if(!ok)await flashmedEmergencySave(db);if(cloud&&currentUser)await syncUp()}catch(e){console.error('Persistência secundária da oclusão',e);try{await flashmedEmergencySave(db)}catch(_){}}
+  },0);
 }
 function imageOcclusionPasteHandler(e){
   if(route!=='Oclusão de imagem')return;let items=Array.from((e.clipboardData&&e.clipboardData.items)||[]),it=items.find(function(x){return String(x.type||'').startsWith('image/')});if(it){e.preventDefault();occlusionLoadFile(it.getAsFile())}
