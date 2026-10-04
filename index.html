@@ -341,7 +341,13 @@ async function occlusionLoadDedicatedCards(target=db){
   try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];target.cards=target.cards||[];let seen=new Set(target.cards.map(c=>String(c.id)));let added=0;for(const c of saved){if(!seen.has(String(c.id))){target.cards.push(c);seen.add(String(c.id));added++}}return added}catch(e){console.warn('Não foi possível carregar cartões de oclusão',e);return 0}
 }
 async function occlusionSaveDedicatedCards(cards){
-  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];let byId=new Map(saved.map(c=>[String(c.id),c]));for(const c of cards)byId.set(String(c.id),JSON.parse(JSON.stringify(c)));await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,{cards:[...byId.values()],savedAt:Date.now()});return true}catch(e){console.error('Falha no banco dedicado de oclusão',e);return false}
+  try{
+    let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY),saved=box&&Array.isArray(box.cards)?box.cards:[],byId=new Map(saved.map(c=>[String(c.id),c]));
+    for(const c of cards)byId.set(String(c.id),JSON.parse(JSON.stringify(c)));
+    await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,{cards:[...byId.values()],savedAt:Date.now()});
+    let verify=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY),ids=new Set((verify&&Array.isArray(verify.cards)?verify.cards:[]).map(c=>String(c.id))),written=cards.filter(c=>ids.has(String(c.id))).length;
+    return {ok:written===cards.length,written,total:cards.length};
+  }catch(e){console.error('Falha no banco dedicado de oclusão',e);return {ok:false,written:0,total:cards.length}}
 }
 async function occlusionDeleteDedicatedCard(id){
   try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);if(!box||!Array.isArray(box.cards))return true;box.cards=box.cards.filter(c=>String(c.id)!==String(id));box.savedAt=Date.now();await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,box);return true}catch(e){console.warn('Falha ao remover cartão dedicado',e);return false}
@@ -508,12 +514,13 @@ async function occlusionCreateCards(){
   let assetId='occ_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),asset={data:occlusionImageData,createdAt:Date.now()},base=Date.now();
   state('1/3 Salvando a imagem…');
   try{await flashmedAssetPut(assetId,asset)}catch(e){console.error(e);if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Erro ao salvar a imagem. O rascunho foi mantido.',true);return toast('Não consegui salvar a imagem')}
-  let cards=occlusionRects.map(function(r,i){return {id:base+i,subject:subject,front:'Identifique a estrutura ocultada.',back:esc(r.answer||''),media:'',tags:tags||'oclusão de imagem',ok:0,bad:0,interval:0,due:day(),history:[],occlusion:{assetId:assetId,rect:{x:r.x,y:r.y,w:r.w,h:r.h}}}});
+  let batchId='batch_'+base+'_'+Math.random().toString(36).slice(2,7),cards=occlusionRects.map(function(r,i){return {id:base+i,subject:subject,front:'Identifique a estrutura ocultada.',back:esc(r.answer||''),media:'',tags:tags||'oclusão de imagem',ok:0,bad:0,interval:0,due:day(),history:[],occlusion:{assetId:assetId,batchId:batchId,index:i+1,total:occlusionRects.length,rect:{x:r.x,y:r.y,w:r.w,h:r.h}}}});
   state('2/3 Salvando os cartões…');
-  let dedicatedOK=await occlusionSaveDedicatedCards(cards);
-  if(!dedicatedOK){try{await flashmedAssetDelete(assetId)}catch(e){}if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Não consegui salvar os cartões. O rascunho continua protegido.',true);return toast('Não foi possível salvar os cartões')}
+  let result=await occlusionSaveDedicatedCards(cards);
+  if(!result.ok){try{await flashmedAssetDelete(assetId)}catch(e){}if(btn){btn.disabled=false;btn.textContent='Salvar flashcards'}state('Falha no lote: '+result.written+'/'+result.total+' cartões gravados. O rascunho continua protegido.',true);return toast('Não foi possível salvar todos os cartões')}
+  state('2/3 Lote confirmado: '+result.written+'/'+result.total+' cartões gravados ✓');
   db.imageAssets=db.imageAssets||{};db.imageAssets[assetId]=asset;db.cards=db.cards||[];let seen=new Set(db.cards.map(c=>String(c.id)));for(const c of cards)if(!seen.has(String(c.id)))db.cards.push(c);
-  let n=cards.length;state('3/3 '+n+' cartão'+(n===1?' criado':'ões criados')+' ✓');
+  let n=cards.length;state('3/3 '+n+'/'+n+' flashcard'+(n===1?' confirmado':'s confirmados')+' ✓');
   flashmedSaveOK();
   if(saveState)saveState.textContent='flashcards de oclusão salvos';
   activeSubject=subject;
