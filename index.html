@@ -51,6 +51,18 @@ body.fm-reduce-motion *,body.fm-reduce-motion *:before,body.fm-reduce-motion *:a
   .nav button .navIcon{display:block;font-size:19px;line-height:22px;margin-bottom:2px}
   .nav button.on{background:#ffffff20;color:#fff}
   .nav button[data-mobile-extra="1"]{display:none}
+   .nav button[data-mobile-more]{display:block;min-width:0;width:auto;margin:0;padding:7px 2px 6px;border-radius:11px;text-align:center;font-size:10px;line-height:1.15;white-space:normal;color:#f8e8f0}
+   .nav button[data-mobile-more] .navIcon{display:block;font-size:19px;line-height:22px;margin-bottom:2px}
+   .mobileMorePanel{display:none;position:fixed;left:10px;right:10px;bottom:calc(72px + env(safe-area-inset-bottom));max-height:min(68vh,620px);overflow-y:auto;z-index:1100;padding:14px;background:var(--card,#fff);color:var(--ink,#35202d);border:1px solid var(--line,#e6cbd8);border-radius:18px;box-shadow:0 12px 40px #24101d40;text-align:left}
+   .mobileMorePanel.show{display:block}
+   .mobileMoreHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 12px;border-bottom:1px solid var(--line,#e6cbd8);font-size:17px}
+   .mobileMoreHead button{border:0;border-radius:9px;padding:8px 11px;background:var(--rose2,#f9eaf1);color:var(--ink,#35202d)}
+   .mobileMoreGroup{padding:10px 0 4px;border-bottom:1px solid var(--line,#e6cbd8)}
+   .mobileMoreTitle{font-size:11px;letter-spacing:.08em;font-weight:900;color:var(--muted,#876b7a);padding:0 5px 6px}
+   .mobileMoreItem{display:flex;align-items:center;gap:10px;width:100%;padding:10px 9px;border:0;border-radius:10px;background:transparent;color:var(--ink,#35202d);text-decoration:none;text-align:left;font-size:14px;font-weight:700}
+   .mobileMoreItem.on{background:var(--rose2,#f9eaf1);color:var(--deep,#71234f)}
+   .mobileMoreOpen{z-index:1090}
+
   .main{padding:14px 12px 22px;max-width:none}
   .top{display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
   .top h1{font-size:23px;margin:5px 0 2px}.top .row{justify-content:flex-end}.clock{font-size:13px}.cloud{font-size:10px;padding:6px 8px}
@@ -324,7 +336,16 @@ function toggleBankToolDock(btn){let dock=btn?.closest('.bankToolDock');if(dock)
 function changeBankQuestionFont(delta){bankLocalFontSize=Math.max(13,Math.min(26,bankLocalFontSize+delta));let p=document.querySelector('.bankQuestionPanel');if(p)p.style.setProperty('--bank-q-size',bankLocalFontSize+'px');let z=document.getElementById('bankFontValue');if(z)z.textContent=bankLocalFontSize+' px'}
 function resetBankQuestionFont(){bankLocalFontSize=17;changeBankQuestionFont(0)}
 function bankQuestionFontBar(){return ''}
-function renderNav(){let mobileMain=new Set(['Dashboard','Banco de Questões','Revisão','Flashcards','Flashcards IA','Caderno de Conhecimentos','Jogos']);nav.innerHTML=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}')"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('')}`).join('')+ '<div class="navTitle">PRÁTICA CLÍNICA</div><a href="./evolucoes.html" style="display:block;padding:12px;border-radius:12px;color:#fff;text-decoration:none;background:#ffffff1c;font-weight:750">🩺 Evoluções Médicas ↗</a>'}let studyClock={route:null,started:Date.now(),lastFlush:Date.now()};
+function renderNav(){
+ const mobileMain=new Set(['Dashboard','Banco de Questões','Flashcards','Caderno de Conhecimentos','Jogos']);
+ const navButtons=g=>g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}');closeMobileMore()"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('');
+ const mainGroups=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${navButtons(g)}`).join('');
+ const moreGroups=navGroups.map(g=>`<section class="mobileMoreGroup"><div class="mobileMoreTitle">${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x;return `<button class="mobileMoreItem ${route==target?'on':''}" onclick="go('${target}');closeMobileMore()"><span>${icons[x]||icons[target]||'▦'}</span><span>${x}</span></button>`}).join('')}${g[0]==='PRÁTICA CLÍNICA'?'<a class="mobileMoreItem" href="./evolucoes.html"><span>🩺</span><span>Evoluções Médicas ↗</span></a>':''}</section>`).join('');
+ nav.innerHTML=mainGroups+`<button class="mobileMoreToggle" data-mobile-more onclick="toggleMobileMore()" aria-expanded="false"><span class="navIcon">☰</span><span class="navLabel">Mais</span></button><div id="mobileMorePanel" class="mobileMorePanel" aria-label="Mais opções"><div class="mobileMoreHead"><b>Menu completo</b><button onclick="closeMobileMore()" aria-label="Fechar menu">✕</button></div>${moreGroups}</div><div class="navTitle">PRÁTICA CLÍNICA</div><a href="./evolucoes.html" style="display:block;padding:12px;border-radius:12px;color:#fff;text-decoration:none;background:#ffffff1c;font-weight:750">🩺 Evoluções Médicas ↗</a>`;
+}
+function toggleMobileMore(){const p=document.getElementById('mobileMorePanel'),b=document.querySelector('[data-mobile-more]');if(!p)return;const open=!p.classList.contains('show');p.classList.toggle('show',open);document.querySelector('.nav')?.classList.toggle('mobileMoreOpen',open);if(b)b.setAttribute('aria-expanded',String(open))}
+function closeMobileMore(){document.getElementById('mobileMorePanel')?.classList.remove('show');document.querySelector('.nav')?.classList.remove('mobileMoreOpen');document.querySelector('[data-mobile-more]')?.setAttribute('aria-expanded','false')}
+let studyClock={route:null,started:Date.now(),lastFlush:Date.now()};
 function flushStudyTime(forceCloud=false){let t=Date.now(),ms=t-studyClock.lastFlush;if(!currentUser||document.hidden||ms<15000){studyClock.lastFlush=t;return}db.studyTime=db.studyTime||{};let key=day(),label=studyClock.route||route||'Geral';db.studyTime[key]=db.studyTime[key]||{};db.studyTime[key][label]=(db.studyTime[key][label]||0)+ms;studyClock.lastFlush=t;db.updatedAt=t;try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)))}catch(e){}if(forceCloud&&cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,300)}}
 function go(x){flushStudyTime(true);route=x;studyClock.route=x;studyClock.lastFlush=Date.now();renderNav();render()}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)flushStudyTime(true);else{studyClock.route=route;studyClock.lastFlush=Date.now()}});
