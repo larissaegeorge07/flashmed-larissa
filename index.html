@@ -590,6 +590,21 @@ function knowledgeChangeNoteColor(id,color){
  const ok=save();knowledgeRefreshNotes();
  if(!ok)toast('Não foi possível sincronizar a cor do post-it');
 }
+async function knowledgeSaveNote(id,bookId){
+ const titleEl=document.getElementById('knowledgeNoteTitle'),contentEl=document.getElementById('knowledgeNoteContent'),tagsEl=document.getElementById('knowledgeNoteTags'),colorEl=document.getElementById('knowledgeNoteColor'),linksEl=document.getElementById('knowledgeNoteLinks');
+ const title=titleEl?titleEl.value.trim():'',content=contentEl?contentEl.value.trim():'';
+ if(!title&&!content&&!(linksEl&&linksEl.value.trim())&&!knowledgeDraftAttachments.length&&!knowledgeDraftFiles.length)return toast('Escreva algo ou adicione um arquivo/link');
+ const now=Date.now(),ix=db.knowledgeNotes.findIndex(n=>String(n.id)===String(id)),existing=ix>=0?db.knowledgeNotes[ix]:null;
+ const chosenColor=colorEl?colorEl.value:(existing?.color||'yellow');
+ const color=['yellow','pink','green','blue','lilac'].includes(chosenColor)?chosenColor:'yellow';
+ const attachments=knowledgeParseAttachmentUrls(linksEl?linksEl.value:'');
+ const rawLines=(linksEl?linksEl.value:'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ if(rawLines.length!==attachments.length)return toast('Confira os links: use uma URL completa começando com https://');
+ try{await knowledgeStorePendingFiles()}catch(e){console.error(e);return toast('Não foi possível guardar os arquivos neste aparelho')}
+ const note={id:id===null?'kn_'+now+'_'+Math.random().toString(36).slice(2,7):id,bookId,title:title||'Anotação sem título',content,color,attachments:[...knowledgeDraftAttachments.filter(a=>a.storage==='local'),...attachments],tags:tagsEl?tagsEl.value.split(',').map(x=>x.trim()).filter(Boolean):[],createdAt:now,updatedAt:now};
+ if(ix>=0){note.createdAt=existing.createdAt||now;db.knowledgeNotes[ix]=note}else db.knowledgeNotes.unshift(note);
+ knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId=null;const ok=save();knowledgeNotesViewRender();toast(ok?'Post-it salvo':'Não foi possível salvar o post-it')
+}
 function knowledgeDeleteNote(id){const n=db.knowledgeNotes.find(x=>String(x.id)===String(id));if(!n||!confirm('Excluir esta anotação?'))return;db.knowledgeNotes=db.knowledgeNotes.filter(x=>String(x.id)!==String(id));save();knowledgeNotesViewRender();toast('Anotação excluída')}
 function knowledgeNotesViewRender(){const el=document.getElementById('view');if(el){el.innerHTML=flashmedPageBanner('Caderno de Conhecimentos')+knowledgeNotesView();knowledgeHydrateLocalAttachments(el);if(knowledgeEditingId==='newNote'||knowledgeEditingId!==null)knowledgeRenderDraftAttachments()}}
 function subjects(){return `<div class=panel><div class=row style='justify-content:space-between'><div><h2>Matérias</h2><p class=muted>Clique em uma matéria para abrir seus flashcards, estudar somente ela ou editar seus cartões.</p></div><div class=row><button class=btn onclick="go('Flashcards IA')">✦ Colar flashcards IA</button><button class='btn ghost' onclick="go('Oclusão de imagem')">▣ Oclusão de imagem</button></div></div><div class=row><input class=field id=newicon placeholder='Ícone (ex.: 🧠)' maxlength=8 style='max-width:130px'><input class=field id=newsub placeholder='Ex.: Clínica Médica' style='max-width:420px'><button class=btn onclick=addSubject()>Adicionar matéria</button></div></div><div class=subjectGrid style='margin-top:14px'>${subjStats().map((s,i)=>`<div class=subjectCard style='cursor:pointer' onclick='openSubject(${JSON.stringify(s.x)})'><div class=row style='justify-content:space-between'><button class='btn ghost icon' title='Trocar ícone' onclick='event.stopPropagation();editSubjectIcon(${i})'>${esc(db.subjectIcons[s.x]||'📚')}</button><button class='btn ghost' title='Remover matéria' onclick='event.stopPropagation();delSubject(${i})'>×</button></div><h3>${esc(s.x)}</h3><p>${s.cards} flashcards</p><span class=pill>${s.due} para revisar</span><p class=muted style='margin-bottom:0'>Abrir matéria →</p></div>`).join('')}</div>`}
