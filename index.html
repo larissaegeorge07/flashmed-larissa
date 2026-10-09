@@ -337,7 +337,7 @@ function changeBankQuestionFont(delta){bankLocalFontSize=Math.max(13,Math.min(26
 function resetBankQuestionFont(){bankLocalFontSize=17;changeBankQuestionFont(0)}
 function bankQuestionFontBar(){return ''}
 function renderNav(){
- const mobileMain=new Set(['Dashboard','Banco de Questões','Flashcards','Caderno de Conhecimentos','Jogos']);
+ const mobileMain=new Set(['Dashboard','Banco de Questões','Flashcards','Caderno de Conhecimentos']);
  const navButtons=g=>g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}');closeMobileMore()"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('');
  const mainGroups=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${navButtons(g)}`).join('');
  const moreGroups=navGroups.map(g=>`<section class="mobileMoreGroup"><div class="mobileMoreTitle">${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x;return `<button class="mobileMoreItem ${route==target?'on':''}" onclick="go('${target}');closeMobileMore()"><span>${icons[x]||icons[target]||'▦'}</span><span>${x}</span></button>`}).join('')}${g[0]==='PRÁTICA CLÍNICA'?'<a class="mobileMoreItem" href="./evolucoes.html"><span>🩺</span><span>Evoluções Médicas ↗</span></a>':''}</section>`).join('');
