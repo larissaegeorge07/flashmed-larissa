@@ -51,17 +51,22 @@ body.fm-reduce-motion *,body.fm-reduce-motion *:before,body.fm-reduce-motion *:a
   .nav button .navIcon{display:block;font-size:19px;line-height:22px;margin-bottom:2px}
   .nav button.on{background:#ffffff20;color:#fff}
   .nav button[data-mobile-extra="1"]{display:none}
+   .mobileMoreToggle,.mobileMorePanel,.mobileMoreBackdrop{display:none}
    .nav button[data-mobile-more]{display:block;min-width:0;width:auto;margin:0;padding:7px 2px 6px;border-radius:11px;text-align:center;font-size:10px;line-height:1.15;white-space:normal;color:#f8e8f0}
    .nav button[data-mobile-more] .navIcon{display:block;font-size:19px;line-height:22px;margin-bottom:2px}
-   .mobileMorePanel{display:none;position:fixed;left:10px;right:10px;bottom:calc(72px + env(safe-area-inset-bottom));max-height:min(68vh,620px);overflow-y:auto;z-index:1100;padding:14px;background:var(--card,#fff);color:var(--ink,#35202d);border:1px solid var(--line,#e6cbd8);border-radius:18px;box-shadow:0 12px 40px #24101d40;text-align:left}
-   .mobileMorePanel.show{display:block}
-   .mobileMoreHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 12px;border-bottom:1px solid var(--line,#e6cbd8);font-size:17px}
-   .mobileMoreHead button{border:0;border-radius:9px;padding:8px 11px;background:var(--rose2,#f9eaf1);color:var(--ink,#35202d)}
-   .mobileMoreGroup{padding:10px 0 4px;border-bottom:1px solid var(--line,#e6cbd8)}
-   .mobileMoreTitle{font-size:11px;letter-spacing:.08em;font-weight:900;color:var(--muted,#876b7a);padding:0 5px 6px}
-   .mobileMoreItem{display:flex;align-items:center;gap:10px;width:100%;padding:10px 9px;border:0;border-radius:10px;background:transparent;color:var(--ink,#35202d);text-decoration:none;text-align:left;font-size:14px;font-weight:700}
-   .mobileMoreItem.on{background:var(--rose2,#f9eaf1);color:var(--deep,#71234f)}
-   .mobileMoreOpen{z-index:1090}
+   .mobileMoreBackdrop.show{display:block;position:fixed;inset:0;z-index:1098;background:rgba(31,14,25,.48);backdrop-filter:blur(2px)}
+   .mobileMorePanel.show{display:block;position:fixed;left:10px;right:10px;bottom:calc(76px + env(safe-area-inset-bottom));max-height:min(72vh,650px);overflow-y:auto;z-index:1101;padding:17px 15px calc(18px + env(safe-area-inset-bottom));background:var(--card,#fff);color:var(--ink,#35202d);border:1px solid var(--line,#e6cbd8);border-radius:22px;box-shadow:0 18px 48px rgba(36,16,29,.25);text-align:left}
+   .mobileMoreHead{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:1px 2px 14px;border-bottom:1px solid var(--line,#e6cbd8)}
+   .mobileMoreHead div{display:flex;flex-direction:column;gap:3px}.mobileMoreHead small{font-size:10px;letter-spacing:.12em;font-weight:900;color:var(--muted,#876b7a)}.mobileMoreHead b{font-size:20px}
+   .mobileMoreHead button{flex:0 0 auto;width:38px;height:38px;border:0;border-radius:12px;background:var(--rose2,#f9eaf1);color:var(--ink,#35202d);font-size:17px}
+   .mobileMoreGroup{padding:14px 0 2px;border-bottom:1px solid var(--line,#e6cbd8)}
+   .mobileMoreTitle{display:block!important;margin:0 0 9px;padding:0 2px;font-size:10px;letter-spacing:.1em;font-weight:900;color:var(--muted,#876b7a)}
+   .mobileMoreGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+   .mobileMoreItem{display:flex;align-items:center;gap:10px;min-width:0;min-height:54px;padding:10px;border:1px solid var(--line,#ead9e1);border-radius:14px;background:var(--card,#fff);color:var(--ink,#35202d);text-decoration:none;text-align:left;font-size:13px;line-height:1.25;font-weight:750}
+   .mobileMoreItem span:last-child{overflow-wrap:anywhere}.mobileMoreIcon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:10px;background:var(--rose2,#f9eaf1);font-size:17px}
+   .mobileMoreItem.on{border-color:var(--pink,#ce628f);background:var(--rose2,#f9eaf1);color:var(--deep,#71234f)}
+   .mobileMoreItem small{font-size:10px;color:var(--muted,#876b7a)}
+
 
   .main{padding:14px 12px 22px;max-width:none}
   .top{display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
@@ -340,11 +345,17 @@ function renderNav(){
  const mobileMain=new Set(['Dashboard','Banco de Questões','Flashcards','Caderno de Conhecimentos']);
  const navButtons=g=>g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}');closeMobileMore()"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('');
  const mainGroups=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${navButtons(g)}`).join('');
- const moreGroups=navGroups.map(g=>`<section class="mobileMoreGroup"><div class="mobileMoreTitle">${g[0]}</div>${g[1].map(x=>{let target=x==='Flashcards'?'Matérias':x;return `<button class="mobileMoreItem ${route==target?'on':''}" onclick="go('${target}');closeMobileMore()"><span>${icons[x]||icons[target]||'▦'}</span><span>${x}</span></button>`}).join('')}${g[0]==='PRÁTICA CLÍNICA'?'<a class="mobileMoreItem" href="./evolucoes.html"><span>🩺</span><span>Evoluções Médicas ↗</span></a>':''}</section>`).join('');
- nav.innerHTML=mainGroups+`<button class="mobileMoreToggle" data-mobile-more onclick="toggleMobileMore()" aria-expanded="false"><span class="navIcon">☰</span><span class="navLabel">Mais</span></button><div id="mobileMorePanel" class="mobileMorePanel" aria-label="Mais opções"><div class="mobileMoreHead"><b>Menu completo</b><button onclick="closeMobileMore()" aria-label="Fechar menu">✕</button></div>${moreGroups}</div><div class="navTitle">PRÁTICA CLÍNICA</div><a href="./evolucoes.html" style="display:block;padding:12px;border-radius:12px;color:#fff;text-decoration:none;background:#ffffff1c;font-weight:750">🩺 Evoluções Médicas ↗</a>`;
+ const moreGroups=[
+  {title:'ESTUDAR',items:[['Flashcards IA','Flashcards IA'],['Revisão','Revisão'],['Decorebas','Decorebas'],['Jogos','Jogos']]},
+  {title:'ROTINA',items:[['Cronômetro','Cronômetro'],['Lembretes','Lembretes']]},
+  {title:'ACOMPANHAR',items:[['Métricas','Métricas']]},
+  {title:'PRÁTICA CLÍNICA',items:[['Casos Clínicos','Casos Clínicos'],['Evoluções Médicas','Evoluções Médicas'] ]},
+  {title:'CONTA E DADOS',items:[['Meu FlashMed','Meu FlashMed'],['Nuvem & Backup','Nuvem & Backup']]}
+ ].map(g=>`<section class="mobileMoreGroup"><h3 class="mobileMoreTitle">${g.title}</h3><div class="mobileMoreGrid">${g.items.map(([label,target])=>target==='Evoluções Médicas'?'<a class="mobileMoreItem" href="./evolucoes.html"><span class="mobileMoreIcon">🩺</span><span>Evoluções Médicas <small>↗</small></span></a>':`<button class="mobileMoreItem ${route==target?'on':''}" onclick="go('${target}');closeMobileMore()"><span class="mobileMoreIcon">${icons[target]||'▦'}</span><span>${label}</span></button>`).join('')}</div></section>`).join('');
+ nav.innerHTML=mainGroups+`<button class="mobileMoreToggle" data-mobile-more onclick="toggleMobileMore()" aria-expanded="false"><span class="navIcon">☰</span><span class="navLabel">Mais</span></button><div class="mobileMoreBackdrop" id="mobileMoreBackdrop" onclick="closeMobileMore()" aria-hidden="true"></div><div id="mobileMorePanel" class="mobileMorePanel" aria-label="Mais opções" aria-hidden="true"><div class="mobileMoreHead"><div><small>FLASHMED</small><b>Mais ferramentas</b></div><button onclick="closeMobileMore()" aria-label="Fechar menu">✕</button></div>${moreGroups}</div><div class="navTitle">PRÁTICA CLÍNICA</div><a href="./evolucoes.html" style="display:block;padding:12px;border-radius:12px;color:#fff;text-decoration:none;background:#ffffff1c;font-weight:750">🩺 Evoluções Médicas ↗</a>`;
 }
-function toggleMobileMore(){const p=document.getElementById('mobileMorePanel'),b=document.querySelector('[data-mobile-more]');if(!p)return;const open=!p.classList.contains('show');p.classList.toggle('show',open);document.querySelector('.nav')?.classList.toggle('mobileMoreOpen',open);if(b)b.setAttribute('aria-expanded',String(open))}
-function closeMobileMore(){document.getElementById('mobileMorePanel')?.classList.remove('show');document.querySelector('.nav')?.classList.remove('mobileMoreOpen');document.querySelector('[data-mobile-more]')?.setAttribute('aria-expanded','false')}
+function toggleMobileMore(){const p=document.getElementById('mobileMorePanel'),b=document.querySelector('[data-mobile-more]');if(!p)return;const open=!p.classList.contains('show');p.classList.toggle('show',open);document.getElementById('mobileMoreBackdrop')?.classList.toggle('show',open);p.setAttribute('aria-hidden',String(!open));if(b)b.setAttribute('aria-expanded',String(open))}
+function closeMobileMore(){document.getElementById('mobileMorePanel')?.classList.remove('show');document.getElementById('mobileMoreBackdrop')?.classList.remove('show');document.getElementById('mobileMorePanel')?.setAttribute('aria-hidden','true');document.querySelector('[data-mobile-more]')?.setAttribute('aria-expanded','false')}
 let studyClock={route:null,started:Date.now(),lastFlush:Date.now()};
 function flushStudyTime(forceCloud=false){let t=Date.now(),ms=t-studyClock.lastFlush;if(!currentUser||document.hidden||ms<15000){studyClock.lastFlush=t;return}db.studyTime=db.studyTime||{};let key=day(),label=studyClock.route||route||'Geral';db.studyTime[key]=db.studyTime[key]||{};db.studyTime[key][label]=(db.studyTime[key][label]||0)+ms;studyClock.lastFlush=t;db.updatedAt=t;try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)))}catch(e){}if(forceCloud&&cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,300)}}
 function go(x){flushStudyTime(true);route=x;studyClock.route=x;studyClock.lastFlush=Date.now();renderNav();render()}
