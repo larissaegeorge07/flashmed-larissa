@@ -686,7 +686,7 @@ function knowledgeNoteEditorHtml(id,bookId){
 }
 function knowledgeRefreshNotes(){const q=(document.getElementById('knowledgeNoteSearch')?.value||'').trim().toLocaleLowerCase('pt-BR'),el=document.getElementById('knowledgeNoteResults');if(el){el.innerHTML=knowledgeNoteCards(db.knowledgeNotes.filter(n=>String(n.bookId||'')===String(knowledgeCurrentBookId)&&(!q||[n.title,n.content,(n.tags||[]).join(' ')].join(' ').toLocaleLowerCase('pt-BR').includes(q))).sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)));knowledgeHydrateLocalAttachments(el)}}
 function knowledgeNewNote(){knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId='newNote';knowledgeNotesViewRender();knowledgeRenderDraftAttachments();document.getElementById('knowledgeNoteTitle')?.focus()}
-function knowledgeEditNote(id){const n=db.knowledgeNotes.find(x=>String(x.id)===String(id));knowledgeDraftAttachments=(n?.attachments||[]).filter(a=>a.storage==='local').map(a=>({...a}));knowledgeDraftFiles=[];knowledgeEditingId=id;knowledgeNotesViewRender();knowledgeRenderDraftAttachments();document.getElementById('knowledgeNoteTitle')?.focus()}
+function knowledgeEditNote(id){const n=db.knowledgeNotes.find(x=>String(x.id)===String(id));knowledgeDraftAttachments=(n?.attachments||[]).filter(a=>a.storage==='local'||a.storage==='cloudImage').map(a=>({...a}));knowledgeDraftFiles=[];knowledgeEditingId=id;knowledgeNotesViewRender();knowledgeRenderDraftAttachments();document.getElementById('knowledgeNoteTitle')?.focus()}
 function knowledgeCancelNote(){knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId=null;knowledgeNotesViewRender()}
 function knowledgeChangeNoteColor(id,color){
  const allowed=['yellow','pink','green','blue','lilac'];
@@ -708,7 +708,7 @@ async function knowledgeSaveNote(id,bookId){
  const rawLines=(linksEl?linksEl.value:'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
  if(rawLines.length!==attachments.length)return toast('Confira os links: use uma URL completa começando com https://');
  try{await knowledgeStorePendingFiles()}catch(e){console.error(e);return toast('Não foi possível guardar os arquivos neste aparelho')}
- const note={id:id===null?'kn_'+now+'_'+Math.random().toString(36).slice(2,7):id,bookId,title:title||'Anotação sem título',content,color,attachments:[...knowledgeDraftAttachments.filter(a=>a.storage==='local'),...attachments],tags:tagsEl?tagsEl.value.split(',').map(x=>x.trim()).filter(Boolean):[],createdAt:now,updatedAt:now};
+ const note={id:id===null?'kn_'+now+'_'+Math.random().toString(36).slice(2,7):id,bookId,title:title||'Anotação sem título',content,color,attachments:[...knowledgeDraftAttachments.filter(a=>a.storage==='local'||a.storage==='cloudImage'),...attachments],tags:tagsEl?tagsEl.value.split(',').map(x=>x.trim()).filter(Boolean):[],createdAt:now,updatedAt:now};
  if(ix>=0){note.createdAt=existing.createdAt||now;db.knowledgeNotes[ix]=note}else db.knowledgeNotes.unshift(note);
  knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId=null;const ok=save();knowledgeNotesViewRender();toast(ok?'Post-it salvo':'Não foi possível salvar o post-it')
 }
