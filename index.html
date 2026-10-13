@@ -784,7 +784,21 @@ async function occlusionCreateCards(){
   if(cloud&&currentUser){setTimeout(async()=>{try{await syncUp()}catch(e){console.warn('Sincronização posterior da oclusão falhou; cartão local preservado',e)}},0)}
 }
 function imageOcclusionPasteHandler(e){
-  if(route!=='Oclusão de imagem')return;let items=Array.from((e.clipboardData&&e.clipboardData.items)||[]),it=items.find(function(x){return String(x.type||'').startsWith('image/')});if(it){e.preventDefault();occlusionLoadFile(it.getAsFile())}
+  let items=Array.from((e.clipboardData&&e.clipboardData.items)||[]),it=items.find(function(x){return String(x.type||'').startsWith('image/')});
+  if(!it)return;
+  if(route==='Oclusão de imagem'){e.preventDefault();occlusionLoadFile(it.getAsFile());return}
+  if(route==='Caderno de Conhecimentos'&&(knowledgeEditingId==='newNote'||knowledgeEditingId!==null)){
+   const target=e.target,editor=target&&target.closest&&target.closest('#knowledgeNoteTitle,#knowledgeNoteContent,#knowledgeNoteTags,#knowledgeNoteLinks,.knowledgeEditor');
+   if(!editor)return;
+   e.preventDefault();
+   const file=it.getAsFile();if(!file)return;
+   const namedFile=new File([file],'imagem-colada-'+Date.now()+'.png',{type:file.type||'image/png'});
+   const maxFiles=10,maxFileSize=25*1024*1024;
+   if(knowledgeDraftAttachments.length+knowledgeDraftFiles.length>=maxFiles)return toast('Adicione no máximo 10 anexos por post-it');
+   if(namedFile.size>maxFileSize)return toast('A imagem colada ultrapassa 25 MB');
+   knowledgeDraftFiles.push({id:knowledgeAttachmentId(),type:'localImage',file:namedFile});
+   knowledgeRenderDraftAttachments();toast('Imagem adicionada ao post-it. Clique em Salvar post-it para guardar.');
+  }
 }
 document.addEventListener('paste',imageOcclusionPasteHandler);
 
