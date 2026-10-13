@@ -550,6 +550,10 @@ function knowledgeAttachmentHtml(items){
  if(!Array.isArray(items)||!items.length)return '';
  return '<div class="knowledgeAttachments"><div class="knowledgeAttachmentHeading">📎 Anexos</div>'+items.map(a=>{
   const label=knowledgeAttachmentLabel(a);
+  if(a.storage==='cloudImage'&&a.dataUrl&&String(a.dataUrl).startsWith('data:image/')){
+   const url=esc(a.dataUrl);
+   return '<div class="knowledgeAttachmentMedia"><a class="knowledgeAttachmentImage" href="'+url+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="'+url+'" alt="'+label+'"><span>'+label+'</span></a></div>';
+  }
   if(a.storage==='local'&&a.id){
    const id=esc(a.id),type=a.type||'';
    if(type==='localImage')return '<div class="knowledgeAttachmentMedia"><a class="knowledgeAttachmentImage" href="#" data-knowledge-media-id="'+id+'" target="_blank" rel="noopener noreferrer"><img loading="lazy" data-knowledge-media-id="'+id+'" alt="'+label+'"><span>'+label+'</span></a></div>';
@@ -641,10 +645,26 @@ async function knowledgeHydrateLocalAttachments(root){
   }catch(e){console.warn('Não foi possível carregar anexo local',e);el.dataset.mediaReady='1'}
  }
 }
+async function knowledgeImageToCloudDataUrl(file){
+ const source=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error||new Error('Falha ao ler imagem'));reader.readAsDataURL(file)});
+ const img=await new Promise((resolve,reject)=>{const el=new Image();el.onload=()=>resolve(el);el.onerror=()=>reject(new Error('Não foi possível abrir a imagem'));el.src=source});
+ const maxSide=1000,scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));canvas.height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+ const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas indisponível');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ let quality=.7,data=canvas.toDataURL('image/jpeg',quality);
+ while(data.length>190000&&quality>.35){quality-=.07;data=canvas.toDataURL('image/jpeg',quality)}
+ if(data.length>240000)throw new Error('Imagem muito grande para sincronizar; recorte o print e tente novamente');
+ return data;
+}
 async function knowledgeStorePendingFiles(){
  for(const item of knowledgeDraftFiles){
-  await flashmedAssetPut(item.id,{blob:item.file,type:item.type,name:item.file.name,mime:item.file.type,size:item.file.size,storedAt:Date.now()});
-  knowledgeDraftAttachments.push({id:item.id,type:item.type,label:knowledgeFileLabel(item.file.name),mime:item.file.type,size:item.file.size,storage:'local'});
+  if(item.type==='localImage'){
+   const dataUrl=await knowledgeImageToCloudDataUrl(item.file);
+   knowledgeDraftAttachments.push({id:item.id,type:'image',label:knowledgeFileLabel(item.file.name),mime:'image/jpeg',size:dataUrl.length,storage:'cloudImage',dataUrl});
+  }else{
+   await flashmedAssetPut(item.id,{blob:item.file,type:item.type,name:item.file.name,mime:item.file.type,size:item.file.size,storedAt:Date.now()});
+   knowledgeDraftAttachments.push({id:item.id,type:item.type,label:knowledgeFileLabel(item.file.name),mime:item.file.type,size:item.file.size,storage:'local'});
+  }
  }
  knowledgeDraftFiles=[];
 }
@@ -661,8 +681,8 @@ function knowledgeNoteEditorHtml(id,bookId){
  let n=id===null?{title:'',content:'',tags:[],color:'yellow',attachments:[]}:db.knowledgeNotes.find(x=>String(x.id)===String(id));
  if(!n)return '';
  const color=['yellow','pink','green','blue','lilac'].includes(n.color)?n.color:'yellow';
- const links=(n.attachments||[]).filter(a=>a.storage!=='local').map(a=>a.url).filter(Boolean).join('\n');
- return '<div class="panel knowledgeEditor"><h3>'+(id===null?'Novo post-it':'Editar post-it')+'</h3><label>Título<input id="knowledgeNoteTitle" class="field" maxlength="180" placeholder="Uma ideia, lembrete ou referência…" value="'+esc(n.title||'')+'"></label><label>Anotação<textarea id="knowledgeNoteContent" class="field" rows="5" placeholder="Escreva livremente aqui…">'+esc(n.content||'')+'</textarea></label><label>Cor do post-it<select id="knowledgeNoteColor" class="field"><option value="yellow" '+(color==='yellow'?'selected':'')+'>🟨 Amarelo</option><option value="pink" '+(color==='pink'?'selected':'')+'>🩷 Rosa</option><option value="green" '+(color==='green'?'selected':'')+'>🟩 Verde</option><option value="blue" '+(color==='blue'?'selected':'')+'>🟦 Azul</option><option value="lilac" '+(color==='lilac'?'selected':'')+'>🟪 Lilás</option></select></label><label>📁 Inserir foto, áudio ou vídeo<input id="knowledgeNoteFiles" class="field knowledgeFileInput" type="file" accept="image/*,audio/*,video/*" multiple onchange="knowledgeHandleFileSelection(this)"></label><div class="knowledgeDraftAttachments"><div id="knowledgeDraftAttachmentList"></div><p class="muted knowledgeAttachmentHint">Você pode escolher fotos da galeria, áudios e vídeos do aparelho. Limite: 25 MB por arquivo e 10 anexos por post-it.</p><p class="muted knowledgeAttachmentHint">Arquivos ficam guardados neste navegador/aparelho; os textos e links continuam sincronizados com sua conta.</p></div><label>🔗 Ou cole links públicos (um por linha)<textarea id="knowledgeNoteLinks" class="field" rows="2" placeholder="https://…">'+esc(links)+'</textarea></label><label>Tags opcionais<input id="knowledgeNoteTags" class="field" placeholder="Separe por vírgulas" value="'+esc((n.tags||[]).join(', '))+'"></label><div class="knowledgeActions"><button class="btn ok" onclick="knowledgeSaveNote('+(id===null?'null':knowledgeJsArg(id))+','+knowledgeJsArg(bookId)+')">Salvar post-it</button><button class="btn ghost" onclick="knowledgeCancelNote()">Cancelar</button></div></div>'
+ const links=(n.attachments||[]).filter(a=>a.storage!=='local'&&a.storage!=='cloudImage').map(a=>a.url).filter(Boolean).join('\n');
+ return '<div class="panel knowledgeEditor"><h3>'+(id===null?'Novo post-it':'Editar post-it')+'</h3><label>Título<input id="knowledgeNoteTitle" class="field" maxlength="180" placeholder="Uma ideia, lembrete ou referência…" value="'+esc(n.title||'')+'"></label><label>Anotação<textarea id="knowledgeNoteContent" class="field" rows="5" placeholder="Escreva livremente aqui…">'+esc(n.content||'')+'</textarea></label><label>Cor do post-it<select id="knowledgeNoteColor" class="field"><option value="yellow" '+(color==='yellow'?'selected':'')+'>🟨 Amarelo</option><option value="pink" '+(color==='pink'?'selected':'')+'>🩷 Rosa</option><option value="green" '+(color==='green'?'selected':'')+'>🟩 Verde</option><option value="blue" '+(color==='blue'?'selected':'')+'>🟦 Azul</option><option value="lilac" '+(color==='lilac'?'selected':'')+'>🟪 Lilás</option></select></label><label>📁 Inserir foto, áudio ou vídeo<input id="knowledgeNoteFiles" class="field knowledgeFileInput" type="file" accept="image/*,audio/*,video/*" multiple onchange="knowledgeHandleFileSelection(this)"></label><div class="knowledgeDraftAttachments"><div id="knowledgeDraftAttachmentList"></div><p class="muted knowledgeAttachmentHint">Você pode escolher fotos da galeria, áudios e vídeos do aparelho. Limite: 25 MB por arquivo e 10 anexos por post-it.</p><p class="muted knowledgeAttachmentHint">Imagens compactadas ficam salvas junto ao post-it na nuvem e acompanham sua conta. Áudios e vídeos anexados como arquivo ainda ficam neste aparelho.</p></div><label>🔗 Ou cole links públicos (um por linha)<textarea id="knowledgeNoteLinks" class="field" rows="2" placeholder="https://…">'+esc(links)+'</textarea></label><label>Tags opcionais<input id="knowledgeNoteTags" class="field" placeholder="Separe por vírgulas" value="'+esc((n.tags||[]).join(', '))+'"></label><div class="knowledgeActions"><button class="btn ok" onclick="knowledgeSaveNote('+(id===null?'null':knowledgeJsArg(id))+','+knowledgeJsArg(bookId)+')">Salvar post-it</button><button class="btn ghost" onclick="knowledgeCancelNote()">Cancelar</button></div></div>'
 }
 function knowledgeRefreshNotes(){const q=(document.getElementById('knowledgeNoteSearch')?.value||'').trim().toLocaleLowerCase('pt-BR'),el=document.getElementById('knowledgeNoteResults');if(el){el.innerHTML=knowledgeNoteCards(db.knowledgeNotes.filter(n=>String(n.bookId||'')===String(knowledgeCurrentBookId)&&(!q||[n.title,n.content,(n.tags||[]).join(' ')].join(' ').toLocaleLowerCase('pt-BR').includes(q))).sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0)));knowledgeHydrateLocalAttachments(el)}}
 function knowledgeNewNote(){knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId='newNote';knowledgeNotesViewRender();knowledgeRenderDraftAttachments();document.getElementById('knowledgeNoteTitle')?.focus()}
