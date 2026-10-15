@@ -1552,14 +1552,14 @@ const itens= [
   {
    "id": "pdf1-130",
    "nome": "MEDIR TAX E PA A CADA 30 MINUTOS DURANTE A TRANFUSÃO",
-   "categoria": "HEMODERIVADOS",
+   "categoria": "Outros",
    "via": "Conferir via",
    "textoFonte": "MEDIR TAX E PA A CADA 30 MINUTOS DURANTE A TRANFUSÃO",
    "textoEditavel": "MEDIR TAX E PA A CADA 30 MINUTOS DURANTE A TRANFUSÃO",
-   "observacao": "ITEM DE MAIOR RISCO OU DEPENDENTE DE CONTEXTO. Transcrição literal do documento enviado; não é protocolo validado nem ordem pronta para uso. Não copiar para paciente sem revisar indicação, dose, unidade, apresentação, diluição, velocidade, contraindicações, função renal/hepática, monitorização e protocolo institucional.",
+   "observacao": "Orientação geral extraída do PDF, não é um medicamento. Mantida em Outros para reclassificação manual.",
    "efeitos": "O documento de origem não apresenta informação específica de efeitos adversos para este item. Consultar a bula profissional da apresentação exata e avaliar o paciente.",
    "interacoes": "O documento de origem não apresenta informação específica de interações para este item. Conferir medicamentos em uso e bula profissional atualizada.",
-   "status": "ALTO RISCO — revisão clínica obrigatória"
+   "status": "ORIENTAÇÃO GERAL — revisar e classificar"
   },
   {
    "id": "pdf1-131",
@@ -1612,14 +1612,14 @@ const itens= [
   {
    "id": "pdf1-135",
    "nome": "MEDIR GLICEMIA CAPILAR 6/6H.",
-   "categoria": "DM DESCOMPENSADO",
+   "categoria": "Outros",
    "via": "Conferir via",
    "textoFonte": "MEDIR GLICEMIA CAPILAR 6/6H.",
    "textoEditavel": "MEDIR GLICEMIA CAPILAR 6/6H.",
-   "observacao": "ITEM DE MAIOR RISCO OU DEPENDENTE DE CONTEXTO. Transcrição literal do documento enviado; não é protocolo validado nem ordem pronta para uso. Não copiar para paciente sem revisar indicação, dose, unidade, apresentação, diluição, velocidade, contraindicações, função renal/hepática, monitorização e protocolo institucional.",
+   "observacao": "Orientação geral extraída do PDF, não é um medicamento. Mantida em Outros para reclassificação manual.",
    "efeitos": "O documento de origem não apresenta informação específica de efeitos adversos para este item. Consultar a bula profissional da apresentação exata e avaliar o paciente.",
    "interacoes": "O documento de origem não apresenta informação específica de interações para este item. Conferir medicamentos em uso e bula profissional atualizada.",
-   "status": "ALTO RISCO — revisão clínica obrigatória"
+   "status": "ORIENTAÇÃO GERAL — revisar e classificar"
   },
   {
    "id": "pdf1-136",
@@ -1648,14 +1648,14 @@ const itens= [
   {
    "id": "pdf1-138",
    "nome": "MEDIR GLICEMIA CAPILAR 1/1H.",
-   "categoria": "DM DESCOMPENSADO",
+   "categoria": "Outros",
    "via": "Conferir via",
    "textoFonte": "MEDIR GLICEMIA CAPILAR 1/1H.",
    "textoEditavel": "MEDIR GLICEMIA CAPILAR 1/1H.",
-   "observacao": "ITEM DE MAIOR RISCO OU DEPENDENTE DE CONTEXTO. Transcrição literal do documento enviado; não é protocolo validado nem ordem pronta para uso. Não copiar para paciente sem revisar indicação, dose, unidade, apresentação, diluição, velocidade, contraindicações, função renal/hepática, monitorização e protocolo institucional.",
+   "observacao": "Orientação geral extraída do PDF, não é um medicamento. Mantida em Outros para reclassificação manual.",
    "efeitos": "O documento de origem não apresenta informação específica de efeitos adversos para este item. Consultar a bula profissional da apresentação exata e avaliar o paciente.",
    "interacoes": "O documento de origem não apresenta informação específica de interações para este item. Conferir medicamentos em uso e bula profissional atualizada.",
-   "status": "ALTO RISCO — revisão clínica obrigatória"
+   "status": "ORIENTAÇÃO GERAL — revisar e classificar"
   },
   {
    "id": "pdf1-139",
@@ -4899,15 +4899,15 @@ const itens= [
   },
   {
    "id": "pdf1-409",
-   "nome": "BOCHECHAR 10 ML A CADA 6\\6H",
+   "nome": "CLOREXIDINA 0,12% — orientação de uso (pdf1-409)",
    "categoria": "HIGIENE ORAL",
    "via": "Conferir via",
    "textoFonte": "BOCHECHAR 10 ML A CADA 6\\6H",
-   "textoEditavel": "BOCHECHAR 10 ML A CADA 6\\6H",
-   "observacao": "Transcrição literal de “Medicações no PS 2.pdf”. O documento não comprova que a ordem esteja atualizada ou apropriada para este paciente. Confirmar indicação, dose, apresentação, contraindicações e protocolo institucional antes de usar.",
+   "textoEditavel": "CLOREXIDINA 0,12%\nBOCHECHAR 10 ML A CADA 6\\6H",
+   "observacao": "CONTINUAÇÃO VINCULADA ao registro pdf1-408. Associação feita pela sequência do PDF; confira se pertence a este produto antes de usar.",
    "efeitos": "O documento de origem não apresenta informação específica de efeitos adversos para este item. Consultar a bula profissional da apresentação exata e avaliar o paciente.",
    "interacoes": "O documento de origem não apresenta informação específica de interações para este item. Conferir medicamentos em uso e bula profissional atualizada.",
-   "status": "Transcrição não validada — conferir antes do uso"
+   "status": "CONTINUAÇÃO VINCULADA — conferir associação e prescrição"
   }
  ];
 let categoriaAtiva=itens[0].categoria,itemAtivo=itens[0].id,busca='';
