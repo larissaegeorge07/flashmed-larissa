@@ -1,85 +1,42 @@
-/* FlashMed — Receituário de referência
- * Primeiro lote: transcrição de 3 itens do arquivo "Medicações no PS 2.pdf".
- * Não é prescrição validada. Confirmar protocolo institucional, indicação,
- * dose, diluição, contraindicações e monitorização antes de qualquer uso.
- */
+/* FlashMed — Receituário de referência. Lote inicial: três itens do documento enviado. */
 (function(){
-  const itens = [
-    {
-      id: 'sf09-500-aberto',
-      nome: 'Soro fisiológico 0,9% — 500 mL',
-      categoria: 'Hidratação',
-      via: 'Endovenosa (EV)',
-      textoFonte: 'SF 0,9% - 500 ML, EV, CORRER ABERTO',
-      observacao: 'A fonte não especifica indicação, volume total necessário nem critérios de reavaliação. “Correr aberto” não deve ser interpretado como velocidade universal.',
-      efeitos: 'A comunicar conforme o contexto: informe a equipe se houver falta de ar, piora de edema ou desconforto durante a infusão. O risco depende do volume e da condição clínica.',
-      interacoes: 'Não há uma interação medicamentosa típica a listar para o soro isoladamente. Conferir compatibilidade antes de misturar medicamentos na mesma solução ou via.',
-      status: 'Conferir indicação e velocidade'
-    },
-    {
-      id: 'dipirona-ev-1g',
-      nome: 'Dipirona 1 g/2 mL — intravenosa',
-      categoria: 'Analgésico',
-      via: 'Endovenosa (EV)',
-      textoFonte: 'DIPIRONA 1000MG/2ML – 01 AMP + 08 ML AD, EV, 6/6H, SE DOR OU TAX >= 37,8 ºC',
-      observacao: 'Transcrição literal do documento. Confirmar dose, diluente compatível, velocidade de administração, indicação, alergias/contraindicações e protocolo local antes do uso.',
-      efeitos: 'Orientar a comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Durante administração IV, observar hipotensão e seguir o protocolo de monitorização. Informar que febre ou dor de garganta inesperadas durante o uso exigem avaliação médica.',
-      interacoes: 'Revisar os medicamentos em uso antes de administrar. A dipirona pode ter interações clinicamente relevantes com alguns medicamentos, inclusive metotrexato e ácido acetilsalicílico em baixa dose; conferir bula atualizada e avaliação farmacêutica/clínica para o caso concreto.',
-      status: 'Revisão clínica necessária'
-    },
-    {
-      id: 'buscopan-composto-ev',
-      nome: 'Buscopan composto — intravenoso',
-      categoria: 'Analgésico / antiespasmódico',
-      via: 'Endovenosa (EV)',
-      textoFonte: 'BUSCOPAN COMPOSTO (4 MG/ML + 500MG/ML) – 01 AMP + 10 ML AD, EV, 8/8h, SN',
-      observacao: 'A fonte não esclarece todos os critérios de uso “SN”. Confirmar apresentação disponível, indicação, diluição, velocidade, contraindicações e protocolo institucional.',
-      efeitos: 'Orientar a comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Pode haver efeitos anticolinérgicos, como boca seca, visão turva, taquicardia ou dificuldade para urinar; a relevância depende do paciente e da apresentação.',
-      interacoes: 'Conferir a lista completa de medicamentos. Por conter componente antiespasmódico anticolinérgico e dipirona, a combinação pode aumentar efeitos anticolinérgicos com certos medicamentos e compartilhar riscos/interações da dipirona. Verificar a bula da apresentação exata e a situação clínica.',
-      status: 'Revisão clínica necessária'
-    }
-  ];
-  window.receituarioView = function(){
-    const escText = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const cards = itens.map((item, i) => `
-      <article class="rcCard" style="border:1px solid var(--border,#ddd);border-radius:14px;padding:14px;margin:12px 0;background:var(--card,#fff)">
-        <div style="font-size:12px;opacity:.75;margin-bottom:5px">${escText(item.categoria)} · Lote inicial</div>
-        <h3 style="margin:0 0 10px;font-size:17px">${escText(item.nome)}</h3>
-        <p style="margin:5px 0"><strong>Via registrada:</strong> ${escText(item.via)}</p>
-        <p style="margin:5px 0"><strong>Texto original do documento:</strong></p>
-        <blockquote style="margin:5px 0 10px;padding:9px 12px;border-left:3px solid var(--accent,#888);background:var(--surface,#f5f5f5);border-radius:4px">${escText(item.textoFonte)}</blockquote>
-        <p style="margin:7px 0"><strong>Conferência:</strong> ${escText(item.observacao)}</p>
-        <div style="margin:12px 0;padding:11px;border-left:4px solid #C98B39;background:var(--surface,#f8f5ee);border-radius:7px">
-          <strong>⚠️ Efeitos adversos — o que comunicar ao paciente</strong>
-          <p style="margin:6px 0 0">${escText(item.efeitos)}</p>
-        </div>
-        <div style="margin:12px 0;padding:11px;border-left:4px solid #B64A4A;background:var(--surface,#f8f1f1);border-radius:7px">
-          <strong>Interações medicamentosas — atenção</strong>
-          <p style="margin:6px 0 0">${escText(item.interacoes)}</p>
-        </div>
-        <p style="margin:7px 0;font-size:12px;font-weight:600">Status: ${escText(item.status)}</p>
-        <button type="button" onclick="receituarioCopy(${i})" style="padding:8px 12px;border-radius:9px;border:1px solid var(--border,#ccc);background:transparent;color:inherit;cursor:pointer">Copiar texto original</button>
-      </article>`).join('');
-    return `<section class="receituarioPage">
-      <div style="padding:14px;border-radius:12px;border:1px solid #c98b39;background:var(--card,#fff);margin-bottom:14px">
-        <strong>Material de referência — não é prescrição validada.</strong>
-        <p style="margin:6px 0 0">Conteúdo transcrito de “Medicações no PS 2.pdf”. A inclusão no FlashMed não confirma segurança ou adequação clínica. Confira o protocolo institucional e os dados do paciente antes de usar.</p>
-      </div>
-      <p>Primeiro lote: 3 itens. Os textos originais são mantidos para facilitar a conferência; observações de revisão não substituem validação clínica.</p>
-      ${cards}
-    </section>`;
-  };
-  window.receituarioCopy = async function(index){
-    const item = itens[index]; if(!item) return;
-    const text = item.nome + '\\n' + item.textoFonte + '\\nFonte: Medicações no PS 2.pdf — transcrição de referência, não validada.';
-    try {
-      if(navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
-      else {
-        const area=document.createElement('textarea'); area.value=text; area.style.position='fixed'; area.style.opacity='0';
-        document.body.appendChild(area); area.select(); const ok=document.execCommand('copy'); area.remove();
-        if(!ok) throw new Error('cópia indisponível');
-      }
-      alert('Texto original copiado. Confira e valide antes do uso clínico.');
-    } catch(e) { alert('Não foi possível copiar automaticamente. Selecione o texto original e copie manualmente.'); }
-  };
+const itens=[
+{id:'sf09-500-aberto',nome:'Soro fisiológico 0,9% — 500 mL',categoria:'Hidratação',via:'Endovenosa (EV)',textoFonte:'SF 0,9% - 500 ML, EV, CORRER ABERTO',textoEditavel:'SF 0,9% — 500 mL, EV, correr aberto.',observacao:'A fonte não especifica indicação, volume total nem critérios de reavaliação. “Correr aberto” não deve ser interpretado como velocidade universal.',efeitos:'Durante a infusão, comunicar falta de ar, piora de edema ou desconforto. O risco depende do volume e da condição clínica.',interacoes:'Conferir compatibilidade antes de misturar medicamentos na mesma solução ou via. Considerar a condição clínica e os demais fluidos em uso.',status:'Conferir indicação e velocidade'},
+{id:'dipirona-ev-1g',nome:'Dipirona 1 g/2 mL — intravenosa',categoria:'Analgésicos',via:'Endovenosa (EV)',textoFonte:'DIPIRONA 1000MG/2ML – 01 AMP + 08 ML AD, EV, 6/6H, SE DOR OU TAX >= 37,8 ºC',textoEditavel:'DIPIRONA 1000 mg/2 mL — 01 ampola + 08 mL AD, EV, 6/6 h, se dor ou temperatura >= 37,8 °C.',observacao:'Transcrição literal do documento. Confirmar dose, diluente compatível, velocidade, indicação, alergias/contraindicações e protocolo local antes do uso.',efeitos:'Comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Durante administração IV, seguir protocolo de monitorização. Febre ou dor de garganta inesperadas durante o uso exigem avaliação médica.',interacoes:'Revisar medicamentos em uso. A dipirona pode ter interações clinicamente relevantes com alguns medicamentos, incluindo metotrexato e ácido acetilsalicílico em baixa dose. Conferir bula atualizada e avaliar o caso concreto.',status:'Revisão clínica necessária'},
+{id:'buscopan-composto-ev',nome:'Buscopan composto — intravenoso',categoria:'Antiespasmódicos',via:'Endovenosa (EV)',textoFonte:'BUSCOPAN COMPOSTO (4 MG/ML + 500MG/ML) – 01 AMP + 10 ML AD, EV, 8/8h, SN',textoEditavel:'BUSCOPAN COMPOSTO (4 mg/mL + 500 mg/mL) — 01 ampola + 10 mL AD, EV, 8/8 h, se necessário.',observacao:'A fonte não esclarece todos os critérios de uso “SN”. Confirmar apresentação, indicação, diluição, velocidade, contraindicações e protocolo institucional.',efeitos:'Comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Podem ocorrer efeitos anticolinérgicos, como boca seca, visão turva, taquicardia ou dificuldade para urinar.',interacoes:'Conferir todos os medicamentos em uso. O componente antiespasmódico pode somar efeitos anticolinérgicos com certos medicamentos; a combinação também compartilha precauções e interações da dipirona. Verificar a bula da apresentação exata.',status:'Revisão clínica necessária'}
+];
+const categorias=['Hidratação','Analgésicos','Antiespasmódicos'];let categoriaAtiva='Hidratação',itemAtivo=itens[0].id,busca='';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const atual=()=>itens.find(x=>x.id===itemAtivo)||itens[0];
+const filtrados=()=>itens.filter(x=>(!busca||(x.nome+' '+x.via+' '+x.categoria).toLowerCase().includes(busca.toLowerCase()))&&(x.categoria===categoriaAtiva||busca));
+window.receituarioSetCategoria=cat=>{categoriaAtiva=cat;busca='';const x=filtrados()[0];if(x)itemAtivo=x.id;window.receituarioRefresh()};
+window.receituarioSetItem=id=>{itemAtivo=id;categoriaAtiva=atual().categoria;window.receituarioRefresh()};
+window.receituarioSearch=value=>{busca=value||'';const a=filtrados();if(a.length&&!a.some(x=>x.id===itemAtivo))itemAtivo=a[0].id;window.receituarioRefresh();const input=document.getElementById('rcSearch');if(input){input.focus();input.setSelectionRange(busca.length,busca.length)}};
+window.receituarioRefresh=()=>{const host=document.getElementById('rcApp');if(host)host.innerHTML=window.receituarioViewInner()};
+window.receituarioViewInner=function(){
+const item=atual(),lista=filtrados();
+const cats=categorias.map(cat=>'<button type="button" onclick="receituarioSetCategoria(\''+cat+'\')" class="rcCategory '+(categoriaAtiva===cat?'active':'')+'"><span>'+esc(cat)+'</span><span class="rcCount">'+itens.filter(x=>x.categoria===cat).length+'</span></button>').join('');
+const meds=lista.length?lista.map(x=>'<button type="button" onclick="receituarioSetItem(\''+x.id+'\')" class="rcMed '+(itemAtivo===x.id?'active':'')+'"><span class="rcMedName">'+esc(x.nome)+'</span><span class="rcMedMeta">'+esc(x.via)+'</span></button>').join(''):'<p class="rcEmpty">Nenhum medicamento encontrado.</p>';
+return '<div class="rcShell"><div class="rcTop"><div class="rcLogo">Rx</div><div><h2>Receita Rápida PS</h2><p>Glossário de medicamentos · lote inicial</p></div></div>'+
+'<label class="rcSearchWrap"><span>⌕</span><input id="rcSearch" type="search" placeholder="Buscar medicamento ou categoria" value="'+esc(busca)+'" oninput="receituarioSearch(this.value)"></label>'+
+'<div class="rcWorkspace"><aside class="rcSidebar"><div class="rcSideTitle">CATEGORIAS</div>'+cats+'<div class="rcSideTitle rcAvailableTitle">MEDICAMENTOS <span>'+lista.length+'</span></div>'+meds+'</aside>'+
+'<main class="rcDetail"><div class="rcDetailHead"><div><div class="rcEyebrow">'+esc(item.categoria)+'</div><h3>'+esc(item.nome)+'</h3><div class="rcTags"><span>'+esc(item.via)+'</span><span>Fonte: documento enviado</span></div></div><span class="rcPill">Referência</span></div>'+
+'<section class="rcPanel"><div class="rcPanelTitle">Receituário <label class="rcToggle"><input id="rcQtyToggle" type="checkbox" checked><span></span><small>Quantidade visível</small></label></div><div class="rcRoute">TEXTO EDITÁVEL · '+esc(item.via).toUpperCase()+'</div><textarea id="rcPrescription" class="rcPrescription" rows="4" aria-label="Texto editável do receituário">'+esc(item.textoEditavel)+'</textarea>'+
+'<div class="rcActions"><button class="rcPrimary" type="button" onclick="receituarioCopyCurrent()">▣ &nbsp; Copiar prescrição</button><button class="rcTextButton" type="button" onclick="receituarioRestore()">Restaurar</button></div><p class="rcHelp">Confira e edite o texto antes de copiar. O texto original permanece disponível abaixo.</p><details class="rcSource"><summary>Ver texto original do documento</summary><p>'+esc(item.textoFonte)+'</p></details></section>'+
+'<section class="rcInfo"><h4>⚠️ Efeitos adversos — o que comunicar ao paciente</h4><p>'+esc(item.efeitos)+'</p></section><section class="rcInfo rcInteraction"><h4>Interações medicamentosas — atenção</h4><p>'+esc(item.interacoes)+'</p></section><section class="rcInfo rcPatient"><h4>Conferência clínica</h4><p>'+esc(item.observacao)+'</p><p class="rcStatus">Status: '+esc(item.status)+'</p></section><p class="rcFooter">Transcrição de “Medicações no PS 2.pdf”. Material de referência, não é prescrição validada. Confira indicação, dose, diluição, contraindicações e protocolo institucional antes do uso.</p></main></div></div>';
+};
+window.receituarioView=function(){return '<section class="receituarioPage"><style>'+
+'.receituarioPage{color:var(--text,inherit);font:inherit}.rcShell{--rc-green:#087f70;--rc-line:#dce5e2;--rc-muted:#687874;background:var(--card,#fff);border:1px solid var(--rc-line);border-radius:18px;overflow:hidden}'+
+'.rcTop{display:flex;align-items:center;gap:12px;padding:18px 20px;background:linear-gradient(120deg,#e5f5ef,#f8fbf9);color:#173f38;border-bottom:1px solid var(--rc-line)}.rcLogo{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--rc-green);color:#fff;font-weight:800;font-size:20px}.rcTop h2{font-size:21px;margin:0;font-weight:800}.rcTop p{margin:3px 0 0;color:#55716b;font-size:12px}'+
+'.rcSearchWrap{margin:16px 18px;display:flex;align-items:center;gap:10px;padding:0 14px;border:1px solid var(--rc-line);border-radius:12px;min-height:46px;background:var(--card,#fff);font-size:23px;color:var(--rc-muted)}.rcSearchWrap input{border:0;outline:0;background:transparent;color:inherit;width:100%;font:inherit;font-size:14px}'+
+'.rcWorkspace{display:grid;grid-template-columns:minmax(190px,245px) minmax(0,1fr);border-top:1px solid var(--rc-line)}.rcSidebar{padding:15px 12px;border-right:1px solid var(--rc-line);background:var(--surface,#f8faf9)}.rcSideTitle{display:flex;justify-content:space-between;padding:8px 10px;color:var(--rc-muted);font-size:10px;font-weight:800;letter-spacing:1px}'+
+'.rcCategory,.rcMed{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:1px solid transparent;background:transparent;color:inherit;cursor:pointer;border-radius:10px;padding:11px 10px;margin:2px 0;font:inherit}.rcCategory{font-size:13px;font-weight:700}.rcCategory.active{background:#dff3eb;color:#116c5f;border-color:#b8e4d6}.rcCount{font-size:11px;border-radius:8px;padding:3px 7px;background:#78908820}.rcAvailableTitle{margin-top:18px;border-top:1px solid var(--rc-line);padding-top:17px}.rcMed{display:block;padding:10px}.rcMed.active{background:var(--card,#fff);border-color:#8ccbbb;box-shadow:0 2px 8px #173f3810}.rcMedName{display:block;font-size:12px;font-weight:700;line-height:1.4}.rcMedMeta{display:block;font-size:10px;color:var(--rc-muted);margin-top:4px}'+
+'.rcDetail{padding:20px;min-width:0}.rcDetailHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:18px}.rcEyebrow{color:var(--rc-green);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}.rcDetailHead h3{font-size:22px;line-height:1.2;margin:6px 0 9px;font-weight:800}.rcTags{display:flex;flex-wrap:wrap;gap:7px}.rcTags span{font-size:11px;color:#4d6a64;background:var(--surface,#f3f7f5);padding:5px 8px;border-radius:7px}.rcPill{font-size:10px;font-weight:700;border-radius:999px;padding:6px 9px;background:#e2f5ed;color:#176d5e;white-space:nowrap}'+
+'.rcPanel{border:1px solid var(--rc-line);border-radius:14px;padding:16px;margin-bottom:14px}.rcPanelTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;font-weight:800;margin-bottom:14px}.rcToggle{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:500;color:var(--rc-muted)}.rcToggle input{accent-color:var(--rc-green)}.rcRoute{font-size:10px;letter-spacing:1px;color:var(--rc-muted);font-weight:800;margin-bottom:8px}.rcPrescription{width:100%;box-sizing:border-box;resize:vertical;border:1px solid #d9e5e0;border-radius:10px;padding:13px;background:var(--surface,#fbfcfb);color:inherit;font:13px/1.7 ui-monospace,monospace;outline-color:var(--rc-green);min-height:110px}'+
+'.rcActions{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px}.rcPrimary{background:var(--rc-green);color:white;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #075f55}.rcTextButton{border:0;background:transparent;color:inherit;font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:10px}.rcHelp{font-size:11px;color:var(--rc-muted);margin:12px 0 0}.rcSource{margin-top:14px;border-top:1px solid var(--rc-line);padding-top:12px;font-size:12px}.rcSource summary{cursor:pointer;font-weight:700;color:var(--rc-green)}.rcSource p{white-space:pre-wrap;line-height:1.6}'+
+'.rcInfo{padding:13px 15px;border-radius:11px;background:#fff8e9;border-left:4px solid #d39a3d;margin:12px 0}.rcInfo h4{font-size:12px;margin:0 0 7px;font-weight:800}.rcInfo p{font-size:12px;line-height:1.6;margin:0}.rcInteraction{background:#fff1f0;border-color:#c95d57}.rcPatient{background:var(--surface,#f4f7f6);border-color:#9ab8af}.rcStatus{margin-top:9px!important;font-weight:800;font-size:11px!important}.rcFooter{font-size:10px;line-height:1.5;color:var(--rc-muted);margin:14px 2px 0}.rcEmpty{font-size:12px;color:var(--rc-muted);padding:10px}'+
+'@media(max-width:760px){.rcWorkspace{grid-template-columns:1fr}.rcSidebar{border-right:0;border-bottom:1px solid var(--rc-line);padding:12px}.rcCategory{display:inline-flex;width:auto;margin:2px 4px 2px 0;padding:9px 10px}.rcSideTitle{padding:7px 6px}.rcAvailableTitle{margin-top:10px}.rcMed{display:inline-block;vertical-align:top;width:calc(50% - 6px);min-height:60px;border:1px solid var(--rc-line);margin:3px}.rcDetail{padding:14px}.rcDetailHead h3{font-size:19px}.rcTop{padding:15px}.rcTop h2{font-size:19px}}'+
+'</style><div id="rcApp">'+window.receituarioViewInner()+'</div></section>'};
+window.receituarioRestore=()=>{const el=document.getElementById('rcPrescription');if(el)el.value=atual().textoEditavel};
+window.receituarioCopyCurrent=async()=>{const el=document.getElementById('rcPrescription');if(!el)return;const text=el.value;try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(text);else{const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();const ok=document.execCommand('copy');area.remove();if(!ok)throw Error('copy failed')}const btn=document.querySelector('.rcPrimary');if(btn){const before=btn.innerHTML;btn.innerHTML='✓ &nbsp; Prescrição copiada';setTimeout(()=>{if(btn.isConnected)btn.innerHTML=before},1800)}}catch(e){alert('Não foi possível copiar automaticamente. Selecione o texto editável e copie manualmente.')}};
 })();
