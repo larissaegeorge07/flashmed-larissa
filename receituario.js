@@ -4923,7 +4923,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const atual=()=>itens.find(x=>x.id===itemAtivo)||itens[0];
 const filtrados=()=>itens.filter(x=>(!busca||(x.nome+' '+x.via+' '+categoriaDo(x)).toLowerCase().includes(busca.toLowerCase()))&&(categoriaDo(x)===categoriaAtiva||busca));
 window.receituarioSetCategoria=cat=>{categoriaAtiva=cat;busca='';const x=filtrados()[0];if(x)itemAtivo=x.id;window.receituarioRefresh()};
-window.receituarioSetItem=id=>{itemAtivo=id;categoriaAtiva=atual().categoria;window.receituarioRefresh()};
+window.receituarioSetItem=id=>{itemAtivo=id;categoriaAtiva=categoriaDo(atual());window.receituarioRefresh()};
 window.receituarioSearch=value=>{busca=value||'';const a=filtrados();if(a.length&&!a.some(x=>x.id===itemAtivo))itemAtivo=a[0].id;window.receituarioRefresh();const input=document.getElementById('rcSearch');if(input){input.focus();input.setSelectionRange(busca.length,busca.length)}};
 window.receituarioRefresh=()=>{const host=document.getElementById('rcApp');if(host)host.innerHTML=window.receituarioViewInner()};
 window.receituarioViewInner=function(){
