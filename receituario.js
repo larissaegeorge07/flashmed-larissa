@@ -4912,7 +4912,7 @@ const itens=[
 ];
 const categorias=[...new Set(itens.map(x=>x.categoria))];let categoriaAtiva=itens[0].categoria,itemAtivo=itens[0].id,busca='';
 const presetKey=()=>{let uid='';try{uid=localStorage.getItem('flashmed_active_user_id')||''}catch(e){}return 'flashmed_receituario_presets_v1'+(uid?('_'+uid):'')};
-const carregarPresets=()=>{let p={};try{if(typeof db!=='undefined'&&db&&db.receituarioPresets)p=Object.assign(p,db.receituarioPresets)}catch(e){}try{p=Object.assign(p,JSON.parse(localStorage.getItem(presetKey())||'{}'))}catch(e){}return p};
+const carregarPresets=()=>{let p={};try{p=Object.assign(p,JSON.parse(localStorage.getItem(presetKey())||'{}'))}catch(e){}try{if(typeof db!=='undefined'&&db&&db.receituarioPresets)p=Object.assign(p,db.receituarioPresets)}catch(e){}return p};
 const textoPadrao=x=>x.textoEditavel||x.textoFonte;
 const textoAtual=x=>{const p=carregarPresets();return Object.prototype.hasOwnProperty.call(p,x.id)?p[x.id]:textoPadrao(x)};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
