@@ -386,7 +386,7 @@ function renderNav(){
  {title:'ESTUDAR',icon:'📚',desc:'Questões, flashcards e memorização',items:[['Banco de Questões','Banco de Questões'],['Flashcards','Matérias'],['Flashcards IA','Flashcards IA'],['Revisão','Revisão'],['Caderno de Conhecimentos','Caderno de Conhecimentos'],['Decorebas','Decorebas'],['Jogos','Jogos']]},
  {title:'ROTINA',icon:'⏰',desc:'Organize seu tempo e seus lembretes',items:[['Cronômetro','Cronômetro'],['Lembretes','Lembretes']]},
  {title:'ACOMPANHAR',icon:'📊',desc:'Veja seu progresso nos estudos',items:[['Métricas','Métricas']]},
- {title:'PRÁTICA CLÍNICA',icon:'🩺',desc:'Treine raciocínio e registre atendimentos',items:[['Casos Clínicos','Casos Clínicos'],['Evoluções Médicas','Evoluções Médicas']]},
+ {title:'PRÁTICA CLÍNICA',icon:'🩺',desc:'Treine raciocínio e registre atendimentos',items:[['Casos Clínicos','Casos Clínicos'],['Receituário','Receituário'],['Evoluções Médicas','Evoluções Médicas']]},
  {title:'CONTA E DADOS',icon:'☁️',desc:'Preferências, nuvem e backup',items:[['Meu FlashMed','Meu FlashMed'],['Nuvem & Backup','Nuvem & Backup']]}
  ];
  const groupCards=groups.map((g,i)=>`<button class="mobileCategoryCard" onclick="openMobileCategory(${i})"><span class="mobileCategoryIcon">${g.icon}</span><span class="mobileCategoryText"><b>${g.title}</b><small>${g.desc}</small></span><span class="mobileCategoryArrow">›</span></button>`).join('');
