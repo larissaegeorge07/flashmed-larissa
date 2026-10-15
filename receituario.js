@@ -12,6 +12,8 @@
       via: 'Endovenosa (EV)',
       textoFonte: 'SF 0,9% - 500 ML, EV, CORRER ABERTO',
       observacao: 'A fonte não especifica indicação, volume total necessário nem critérios de reavaliação. “Correr aberto” não deve ser interpretado como velocidade universal.',
+      efeitos: 'A comunicar conforme o contexto: informe a equipe se houver falta de ar, piora de edema ou desconforto durante a infusão. O risco depende do volume e da condição clínica.',
+      interacoes: 'Não há uma interação medicamentosa típica a listar para o soro isoladamente. Conferir compatibilidade antes de misturar medicamentos na mesma solução ou via.',
       status: 'Conferir indicação e velocidade'
     },
     {
@@ -21,6 +23,8 @@
       via: 'Endovenosa (EV)',
       textoFonte: 'DIPIRONA 1000MG/2ML – 01 AMP + 08 ML AD, EV, 6/6H, SE DOR OU TAX >= 37,8 ºC',
       observacao: 'Transcrição literal do documento. Confirmar dose, diluente compatível, velocidade de administração, indicação, alergias/contraindicações e protocolo local antes do uso.',
+      efeitos: 'Orientar a comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Durante administração IV, observar hipotensão e seguir o protocolo de monitorização. Informar que febre ou dor de garganta inesperadas durante o uso exigem avaliação médica.',
+      interacoes: 'Revisar os medicamentos em uso antes de administrar. A dipirona pode ter interações clinicamente relevantes com alguns medicamentos, inclusive metotrexato e ácido acetilsalicílico em baixa dose; conferir bula atualizada e avaliação farmacêutica/clínica para o caso concreto.',
       status: 'Revisão clínica necessária'
     },
     {
@@ -30,6 +34,8 @@
       via: 'Endovenosa (EV)',
       textoFonte: 'BUSCOPAN COMPOSTO (4 MG/ML + 500MG/ML) – 01 AMP + 10 ML AD, EV, 8/8h, SN',
       observacao: 'A fonte não esclarece todos os critérios de uso “SN”. Confirmar apresentação disponível, indicação, diluição, velocidade, contraindicações e protocolo institucional.',
+      efeitos: 'Orientar a comunicar imediatamente falta de ar, inchaço de face/língua, desmaio ou reação cutânea importante. Pode haver efeitos anticolinérgicos, como boca seca, visão turva, taquicardia ou dificuldade para urinar; a relevância depende do paciente e da apresentação.',
+      interacoes: 'Conferir a lista completa de medicamentos. Por conter componente antiespasmódico anticolinérgico e dipirona, a combinação pode aumentar efeitos anticolinérgicos com certos medicamentos e compartilhar riscos/interações da dipirona. Verificar a bula da apresentação exata e a situação clínica.',
       status: 'Revisão clínica necessária'
     }
   ];
@@ -43,6 +49,14 @@
         <p style="margin:5px 0"><strong>Texto original do documento:</strong></p>
         <blockquote style="margin:5px 0 10px;padding:9px 12px;border-left:3px solid var(--accent,#888);background:var(--surface,#f5f5f5);border-radius:4px">${escText(item.textoFonte)}</blockquote>
         <p style="margin:7px 0"><strong>Conferência:</strong> ${escText(item.observacao)}</p>
+        <div style="margin:12px 0;padding:11px;border-left:4px solid #C98B39;background:var(--surface,#f8f5ee);border-radius:7px">
+          <strong>⚠️ Efeitos adversos — o que comunicar ao paciente</strong>
+          <p style="margin:6px 0 0">${escText(item.efeitos)}</p>
+        </div>
+        <div style="margin:12px 0;padding:11px;border-left:4px solid #B64A4A;background:var(--surface,#f8f1f1);border-radius:7px">
+          <strong>Interações medicamentosas — atenção</strong>
+          <p style="margin:6px 0 0">${escText(item.interacoes)}</p>
+        </div>
         <p style="margin:7px 0;font-size:12px;font-weight:600">Status: ${escText(item.status)}</p>
         <button type="button" onclick="receituarioCopy(${i})" style="padding:8px 12px;border-radius:9px;border:1px solid var(--border,#ccc);background:transparent;color:inherit;cursor:pointer">Copiar texto original</button>
       </article>`).join('');
