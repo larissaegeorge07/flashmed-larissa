@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Anotações compartilhadas • FlashMed</title>
+<style>
+:root{--bg:#fff7fb;--ink:#3b2532;--muted:#8b7280;--pink:#e85b9e;--deep:#7b3157;--line:#f1dce6}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 5%,#ffe6f1 0,transparent 24%),var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{width:min(960px,100% - 28px);margin:28px auto 60px}.hero,.note{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 12px 35px #732d520d}
+.hero{margin-bottom:16px}.brand{font-weight:900;color:var(--deep);letter-spacing:.02em}.muted{color:var(--muted);font-size:13px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+button{border:0;border-radius:12px;padding:11px 15px;background:linear-gradient(135deg,#e85b9e,#d9488b);color:#fff;font-weight:800;cursor:pointer}.secondary{background:#fff0f6;color:var(--deep);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.note{white-space:normal;overflow-wrap:anywhere}.note h2{font-size:19px;line-height:1.3;margin:7px 0 12px}.noteContent{white-space:pre-wrap;line-height:1.65}.tag{display:inline-block;margin:8px 5px 0 0;padding:4px 8px;border-radius:99px;background:#fff0f6;color:var(--deep);font-size:12px}.yellow{background:#fff6c9}.pink{background:#ffe5ed}.green{background:#e0f4df}.blue{background:#e2edff}.lilac{background:#eee5ff}
+.attachments{display:grid;gap:9px;margin-top:14px;padding-top:12px;border-top:1px dashed #0002}.attachments img{max-width:100%;max-height:360px;object-fit:contain;border-radius:10px;background:#ffffff99}.attachments a{color:var(--deep);overflow-wrap:anywhere}.error{padding:18px;background:#fff;border:1px solid #e8b3b3;border-radius:14px;color:#8d3030}
+@media(max-width:600px){main{margin-top:14px}.hero,.note{padding:15px}}
+</style></head>
+<body><main>
+<section class="hero"><div class="brand">✦ FlashMed · Caderno compartilhado</div><h1 style="margin:8px 0">Anotações compartilhadas</h1><p class="muted">Você está vendo somente as anotações selecionadas pela pessoa que compartilhou este link. Esta página não dá acesso à conta nem ao restante do FlashMed.</p><div id="summary" class="muted">Carregando anotações…</div><div class="actions"><button id="copyBtn" hidden>＋ Copiar para meu FlashMed</button><button class="secondary" id="downloadBtn" hidden>Baixar cópia (.json)</button></div><p id="feedback" class="muted"></p></section>
+<section id="notes" class="grid"></section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+async function decode(token){
+ if(!token||token.length>1500000)throw new Error('Este link está incompleto ou excede o limite permitido.');
+ const prefix=token.slice(0,2),b64=token.slice(2).replace(/-/g,'+').replace(/_/g,'/'),bin=atob(b64+'='.repeat((4-b64.length%4)%4)),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+ let raw=bytes;
+ if(prefix==='g.'){if(!('DecompressionStream'in window))throw new Error('Atualize seu navegador para abrir este compartilhamento.');raw=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer())}
+ else if(prefix!=='j.')throw new Error('Formato de link não reconhecido.');
+ return JSON.parse(new TextDecoder().decode(raw));
+}
+let payload=null;
+function render(){
+ const notes=payload.notes;
+ $('summary').textContent=notes.length+' anotação(ões) compartilhada(s).';
+ $('notes').innerHTML=notes.map(n=>{
+  const color=['yellow','pink','green','blue','lilac'].includes(n.color)?n.color:'yellow';
+  const attachments=(n.attachments||[]).map(a=>{
+   if(a.storage==='cloudImage'&&String(a.dataUrl||'').startsWith('data:image/'))return '<div><img loading="lazy" src="'+esc(a.dataUrl)+'" alt="'+esc(a.label||'Imagem anexada')+'"><div class="muted">'+esc(a.label||'Imagem anexada')+'</div></div>';
+   try{const u=new URL(a.url);if(!['http:','https:'].includes(u.protocol))return '';return '<div><a href="'+esc(u.href)+'" target="_blank" rel="noopener noreferrer">'+esc(a.label||u.hostname)+'</a></div>'}catch(e){return ''}
+  }).join('');
+  return '<article class="note '+color+'"><div class="muted">📒 '+esc(n.bookName||'Caderno')+'</div><h2>'+esc(n.title||'Anotação sem título')+'</h2><div class="noteContent">'+esc(n.content||'')+'</div>'+((n.tags||[]).length?'<div>'+(n.tags||[]).map(t=>'<span class="tag">#'+esc(t)+'</span>').join('')+'</div>':'')+(attachments?'<div class="attachments"><b>📎 Anexos</b>'+attachments+'</div>':'')+'</article>';
+ }).join('');
+ $('copyBtn').hidden=false;$('downloadBtn').hidden=false;
+}
+(async()=>{
+ try{
+  const match=location.hash.match(/^#d=(.+)$/);if(!match)throw new Error('O link não contém dados de compartilhamento.');
+  payload=await decode(match[1]);if(payload.version!==1||!Array.isArray(payload.notes)||!payload.notes.length)throw new Error('Não há anotações válidas neste link.');
+  if(payload.notes.length>100)throw new Error('Este compartilhamento contém anotações demais.');
+  render();
+ }catch(e){$('summary').textContent='';$('notes').innerHTML='<div class="error">'+esc(e.message||'Não foi possível abrir este link.')+'</div>';$('feedback').textContent='Peça à pessoa que compartilhou para gerar um novo link.'}
+})();
+$('copyBtn').addEventListener('click',async()=>{
+ if(!payload)return;
+ try{
+  const token=location.hash.slice(3);
+  const url=new URL('index.html',location.href);url.hash='flashmed-import='+token;
+  $('feedback').textContent='Abrindo o FlashMed. Entre na sua conta; as anotações serão copiadas para um caderno separado.';
+  location.href=url.href;
+ }catch(e){$('feedback').textContent='Não foi possível abrir o FlashMed para importar.'}
+});
+$('downloadBtn').addEventListener('click',()=>{
+ if(!payload)return;
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='flashmed-anotacoes-compartilhadas.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+</script></body></html>
