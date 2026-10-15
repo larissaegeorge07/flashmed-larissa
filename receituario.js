@@ -1672,7 +1672,7 @@ const itens= [
   {
    "id": "pdf1-140",
    "nome": "CLORIDRATO DE CLORPROMAZINA (AMPLICTIL) 25MG/5ML: APLICAR 01 ML, IM, ACM (ATENÇÃO)",
-   "categoria": "Outros",
+   "categoria": "ANTIPSICÓTICO",
    "via": "Intramuscular (IM)",
    "textoFonte": "CLORIDRATO DE CLORPROMAZINA (AMPLICTIL) 25MG/5ML: APLICAR 01 ML, IM, ACM (ATENÇÃO)",
    "textoEditavel": "CLORIDRATO DE CLORPROMAZINA (AMPLICTIL) 25MG/5ML: APLICAR 01 ML, IM, ACM (ATENÇÃO)",
@@ -1684,7 +1684,7 @@ const itens= [
   {
    "id": "pdf1-141",
    "nome": "HALOPERIDOL 5MG/ML – 01 AMPOLA, IM, ACM",
-   "categoria": "Outros",
+   "categoria": "ANTIPSICÓTICO",
    "via": "Intramuscular (IM)",
    "textoFonte": "HALOPERIDOL 5MG/ML – 01 AMPOLA, IM, ACM",
    "textoEditavel": "HALOPERIDOL 5MG/ML – 01 AMPOLA, IM, ACM",
@@ -1720,7 +1720,7 @@ const itens= [
   {
    "id": "pdf1-144",
    "nome": "ADENOSINA 6MG/2ML: PRIMEIRA DOSE: 6 MG EM BOLUS RÁPIDO COM FLUSH DE 20ML DE SF 0,9%. …",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Conferir via",
    "textoFonte": "ADENOSINA 6MG/2ML: PRIMEIRA DOSE: 6 MG EM BOLUS RÁPIDO COM FLUSH DE 20ML DE SF 0,9%. SEGUNDA DOSE: 12 MG,",
    "textoEditavel": "ADENOSINA 6MG/2ML: PRIMEIRA DOSE: 6 MG EM BOLUS RÁPIDO COM FLUSH DE 20ML DE SF 0,9%. SEGUNDA DOSE: 12 MG,",
@@ -1732,7 +1732,7 @@ const itens= [
   {
    "id": "pdf1-145",
    "nome": "ADENOSINA 6MG/2ML — posologia/continuação (pdf1-145)",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Conferir via",
    "textoFonte": "ACM.",
    "textoEditavel": "ADENOSINA 6MG/2ML\nACM.",
@@ -1744,7 +1744,7 @@ const itens= [
   {
    "id": "pdf1-146",
    "nome": "AMIODARONA 100 MG – 1 CP, VO, 12/12 H",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Via oral (VO)",
    "textoFonte": "AMIODARONA 100 MG – 1 CP, VO, 12/12 H",
    "textoEditavel": "AMIODARONA 100 MG – 1 CP, VO, 12/12 H",
@@ -1756,7 +1756,7 @@ const itens= [
   {
    "id": "pdf1-147",
    "nome": "AMIODARONA 200MG - 1 CP VO DIA",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Via oral (VO)",
    "textoFonte": "AMIODARONA 200MG - 1 CP VO DIA",
    "textoEditavel": "AMIODARONA 200MG - 1 CP VO DIA",
@@ -1768,7 +1768,7 @@ const itens= [
   {
    "id": "pdf1-148",
    "nome": "AMIODARONA 150MG/3ML: DOSE DE ATAQUE: 01 AMPOLA + SG 5% 100 ML, EV, EM 10 MINUTOS (60…",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "AMIODARONA 150MG/3ML: DOSE DE ATAQUE: 01 AMPOLA + SG 5% 100 ML, EV, EM 10 MINUTOS (600 ML/H),",
    "textoEditavel": "AMIODARONA 150MG/3ML: DOSE DE ATAQUE: 01 AMPOLA + SG 5% 100 ML, EV, EM 10 MINUTOS (600 ML/H),",
@@ -1780,7 +1780,7 @@ const itens= [
   {
    "id": "pdf1-149",
    "nome": "AMIODARONA 150MG/3ML: DOSE DE MANUTENÇÃO: 06 AMPOLAS + SG 5% 232 ML, EV, EM 24H (10 M…",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "AMIODARONA 150MG/3ML: DOSE DE MANUTENÇÃO: 06 AMPOLAS + SG 5% 232 ML, EV, EM 24H (10 ML/H)",
    "textoEditavel": "AMIODARONA 150MG/3ML: DOSE DE MANUTENÇÃO: 06 AMPOLAS + SG 5% 232 ML, EV, EM 24H (10 ML/H)",
@@ -1792,7 +1792,7 @@ const itens= [
   {
    "id": "pdf1-150",
    "nome": "AMIODARONA 150MG/3ML - 2 AMP. + 200 ML DE SF 0,9%, EV, ACM",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "AMIODARONA 150MG/3ML - 2 AMP. + 200 ML DE SF 0,9%, EV, ACM",
    "textoEditavel": "AMIODARONA 150MG/3ML - 2 AMP. + 200 ML DE SF 0,9%, EV, ACM",
@@ -1804,7 +1804,7 @@ const itens= [
   {
    "id": "pdf1-151",
    "nome": "AMIODARONA 150MG/3ML - 6AMP + 482ML DE SG5%, EV, EM BIC (Taquicardia Ventricular Mono…",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "AMIODARONA 150MG/3ML - 6AMP + 482ML DE SG5%, EV, EM BIC (Taquicardia Ventricular Monomórfica Sustentada).",
    "textoEditavel": "AMIODARONA 150MG/3ML - 6AMP + 482ML DE SG5%, EV, EM BIC (Taquicardia Ventricular Monomórfica Sustentada).",
@@ -1816,7 +1816,7 @@ const itens= [
   {
    "id": "pdf1-152",
    "nome": "AMIODARONA 50MG/ML – 18 ML + 232 ML SG 5%, EV, EM BIC 10 ML/H.",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "AMIODARONA 50MG/ML – 18 ML + 232 ML SG 5%, EV, EM BIC 10 ML/H.",
    "textoEditavel": "AMIODARONA 50MG/ML – 18 ML + 232 ML SG 5%, EV, EM BIC 10 ML/H.",
@@ -1828,7 +1828,7 @@ const itens= [
   {
    "id": "pdf1-153",
    "nome": "ATROPINA 0,25MG/1ML - 04 AMP, IV, ACM",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Conferir via",
    "textoFonte": "ATROPINA 0,25MG/1ML - 04 AMP, IV, ACM",
    "textoEditavel": "ATROPINA 0,25MG/1ML - 04 AMP, IV, ACM",
@@ -1840,7 +1840,7 @@ const itens= [
   {
    "id": "pdf1-154",
    "nome": "ATROPINA 0,25MG/1ML – 08 AMP, IV, 15/15 MINUTOS",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Conferir via",
    "textoFonte": "ATROPINA 0,25MG/1ML – 08 AMP, IV, 15/15 MINUTOS",
    "textoEditavel": "ATROPINA 0,25MG/1ML – 08 AMP, IV, 15/15 MINUTOS",
@@ -1852,7 +1852,7 @@ const itens= [
   {
    "id": "pdf1-155",
    "nome": "DESLANOSÍDEO (CEDILANIDE) 0,4 mg/2ml – 01 ml + 08 ml AD, EV LENTO, SE FC > 90PM.",
-   "categoria": "Outros",
+   "categoria": "ANTIARRÍTMICO",
    "via": "Endovenosa (EV)",
    "textoFonte": "DESLANOSÍDEO (CEDILANIDE) 0,4 mg/2ml – 01 ml + 08 ml AD, EV LENTO, SE FC > 90PM.",
    "textoEditavel": "DESLANOSÍDEO (CEDILANIDE) 0,4 mg/2ml – 01 ml + 08 ml AD, EV LENTO, SE FC > 90PM.",
@@ -1924,7 +1924,7 @@ const itens= [
   {
    "id": "pdf1-161",
    "nome": "DOPAMINA 50 MG/10ML - 50 ML + SG 5% 200 ML, EV, EM BIC ACM (BAVT + SCA).",
-   "categoria": "Outros",
+   "categoria": "DROGAS VASOATIVAS",
    "via": "Endovenosa (EV)",
    "textoFonte": "DOPAMINA 50 MG/10ML - 50 ML + SG 5% 200 ML, EV, EM BIC ACM (BAVT + SCA).",
    "textoEditavel": "DOPAMINA 50 MG/10ML - 50 ML + SG 5% 200 ML, EV, EM BIC ACM (BAVT + SCA).",
@@ -1936,7 +1936,7 @@ const itens= [
   {
    "id": "pdf1-162",
    "nome": "DOPAMINA 50 MG/10ML - 04 AMP + SG 5% 200 ML, EV, EM BIC, ACM (CIRROSE HEPÁTICA)",
-   "categoria": "Outros",
+   "categoria": "DROGAS VASOATIVAS",
    "via": "Endovenosa (EV)",
    "textoFonte": "DOPAMINA 50 MG/10ML - 04 AMP + SG 5% 200 ML, EV, EM BIC, ACM (CIRROSE HEPÁTICA)",
    "textoEditavel": "DOPAMINA 50 MG/10ML - 04 AMP + SG 5% 200 ML, EV, EM BIC, ACM (CIRROSE HEPÁTICA)",
@@ -1948,7 +1948,7 @@ const itens= [
   {
    "id": "pdf1-163",
    "nome": "DOBUTAMINA 250 MG/20ML - 01 AMPOLA + SF 0,9 % 230 ML, EV, EM BIC, ACM",
-   "categoria": "Outros",
+   "categoria": "DROGAS VASOATIVAS",
    "via": "Endovenosa (EV)",
    "textoFonte": "DOBUTAMINA 250 MG/20ML - 01 AMPOLA + SF 0,9 % 230 ML, EV, EM BIC, ACM",
    "textoEditavel": "DOBUTAMINA 250 MG/20ML - 01 AMPOLA + SF 0,9 % 230 ML, EV, EM BIC, ACM",
@@ -1960,7 +1960,7 @@ const itens= [
   {
    "id": "pdf1-164",
    "nome": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG 5% 210 ML, EV, EM BIC (ACM) (15ML/H)",
-   "categoria": "Outros",
+   "categoria": "DROGAS VASOATIVAS",
    "via": "Endovenosa (EV)",
    "textoFonte": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG 5% 210 ML, EV, EM BIC (ACM) (15ML/H)",
    "textoEditavel": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG 5% 210 ML, EV, EM BIC (ACM) (15ML/H)",
@@ -1972,7 +1972,7 @@ const itens= [
   {
    "id": "pdf1-165",
    "nome": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG5% 210 ML, EV, EM BIC ACM.",
-   "categoria": "Outros",
+   "categoria": "DROGAS VASOATIVAS",
    "via": "Endovenosa (EV)",
    "textoFonte": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG5% 210 ML, EV, EM BIC ACM.",
    "textoEditavel": "DOBUTAMINA 250 MG/20ML - 02 AMPOLAS + SG5% 210 ML, EV, EM BIC ACM.",
@@ -2056,7 +2056,7 @@ const itens= [
   {
    "id": "pdf1-172",
    "nome": "FENTANIL (0,05 MG/ML) 2 AMPOLAS + SG 5% 230 ML, IV, BIC ACM (CRISE CONVULSIVA).",
-   "categoria": "Outros",
+   "categoria": "SEDAÇÃO BIC",
    "via": "Conferir via",
    "textoFonte": "FENTANIL (0,05 MG/ML) 2 AMPOLAS + SG 5% 230 ML, IV, BIC ACM (CRISE CONVULSIVA).",
    "textoEditavel": "FENTANIL (0,05 MG/ML) 2 AMPOLAS + SG 5% 230 ML, IV, BIC ACM (CRISE CONVULSIVA).",
@@ -2068,7 +2068,7 @@ const itens= [
   {
    "id": "pdf1-173",
    "nome": "MIDAZOLAM (15MG/3ML) 50 ML + SF 0,9% 200ML, EV, EM BIC, ACM",
-   "categoria": "Outros",
+   "categoria": "SEDAÇÃO BIC",
    "via": "Endovenosa (EV)",
    "textoFonte": "MIDAZOLAM (15MG/3ML) 50 ML + SF 0,9% 200ML, EV, EM BIC, ACM",
    "textoEditavel": "MIDAZOLAM (15MG/3ML) 50 ML + SF 0,9% 200ML, EV, EM BIC, ACM",
@@ -2080,7 +2080,7 @@ const itens= [
   {
    "id": "pdf1-174",
    "nome": "MIDAZOLAM (15MG/3ML) 10 AMPOLAS + 120 ML DE SG 5%, EV, EM BIC, ACM",
-   "categoria": "Outros",
+   "categoria": "SEDAÇÃO BIC",
    "via": "Endovenosa (EV)",
    "textoFonte": "MIDAZOLAM (15MG/3ML) 10 AMPOLAS + 120 ML DE SG 5%, EV, EM BIC, ACM",
    "textoEditavel": "MIDAZOLAM (15MG/3ML) 10 AMPOLAS + 120 ML DE SG 5%, EV, EM BIC, ACM",
