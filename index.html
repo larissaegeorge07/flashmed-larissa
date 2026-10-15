@@ -1248,10 +1248,10 @@ async function syncDown(quiet=false){
       throw q.error;
     }
     const remote=q.data?.settings?.flashmed_data;
+    const localAccountId=localStorage.getItem('flashmed_active_user_id');
+    // Never merge another account's browser cache into the authenticated user's cloud data.
+    const localBeforeSync=localAccountId===currentUser.id?db:flashmedEmptyAccountData();
     if(remote){
-      const localAccountId=localStorage.getItem('flashmed_active_user_id');
-      // Never merge another account's browser cache into the authenticated user's cloud data.
-      const localBeforeSync=localAccountId===currentUser.id?db:flashmedEmptyAccountData();
       flashmedRecoverySnapshot('local_before_download',localBeforeSync);
       flashmedRecoverySnapshot('cloud_before_download',remote);
       const recoveredLocalPersonal=flashmedMergePersonal(remote,localBeforeSync);
