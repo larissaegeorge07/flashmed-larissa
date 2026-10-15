@@ -4926,7 +4926,7 @@ window.receituarioViewInner=function(){
 const item=atual(),lista=filtrados();
 const cats=categorias.map(cat=>'<button type="button" onclick="receituarioSetCategoria(\''+cat+'\')" class="rcCategory '+(categoriaAtiva===cat?'active':'')+'"><span>'+esc(cat)+'</span><span class="rcCount">'+itens.filter(x=>x.categoria===cat).length+'</span></button>').join('');
 const meds=lista.length?lista.map(x=>'<button type="button" onclick="receituarioSetItem(\''+x.id+'\')" class="rcMed '+(itemAtivo===x.id?'active':'')+'"><span class="rcMedName">'+esc(x.nome)+'</span><span class="rcMedMeta">'+esc(x.via)+'</span></button>').join(''):'<p class="rcEmpty">Nenhum medicamento encontrado.</p>';
-return '<div class="rcShell"><div class="rcTop"><div class="rcLogo">Rx</div><div><h2>Receita Rápida PS</h2><p>Glossário de medicamentos · lote inicial</p></div></div>'+
+return '<div class="rcShell"><div class="rcTop"><div class="rcLogo">Rx</div><div><h2>Receita Rápida PS</h2><p>'+itens.length+' registros extraídos do PDF · transcrição para revisão</p></div></div>'+
 '<label class="rcSearchWrap"><span>⌕</span><input id="rcSearch" type="search" placeholder="Buscar medicamento ou categoria" value="'+esc(busca)+'" oninput="receituarioSearch(this.value)"></label>'+
 '<div class="rcWorkspace"><aside class="rcSidebar"><div class="rcSideTitle">CATEGORIAS</div>'+cats+'<div class="rcSideTitle rcAvailableTitle">MEDICAMENTOS <span>'+lista.length+'</span></div>'+meds+'</aside>'+
 '<main class="rcDetail"><div class="rcDetailHead"><div><div class="rcEyebrow">'+esc(item.categoria)+'</div><h3>'+esc(item.nome)+'</h3><div class="rcTags"><span>'+esc(item.via)+'</span><span>Fonte: documento enviado</span></div></div><span class="rcPill">Referência</span></div>'+
