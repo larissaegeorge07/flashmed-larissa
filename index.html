@@ -1531,4 +1531,26 @@ signupBtn.onclick=async function(){
  }catch(e){console.error('FlashMed signup',e);authError.textContent='Não foi possível concluir o cadastro. Tente novamente.'}
  finally{signupBtn.disabled=false;signupBtn.textContent='Criar minha conta';loginBtn.disabled=false}
 };
-bootAuth();</script></body></html>
+window.addEventListener('error',function(e){
+ try{
+  const box=document.getElementById('authError');
+  if(box){box.textContent='Erro ao carregar o FlashMed: '+(e.message||'falha no JavaScript')+'. Atualize a página; se persistir, envie esta mensagem.';}
+  const gate=document.getElementById('authGate');
+  if(gate)gate.classList.remove('hidden');
+ }catch(_){}
+});
+window.addEventListener('unhandledrejection',function(e){
+ try{
+  const box=document.getElementById('authError');
+  if(box)box.textContent='Falha ao iniciar o FlashMed: '+(e.reason?.message||String(e.reason||'erro inesperado'));
+  const gate=document.getElementById('authGate');
+  if(gate)gate.classList.remove('hidden');
+ }catch(_){}
+});
+bootAuth().catch(function(e){
+ console.error('FlashMed bootAuth',e);
+ const box=document.getElementById('authError');
+ if(box)box.textContent='Não foi possível inicializar o acesso: '+(e?.message||'erro inesperado');
+ const gate=document.getElementById('authGate');
+ if(gate)gate.classList.remove('hidden');
+});</script></body></html>
