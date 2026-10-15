@@ -1480,12 +1480,29 @@ async function bootAuth(){
  }else{authGate.classList.remove('hidden');appRoot.classList.add('authHidden')}
 }
 loginBtn.onclick=async function(){
- authError.textContent='';loginBtn.disabled=true;loginBtn.textContent='Entrando…';
- let z=await cloud.auth.signInWithPassword({email:loginEmail.value.trim(),password:loginPassword.value});
- loginBtn.disabled=false;loginBtn.textContent='Entrar';
- if(z.error){authError.textContent='E-mail ou senha incorretos.';return}
- currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
- await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+ authError.textContent='';
+ const email=loginEmail.value.trim(),password=loginPassword.value;
+ if(!email){authError.textContent='Informe seu e-mail.';loginEmail.focus();return}
+ if(!password){authError.textContent='Informe sua senha.';loginPassword.focus();return}
+ loginBtn.disabled=true;loginBtn.textContent='Entrando…';signupBtn.disabled=true;
+ try{
+  if(!cloud)throw new Error('O serviço de autenticação não foi inicializado. Atualize a página e tente novamente.');
+  const z=await cloud.auth.signInWithPassword({email,password});
+  if(z.error){
+   console.error('FlashMed login',z.error);
+   authError.textContent=/invalid login credentials/i.test(z.error.message||'')?'E-mail ou senha incorretos.':(z.error.message||'Não foi possível entrar. Tente novamente.');
+   return;
+  }
+  if(!z.data?.user)throw new Error('O login não retornou uma sessão. Tente novamente.');
+  currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
+  await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+ }catch(e){
+  console.error('FlashMed login',e);
+  authGate.classList.remove('hidden');appRoot.classList.add('authHidden');
+  authError.textContent='Não foi possível concluir o acesso. Verifique a conexão e tente novamente. Detalhe: '+(e?.message||'erro inesperado');
+ }finally{
+  loginBtn.disabled=false;loginBtn.textContent='Entrar';signupBtn.disabled=false;
+ }
 };
 signupBtn.onclick=async function(){
  authError.textContent='';
