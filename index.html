@@ -751,7 +751,8 @@ function agendaParseQuickText(raw){
  if(!date){
   const normalized=work.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
   const weekday=normalized.match(/\b(domingo|segunda(?:-feira)?|terca(?:-feira)?|quarta(?:-feira)?|quinta(?:-feira)?|sexta(?:-feira)?|sabado)\b/);
-  if(weekday){const names=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];let word=weekday[1].split('-')[0],target=names.indexOf(word),delta=(target-nowDate.getDay()+7)%7;const d=new Date(nowDate);d.setDate(d.getDate()+delta);date=agendaDateKey(d);work=work.replace(weekday[0],' ')}
+  const originalWeekday=work.match(/\b(domingo|segunda(?:-feira)?|terça(?:-feira)?|terca(?:-feira)?|quarta(?:-feira)?|quinta(?:-feira)?|sexta(?:-feira)?|sábado|sabado)\b/i);
+  if(weekday){const names=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];let word=weekday[1].split('-')[0],target=names.indexOf(word),delta=(target-nowDate.getDay()+7)%7;const d=new Date(nowDate);d.setDate(d.getDate()+delta);date=agendaDateKey(d);if(originalWeekday)work=work.replace(originalWeekday[0],' ')}
  }
  const tm=work.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);
  if(tm){time=String(Number(tm[1])).padStart(2,'0')+':'+(tm[2]||'00');work=work.replace(tm[0],' ')}
