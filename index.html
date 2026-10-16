@@ -773,7 +773,7 @@ function dashboardEditorial(){
  const studyMinutes=Math.floor(minutes/60000),dueCount=(db.cards||[]).filter(due).length,done=items.filter(x=>x.done).length;
  const quote=typeof plannerQuoteOfDay==='function'?plannerQuoteOfDay():'Um passo de cada vez.';
  const dateLabel=todayDate.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
- const admin=currentUser&&String(currentUser.email||'').toLowerCase()===FLASHMED_ADMIN_EMAIL?'<section class="panel fmEditorialAdmin"><span class="muted">Membros do FlashMed</span><b id="fmAdminMemberCount">Carregando…</b><small class="muted">Contas com perfil cadastrado</small></section>':'';
+ const admin='';
  const tasks=items.length?items.map(x=>'<label class="fmEditorialTask"><input type="checkbox" '+(x.done?'checked':'')+' onchange="toggleWeeklyTask(\''+String(x.id).replace(/'/g,"\\'")+'\',this.checked)"><span class="fmEditorialTaskText"><b class="'+(x.done?'isDone':'')+'">'+esc(x.title)+'</b><small>'+Math.max(0,Number(x.minutes)||0)+' min</small></span><span class="fmEditorialStatus">'+(x.done?'Feita':'A fazer')+'</span></label>').join(''):'<div class="fmEditorialEmpty"><span>Seu cronograma está livre por enquanto.</span><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Organizar meu dia ↗</button></div>';
  const progress=items.length?Math.round(done/items.length*100):0;
  const streak=flashmedStreakStats();
