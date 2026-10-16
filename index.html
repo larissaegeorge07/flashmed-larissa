@@ -756,7 +756,7 @@ function agendaParseQuickText(raw){
  }
  const tm=work.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);
  if(tm){time=String(Number(tm[1])).padStart(2,'0')+':'+(tm[2]||'00');work=work.replace(tm[0],' ')}
- work=work.replace(/\b(?:às|as|dia|na|no|em)\b/gi,' ').replace(/[,\-–—]+/g,' ').replace(/\s+/g,' ').trim();
+ work=work.replace(/(?:às|as|dia|na|no|em)\b/gi,' ').replace(/[,\-–—]+/g,' ').replace(/\s+/g,' ').trim();
  return {title:work,date,time};
 }
 function agendaQuickCapture(){
