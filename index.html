@@ -307,6 +307,35 @@ body.fm-dark .fmStreakCard{background:#2a242f;color:var(--ink);border-color:#504
 body.fm-dark .fmStreakIcon{background:#40364a;color:#d7c9e6}
 body.fm-dark .fmStreakCurrent>strong,body.fm-dark .fmStreakRecord strong{color:var(--ink)}
 @media(max-width:600px){.fmStreakCard{gap:10px;padding:12px}.fmStreakIcon{width:36px;height:36px}.fmStreakMessage{font-size:10px;max-width:115px}.fmStreakCurrent>strong{font-size:22px}.fmStreakDivider{margin:0}}
+/* Calendário mensal de consistência: compacto e ligado ao histórico de estudo existente. */
+.fmCalendarCard{padding:16px 18px;margin:0 0 14px;border:1px solid #e8e3ec;border-radius:16px;background:#fffdfa;color:#484151}
+.fmCalendarTop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fmCalendarTop h3{font-family:Georgia,serif;font-size:20px;font-weight:500;letter-spacing:-.025em;margin:5px 0 3px;color:#3d3944}
+.fmCalendarTop p{font-size:11px;color:#817989;margin:0}
+.fmCalendarNav{display:flex;gap:6px}
+.fmCalendarNav button{width:32px;height:32px;border:1px solid #e8e3ec;border-radius:10px;background:#f7f4fa;color:#77658e;font-size:22px;line-height:1;cursor:pointer}
+.fmCalendarNav button:disabled{opacity:.35;cursor:default}
+.fmCalendarMonth{text-transform:capitalize;font-size:11px;font-weight:750;color:#8a7b9d;margin:16px 0 8px}
+.fmCalendarGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.fmCalendarWeekdays{margin-bottom:5px}
+.fmCalendarWeekdays span{text-align:center;font-size:9px;font-weight:800;letter-spacing:.04em;color:#99919f;padding:4px 0}
+.fmCalendarDay{position:relative;display:grid;place-items:center;min-height:34px;border:1px solid transparent;border-radius:10px;font-size:11px;color:#635d69;background:#faf8fb}
+.fmCalendarDay.isStudied{background:#e9e1f2;color:#655278;font-weight:800;border-color:#d9cce8}
+.fmCalendarDay.isStudied i{position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:#9580b0}
+.fmCalendarDay.isToday{border-color:#9b88b5;box-shadow:inset 0 0 0 1px #9b88b5}
+.fmCalendarDay.isFuture{color:#c2bdc7;background:transparent}
+.fmCalendarBlank{min-height:34px}
+.fmCalendarLegend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:10px;color:#817989}
+.fmCalendarLegend span{display:inline-flex;align-items:center;gap:6px}
+.fmCalendarLegend span:first-child i{width:9px;height:9px;border-radius:3px;background:#e9e1f2;border:1px solid #d9cce8}
+.fmCalendarTodayKey:before{content:'';display:inline-block;width:9px;height:9px;border:1px solid #9b88b5;border-radius:3px}
+body.fm-dark .fmCalendarCard{background:#2a242f;color:var(--ink);border-color:#504657}
+body.fm-dark .fmCalendarTop h3{color:var(--ink)}
+body.fm-dark .fmCalendarNav button{background:#40364a;color:#d7c9e6;border-color:#504657}
+body.fm-dark .fmCalendarDay{background:#342d3a;color:#d8d0df}
+body.fm-dark .fmCalendarDay.isStudied{background:#51435f;color:#eee6f7;border-color:#77658e}
+body.fm-dark .fmCalendarDay.isFuture{background:transparent;color:#77707d}
+@media(max-width:600px){.fmCalendarCard{padding:14px}.fmCalendarGrid{gap:3px}.fmCalendarDay,.fmCalendarBlank{min-height:31px}.fmCalendarDay{font-size:10px;border-radius:8px}.fmCalendarTop h3{font-size:19px}}
 /* Dashboard editorial: informação essencial, cronograma curto e tons neutros. */
 .fmEditorialHead{padding:26px 28px 24px;margin-bottom:14px;border:1px solid #e7e2ed;border-radius:20px;background:#fbfaf8;color:#34313b}
 .fmEditorialKicker{font-size:10px;font-weight:850;letter-spacing:.15em;color:#8a8298}
@@ -746,6 +775,7 @@ function dashboardTodayPlanPanel(){
  return `<div class="cols" style="margin-top:14px;align-items:stretch"><section class="panel" style="background:linear-gradient(135deg,var(--card),var(--rose2))"><div class="muted">♡ UMA LEMBRANÇA PARA HOJE</div><p style="font-size:18px;line-height:1.55;font-family:Georgia,serif;margin:12px 0 4px">${esc(quote)}</p></section><section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0">🗓️ Seu cronograma de hoje</h3><p class="muted" style="margin:5px 0 0">${items.length?done+' de '+items.length+' tarefas concluídas':'Um passo de cada vez'}</p></div><span class="tag">${minutes} min</span></div>${items.length?`<div class="bar" style="margin:12px 0 4px"><i style="width:${Math.round(done/Math.max(1,items.length)*100)}%"></i></div>`:''}<div style="margin-top:8px">${schedule}</div>${items.length?`<button class="btn ghost" style="margin-top:12px" onclick="go('Planejador de Estudos')">Ver semana completa</button>`:''}</section></div>`;
 }
 
+let fmCalendarMonthOffset=0;
 function flashmedStreakStats(){
  const active=new Set();
  const addDate=value=>{const date=String(value||'').slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(date))active.add(date)};
@@ -762,7 +792,27 @@ function flashmedStreakStats(){
   run=previous&&Date.parse(date+'T00:00:00Z')-Date.parse(previous+'T00:00:00Z')===86400000?run+1:1;
   if(run>best)best=run;previous=date;
  });
- return {current,best,studiedToday:active.has(today),activeDays:active.size};
+ return {current,best,studiedToday:active.has(today),activeDays:active.size,activeDates:[...active]};
+}
+
+function fmStudyDateKey(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+function fmStudyCalendarShift(delta){fmCalendarMonthOffset=Math.min(0,fmCalendarMonthOffset+delta);render()}
+function flashmedStudyCalendarHtml(){
+ const stats=flashmedStreakStats(),active=new Set(stats.activeDates),nowDate=new Date();
+ const month=new Date(nowDate.getFullYear(),nowDate.getMonth()+fmCalendarMonthOffset,1);
+ const year=month.getFullYear(),monthIndex=month.getMonth(),daysInMonth=new Date(year,monthIndex+1,0).getDate();
+ const firstOffset=(month.getDay()+6)%7;
+ const monthName=month.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ let cells='';
+ for(let i=0;i<firstOffset;i++)cells+='<span class="fmCalendarBlank" aria-hidden="true"></span>';
+ let studied=0;
+ for(let dayNum=1;dayNum<=daysInMonth;dayNum++){
+  const dateKey=fmStudyDateKey(new Date(year,monthIndex,dayNum)),isStudied=active.has(dateKey),isToday=dateKey===fmStudyDateKey(nowDate),isFuture=new Date(year,monthIndex,dayNum)>new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate());
+  if(isStudied)studied++;
+  cells+='<span class="fmCalendarDay'+(isStudied?' isStudied':'')+(isToday?' isToday':'')+(isFuture?' isFuture':'')+'"'+(isStudied?' title="Estudo registrado"':'')+' aria-label="'+dayNum+' de '+monthName+(isStudied?', estudo registrado':'')+(isToday?', hoje':'')+'">'+dayNum+(isStudied?'<i aria-hidden="true"></i>':'')+'</span>';
+ }
+ const weekdays=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+ return '<section class="fmCalendarCard" aria-label="Calendário mensal de consistência"><div class="fmCalendarTop"><div><span class="fmStreakEyebrow">SUA CONSTÂNCIA</span><h3>Consistência do mês</h3><p>'+studied+' '+(studied===1?'dia estudado':'dias estudados')+'</p></div><div class="fmCalendarNav"><button type="button" onclick="fmStudyCalendarShift(-1)" aria-label="Ver mês anterior">‹</button><button type="button" onclick="fmStudyCalendarShift(1)" aria-label="Voltar ao mês atual" '+(fmCalendarMonthOffset===0?'disabled':'')+'>›</button></div></div><div class="fmCalendarMonth">'+monthName+'</div><div class="fmCalendarGrid fmCalendarWeekdays">'+weekdays.map(d=>'<span>'+d+'</span>').join('')+'</div><div class="fmCalendarGrid">'+cells+'</div><div class="fmCalendarLegend"><span><i></i> Estudo registrado</span><span class="fmCalendarTodayKey">Hoje</span></div></section>';
 }
 
 function dashboardEditorial(){
@@ -781,6 +831,7 @@ function dashboardEditorial(){
  const streakCard='<section class="fmStreakCard" aria-label="Ofensiva de estudos"><div class="fmStreakIcon" aria-hidden="true">✦</div><div class="fmStreakCurrent"><span class="fmStreakEyebrow">SUA OFENSIVA</span><strong>'+streak.current+' <small>'+(streak.current===1?'dia':'dias')+'</small></strong><span class="fmStreakCaption">consecutivos de estudo</span></div><div class="fmStreakDivider"></div><div class="fmStreakRecord"><span>SEU RECORDE</span><strong>'+streak.best+' <small>'+(streak.best===1?'dia':'dias')+'</small></strong></div><p class="fmStreakMessage">'+streakMessage+'</p></section>';
  return admin+'<section class="fmEditorialHead"><div class="fmEditorialKicker">FLASHMED <span> / </span> CADERNO DE ESTUDOS</div><div class="fmEditorialHeadGrid"><div><p class="fmEditorialDate">'+esc(dateLabel.charAt(0).toLocaleUpperCase('pt-BR')+dateLabel.slice(1))+'</p><h2>Olá'+(db.settings.displayName?', '+esc(db.settings.displayName):'')+'. <span>Vamos por partes.</span></h2><p class="fmEditorialSub">Um plano possível vale mais do que um dia perfeito.</p></div><div class="fmEditorialQuote"><span>NOTA DO DIA</span><p>'+esc(quote)+'</p></div></div></section>'+
  streakCard+
+ flashmedStudyCalendarHtml()+
  '<section class="fmEditorialStats"><article class="fmEditorialStat"><span>ESTUDO DE HOJE</span><b>'+studyMinutes+' <small>min</small></b><small class="muted">Tempo registrado</small></article><article class="fmEditorialStat"><span>REVISÕES</span><b>'+dueCount+'</b><small class="muted">Flashcards pendentes</small></article><article class="fmEditorialStat"><span>CRONOGRAMA</span><b>'+done+'<small> / '+items.length+'</small></b><small class="muted">Tarefas concluídas</small></article></section>'+
  '<section class="fmEditorialMain"><article class="panel fmEditorialSchedule"><div class="fmEditorialSectionTop"><div><span class="fmEditorialKicker">SEU PLANO</span><h3>Hoje, sem complicar.</h3></div><span class="fmEditorialCount">'+(items.length?done+'/'+items.length:'—')+'</span></div>'+(items.length?'<div class="fmEditorialProgress"><i style="width:'+progress+'%"></i></div><p class="muted fmEditorialProgressLabel">'+progress+'% do cronograma concluído</p>':'<p class="muted">Adicione algumas tarefas ao planejador para vê-las aqui.</p>')+tasks+(items.length?'<button class="btn ghost fmEditorialLink" onclick="go(\'Planejador de Estudos\')">Ver semana completa ↗</button>':'')+'</article>'+
  '<aside class="fmEditorialAside"><div class="fmEditorialAsideIntro"><span class="fmEditorialKicker">PRÓXIMO PASSO</span><h3>Escolha por onde começar.</h3><p class="muted">Sem precisar organizar tudo de uma vez.</p></div><button class="fmEditorialAction" onclick="go(\'Revisão\')"><span class="fmEditorialActionIcon">↻</span><span><b>Revisar flashcards</b><small>'+dueCount+' pendentes</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Banco de Questões\')"><span class="fmEditorialActionIcon">✎</span><span><b>Resolver questões</b><small>Praticar e acompanhar erros</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Métricas\')"><span class="fmEditorialActionIcon">↗</span><span><b>Ver minha evolução</b><small>Indicadores completos</small></span><span class="fmEditorialArrow">↗</span></button></aside></section>';
