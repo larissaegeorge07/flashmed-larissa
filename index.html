@@ -948,9 +948,81 @@ function studyPlannerView(){
  return `<div class="panel hero"><div class="row" style="align-items:center;gap:12px"><span style="font-size:30px">🗓️</span><div><h2 style="margin:0">Seu planejamento, no seu ritmo</h2><p style="margin:5px 0 0">Organize sua semana e deixe o FlashMed distribuir as tarefas dentro do tempo que você realmente tem.</p></div></div><div class="grid" style="margin-top:14px"><div class="kpi"><span>Dias até a prova</span><b>${daysLeft===null?'—':daysLeft}</b></div><div class="kpi"><span>Revisões pendentes</span><b>${dueCards}</b></div><div class="kpi"><span>Tarefas cadastradas</span><b>${tasks.length}</b></div></div></div>
  ${plannerAvailabilityHtml(av,p)}
  <div style="margin-top:14px"><h3 style="margin:0 0 5px">Tarefas</h3><p class="muted">Ex.: “Estudar sangramento de primeiro trimestre, 16/10/2026, durante 60 minutos”. A tarefa aparecerá na agenda e poderá ser editada ou excluída.</p><div class="fmTaskComposer"><input id="spTaskQuick" class="field" placeholder="Tarefa, data e duração"><select id="spTaskPriority" class="field" aria-label="Prioridade da tarefa"><option value="alta">🔴 Alta prioridade</option><option value="normal" selected>🟣 Prioridade normal</option><option value="baixa">🟢 Pode ser feito depois</option></select><button class="btn" onclick="plannerAddNaturalTask()">＋ Adicionar tarefa</button></div><div id="spTaskMessage" class="muted" style="margin-top:6px"></div><div id="spTaskList" class="fmTaskList">${plannerTaskListHtml()}</div></div>
- <div class="row" style="margin-top:12px"><button class="btn" onclick="saveWeeklyPlanner()">Salvar disponibilidade</button><button class="btn" onclick="generateWeeklySchedule()">✨ Montar meu cronograma</button></div><p id="spWeeklyMessage" class="muted"></p></div>
+ <div class="row" style="margin-top:12px"><button class="btn" onclick="saveWeeklyPlanner()">Salvar disponibilidade</button><button class="btn" onclick="generateWeeklySchedule()">✨ Montar meu cronograma</button><button class="btn ghost" onclick="plannerImportGoCalendar()">＋ Importar escala GO</button></div><p id="spWeeklyMessage" class="muted"></p><p class="muted" style="font-size:11px">A importação adiciona a escala, os seminários, os feriados/dispensas e os fins de semana em Jequié à agenda. Pode ser executada novamente sem duplicar os eventos.</p></div>
  <div class="panel" style="margin-top:14px"><h3>📅 Cronograma da semana</h3><div id="spWeeklySchedule">${plannerWeeklyScheduleHtml(week)}</div></div>
- <details class="panel" style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">Configurações adicionais da prova e dos assuntos</summary><div style="margin-top:12px"><label>Nome da prova ou objetivo<input id="spExamName" class="field" maxlength="100" placeholder="Ex.: ENAMED, SUS-BA..." value="${esc(p.examName||'')}"></label><div class="row" style="margin-top:10px"><label style="flex:1;min-width:150px">Data da prova<input id="spExamDate" type="date" class="field" value="${esc(p.examDate||'')}"></label><label style="flex:1;min-width:150px">Minutos por dia (meta)<input id="spMinutes" type="number" class="field" min="15" max="600" step="15" value="${Number(p.minutesPerDay)||60}"></label></div><label style="display:block;margin-top:10px">Assuntos prioritários<textarea id="spTopics" class="field" rows="3" placeholder="Pediatria, Clínica Médica, Preventiva...">${esc(p.topics||'')}</textarea></label><button class="btn ghost" style="margin-top:10px" onclick="saveStudyPlan()">Salvar configurações</button><p id="spSaveMessage" class="muted"></p><div id="spGenerated">${plannerSessionsHtml(p)}</div></div></details>`;
+ <details class="panel" style="margin-top:14px"><summary style="cursor:pointer;font-weight:800">Configurações adicionais da prova e dos assuntos</summary><div style="margin-top:12px"><label>Nome da prova ou objetivo<input id="spExamName" class="field" maxlength="100" placeholder="Ex.: ENAMED, SUS-BA..." value="${esc(p.examName||'SUS-BA')}"></label><div class="row" style="margin-top:10px"><label style="flex:1;min-width:150px">Data da prova<input id="spExamDate" type="date" class="field" value="${esc(p.examDate||'2026-11-29')}"></label><label style="flex:1;min-width:150px">Minutos por dia (meta)<input id="spMinutes" type="number" class="field" min="15" max="600" step="15" value="${Number(p.minutesPerDay)||60}"></label></div><label style="display:block;margin-top:10px">Assuntos prioritários<textarea id="spTopics" class="field" rows="3" placeholder="Pediatria, Clínica Médica, Preventiva...">${esc(p.topics||'')}</textarea></label><button class="btn ghost" style="margin-top:10px" onclick="saveStudyPlan()">Salvar configurações</button><p id="spSaveMessage" class="muted"></p><div id="spGenerated">${plannerSessionsHtml(p)}</div></div></details>`;
+}
+function plannerImportGoCalendar(){
+ const start=new Date(2026,9,12,12),end=new Date(2026,11,20,12),events=[];
+ const key=d=>agendaDateKey(d);
+ const add=(date,title,time='',duration=0,category='Internato GO',priority='normal')=>events.push({id:'go2026_'+date+'_'+title.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,42),title,date,time,duration,category,priority,createdAt:new Date().toISOString(),updatedAt:Date.now(),notes:'Escala de internato GO — Grupo 2'});
+ const seminars=[
+ ['2026-10-19','Seminário Obstetrícia: Hemorragia pós-parto'],
+ ['2026-10-26','Seminário Obstetrícia: Diabetes gestacional'],
+ ['2026-10-21','Seminário Ginecologia: Sangramento uterino anormal'],
+ ['2026-10-28','Seminário Ginecologia: Métodos contraceptivos'],
+ ['2026-11-02','Seminário Obstetrícia: Síndromes hipertensivas na gestação'],
+ ['2026-11-04','Seminário Ginecologia: HPV e câncer do colo uterino'],
+ ['2026-11-09','Seminário Obstetrícia: Rotura prematura de membranas e trabalho de parto prematuro'],
+ ['2026-11-11','Seminário Ginecologia: Infecções sexualmente transmissíveis'],
+ ['2026-11-16','Seminário Obstetrícia: Sangramento da primeira metade da gestação'],
+ ['2026-11-18','Seminário Ginecologia: Climatério e TRH'],
+ ['2026-11-23','Seminário Obstetrícia: Sangramento da segunda metade da gestação'],
+ ['2026-11-25','Seminário Ginecologia: Endometriose — Larissa e Gabriela Souza'],
+ ['2026-11-30','Seminário Obstetrícia: TORCH (sífilis, toxoplasmose e CMV)'],
+ ['2026-12-02','Seminário Ginecologia: Massas anexiais e câncer de ovário'],
+ ['2026-12-07','Seminário Obstetrícia: Isoimunização ABO/Rh'],
+ ['2026-12-09','Seminário Ginecologia: Alterações funcionais benignas das mamas']
+ ];
+ for(const [date,title] of seminars)add(date,title,'',0,'Seminários GO','alta');
+ add('2026-11-29','PROVA SUS-BA','',0,'Prova','alta');
+ add('2026-12-17','Avaliação teórica GO — confirmar com os professores','',0,'Avaliação','alta');
+ const exceptions={
+ '2026-10-30':'Sem PNAR no ESAU — feriado do servidor',
+ '2026-11-02':'Finados — sem PNAR no ESAU',
+ '2026-11-06':'Sem PNAR com Maurício (viagem)',
+ '2026-11-09':'Aniversário de Vitória da Conquista — sem PNAR no ESAU'
+ };
+ for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+  const date=key(d),dow=d.getDay(),day=d.getDate(),month=d.getMonth()+1;
+  if(dow===0||dow===6){add(date,'Jequié — plantão no HGPV / fim de semana','',0,'Plantão','alta');continue}
+  if(exceptions[date])add(date,exceptions[date],'',0,'Dispensa / feriado','alta');
+  if(date==='2026-11-29')continue;
+  const period=date<='2026-11-01'?2:date<='2026-11-22'?3:date<='2026-12-06'?4:1;
+  const put=(title,time,duration=300,cat='Internato GO')=>add(date,title,time,duration,cat);
+  if(period===2){
+   if(dow===1){put('CAAV — Renivaldo (manhã)','08:00');put('CAAV — Renivaldo (tarde)','13:00');put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Maria Rosa — Ademário','13:00');put('Radiologia — Prof. Zamilute','19:00',120,'Aula')}
+   if(dow===3){if(date!=='2026-10-30')put('PNAR — Dra. Mayana (FSVC)','08:00');put('Maria Rosa — Ademário','13:00');put('Aula de Ginecologia','19:00',120,'Aula')}
+   if(dow===4)put('Laboratório / Radiologia','13:00');
+   if(dow===5&&date!=='2026-10-30'&&date!=='2026-11-06')put('PNAR — Maurício (FSVC)','13:00');
+  }else if(period===3){
+   if(dow===1){if(date!=='2026-11-02')put('PNAR — Thaís (FSVC)','08:00');put('Ginecologia — Jacqueline (CAE 2)','13:00');if(date!=='2026-11-02')put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Radiologia — Prof. Zamilute + plantão Dra. Kessiane','19:00',120,'Aula')}
+   if(dow===3)put('Aula de Ginecologia','19:00',120,'Aula');
+   if(dow===4)put('Cirurgia ginecológica + ambulatório pré-operatório — Dr. André','08:00');
+   if(dow===5&&[13,27].includes(day)) {put('Plantão equipe Mayanna (FSVC)','08:00');put('Plantão equipe Mayanna (FSVC)','13:00')}
+  }else if(period===4){
+   if(dow===1){put('Dra. Renata — GIN Lagoa das Flores','08:00');put('Dra. Renata Sobreira — GIN Lagoa das Flores','13:00');put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Radiologia — Prof. Zamilute','19:00',120,'Aula')}
+   if(dow===3)put('Aula de Ginecologia','19:00',120,'Aula');
+   if(dow===4){put('Plantão Dra. Daniela (FSVC)','08:00');put('Plantão Dra. Daniela (FSVC)','13:00')}
+   if(dow===5)put('PNAR — Dr. André (FSVC)','08:00');
+  }else{
+   if(dow===1){put('Plantão Mayana (FSVC)','08:00');put('Plantão Mayana (FSVC)','13:00');put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Radiologia — Prof. Zamilute','19:00',120,'Aula')}
+   if(dow===4)put('Ginecologia — Jacqueline (CAE 2)','13:00');
+   if(dow===5){put('USG — Maurício (FSVC)','08:00');put('PNAR — Maurício (FSVC)','13:00')}
+  }
+ }
+ const seen=new Set((db.agendaEvents||[]).map(e=>String(e.id)));
+ const fresh=events.filter(e=>!seen.has(e.id));
+ db.agendaEvents=db.agendaEvents||[];db.agendaEvents.push(...fresh);
+ db.studyPlan=db.studyPlan||{};db.studyPlan.examName=db.studyPlan.examName||'SUS-BA';db.studyPlan.examDate=db.studyPlan.examDate||'2026-11-29';
+ db.studyPlan.weeklyAvailability=db.studyPlan.weeklyAvailability||{seg:60,ter:60,qua:60,qui:60,sex:60,sab:0,dom:0};
+ db.studyPlan.weeklyAvailability.sab=0;db.studyPlan.weeklyAvailability.dom=0;
+ const ok=save();render();
+ toast(ok?('Agenda GO importada: '+fresh.length+' novos eventos. Confira os feriados e a escala.'): 'Importação preparada, mas confira a sincronização.');
 }
 function plannerParseNaturalTask(raw){let title=String(raw||'').trim(),date='',minutes=30,time='';const dm=title.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})\b/);if(dm){let y=+dm[3];if(y<100)y+=2000;const d=new Date(y,+dm[2]-1,+dm[1],12);if(d.getFullYear()!==y||d.getMonth()!==+dm[2]-1||d.getDate()!==+dm[1])return {error:'Confira a data.'};date=agendaDateKey(d);title=title.replace(dm[0],' ')}const du=title.match(/\b(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min)\b/i)||title.match(/\b(\d{1,3})\s*(?:minutos|min)\b/i);if(du){minutes=+du[1];if(minutes<15||minutes>720)return {error:'Use duração de 15 a 720 minutos.'};title=title.replace(du[0],' ')}const tm=title.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);if(tm){time=String(+tm[1]).padStart(2,'0')+':'+(tm[2]||'00');title=title.replace(tm[0],' ')}title=title.replace(/[,;]+/g,' ').replace(/\s+/g,' ').trim();if(!title)return {error:'Escreva a tarefa.'};if(!date)return {error:'Inclua a data (DD/MM/AAAA).'};return {title,date,minutes,time,priority:'normal'}}
 function plannerPriorityMeta(p){const map={alta:{label:'Alta prioridade',cls:'high'},normal:{label:'Prioridade normal',cls:'normal'},baixa:{label:'Pode ser feito depois',cls:'low'}};return map[p]||map.normal}
