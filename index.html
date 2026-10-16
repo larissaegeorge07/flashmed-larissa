@@ -292,6 +292,21 @@ body{background:radial-gradient(circle at 85% 5%,#ffe1ee 0,transparent 24%),var(
 @media(max-width:600px){.plannerWeekGrid{grid-template-columns:1fr}.plannerWeekDay{padding:12px}}
 
 
+/* Ofensiva de estudos: resumo calculado a partir do histórico já sincronizado. */
+.fmStreakCard{display:flex;align-items:center;gap:15px;padding:14px 18px;margin:0 0 14px;border:1px solid #e8e3ec;border-radius:16px;background:#f5f2f8;color:#484151;min-width:0}
+.fmStreakIcon{display:grid;place-items:center;flex-shrink:0;width:42px;height:42px;border-radius:13px;background:#e9e1f2;color:#8b75a7;font-size:22px}
+.fmStreakCurrent,.fmStreakRecord{display:grid;gap:3px;min-width:0}
+.fmStreakEyebrow,.fmStreakRecord>span{font-size:9px;font-weight:850;letter-spacing:.12em;color:#8a7b9d}
+.fmStreakCurrent>strong{font-size:25px;line-height:1.1;letter-spacing:-.04em;color:#4a4056}
+.fmStreakCurrent>strong small,.fmStreakRecord strong small{font-size:12px;font-weight:550;color:#8d829b;letter-spacing:0}
+.fmStreakCaption{font-size:10px;color:#817989}
+.fmStreakDivider{width:1px;height:34px;background:#dcd3e7;margin:0 2px 0 4px}
+.fmStreakRecord strong{font-size:18px;color:#62556f}
+.fmStreakMessage{margin:0 0 0 auto;padding-left:10px;text-align:right;font-size:11px;line-height:1.45;color:#817989;max-width:220px}
+body.fm-dark .fmStreakCard{background:#2a242f;color:var(--ink);border-color:#504657}
+body.fm-dark .fmStreakIcon{background:#40364a;color:#d7c9e6}
+body.fm-dark .fmStreakCurrent>strong,body.fm-dark .fmStreakRecord strong{color:var(--ink)}
+@media(max-width:600px){.fmStreakCard{gap:10px;padding:12px}.fmStreakIcon{width:36px;height:36px}.fmStreakMessage{font-size:10px;max-width:115px}.fmStreakCurrent>strong{font-size:22px}.fmStreakDivider{margin:0}}
 /* Dashboard editorial: informação essencial, cronograma curto e tons neutros. */
 .fmEditorialHead{padding:26px 28px 24px;margin-bottom:14px;border:1px solid #e7e2ed;border-radius:20px;background:#fbfaf8;color:#34313b}
 .fmEditorialKicker{font-size:10px;font-weight:850;letter-spacing:.15em;color:#8a8298}
@@ -731,6 +746,28 @@ function dashboardTodayPlanPanel(){
  return `<div class="cols" style="margin-top:14px;align-items:stretch"><section class="panel" style="background:linear-gradient(135deg,var(--card),var(--rose2))"><div class="muted">♡ UMA LEMBRANÇA PARA HOJE</div><p style="font-size:18px;line-height:1.55;font-family:Georgia,serif;margin:12px 0 4px">${esc(quote)}</p></section><section class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3 style="margin:0">🗓️ Seu cronograma de hoje</h3><p class="muted" style="margin:5px 0 0">${items.length?done+' de '+items.length+' tarefas concluídas':'Um passo de cada vez'}</p></div><span class="tag">${minutes} min</span></div>${items.length?`<div class="bar" style="margin:12px 0 4px"><i style="width:${Math.round(done/Math.max(1,items.length)*100)}%"></i></div>`:''}<div style="margin-top:8px">${schedule}</div>${items.length?`<button class="btn ghost" style="margin-top:12px" onclick="go('Planejador de Estudos')">Ver semana completa</button>`:''}</section></div>`;
 }
 
+function flashmedStreakStats(){
+ const active=new Set(),minimumMs=5*60*1000;
+ Object.entries(db.studyTime||{}).forEach(([date,entries])=>{
+  const total=Object.values(entries||{}).reduce((sum,value)=>sum+(Number(value)||0),0);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&total>=minimumMs)active.add(date);
+ });
+ (db.sessions||[]).forEach(session=>{
+  const date=String(session.date||''),minutes=Number(session.minutes)||0;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&minutes>=1)active.add(date);
+ });
+ const today=day(),yesterday=new Date(Date.parse(today+'T00:00:00Z')-86400000).toISOString().slice(0,10);
+ const lastActive=active.has(today)?today:(active.has(yesterday)?yesterday:null);
+ let current=0;
+ if(lastActive){let cursor=lastActive;while(active.has(cursor)){current++;cursor=new Date(Date.parse(cursor+'T00:00:00Z')-86400000).toISOString().slice(0,10)}}
+ let best=0,run=0,previous=null;
+ [...active].sort().forEach(date=>{
+  run=previous&&Date.parse(date+'T00:00:00Z')-Date.parse(previous+'T00:00:00Z')===86400000?run+1:1;
+  if(run>best)best=run;previous=date;
+ });
+ return {current,best,studiedToday:active.has(today),activeDays:active.size};
+}
+
 function dashboardEditorial(){
  ensureFlashMedSettings();
  const todayDate=new Date(),todayKey=todayDate.getFullYear()+'-'+String(todayDate.getMonth()+1).padStart(2,'0')+'-'+String(todayDate.getDate()).padStart(2,'0');
@@ -742,7 +779,11 @@ function dashboardEditorial(){
  const admin=currentUser&&String(currentUser.email||'').toLowerCase()===FLASHMED_ADMIN_EMAIL?'<section class="panel fmEditorialAdmin"><span class="muted">Membros do FlashMed</span><b id="fmAdminMemberCount">Carregando…</b><small class="muted">Contas com perfil cadastrado</small></section>':'';
  const tasks=items.length?items.map(x=>'<label class="fmEditorialTask"><input type="checkbox" '+(x.done?'checked':'')+' onchange="toggleWeeklyTask(\''+String(x.id).replace(/'/g,"\\'")+'\',this.checked)"><span class="fmEditorialTaskText"><b class="'+(x.done?'isDone':'')+'">'+esc(x.title)+'</b><small>'+Math.max(0,Number(x.minutes)||0)+' min</small></span><span class="fmEditorialStatus">'+(x.done?'Feita':'A fazer')+'</span></label>').join(''):'<div class="fmEditorialEmpty"><span>Seu cronograma está livre por enquanto.</span><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Organizar meu dia ↗</button></div>';
  const progress=items.length?Math.round(done/items.length*100):0;
+ const streak=flashmedStreakStats();
+ const streakMessage=streak.studiedToday?'Você estudou hoje. Sequência em andamento!':streak.current?'Estude hoje para manter sua sequência.':'Cada sequência começa com um primeiro dia.';
+ const streakCard='<section class="fmStreakCard" aria-label="Ofensiva de estudos"><div class="fmStreakIcon" aria-hidden="true">✦</div><div class="fmStreakCurrent"><span class="fmStreakEyebrow">SUA OFENSIVA</span><strong>'+streak.current+' <small>'+(streak.current===1?'dia':'dias')+'</small></strong><span class="fmStreakCaption">consecutivos de estudo</span></div><div class="fmStreakDivider"></div><div class="fmStreakRecord"><span>SEU RECORDE</span><strong>'+streak.best+' <small>'+(streak.best===1?'dia':'dias')+'</small></strong></div><p class="fmStreakMessage">'+streakMessage+'</p></section>';
  return admin+'<section class="fmEditorialHead"><div class="fmEditorialKicker">FLASHMED <span> / </span> CADERNO DE ESTUDOS</div><div class="fmEditorialHeadGrid"><div><p class="fmEditorialDate">'+esc(dateLabel.charAt(0).toLocaleUpperCase('pt-BR')+dateLabel.slice(1))+'</p><h2>Olá'+(db.settings.displayName?', '+esc(db.settings.displayName):'')+'. <span>Vamos por partes.</span></h2><p class="fmEditorialSub">Um plano possível vale mais do que um dia perfeito.</p></div><div class="fmEditorialQuote"><span>NOTA DO DIA</span><p>'+esc(quote)+'</p></div></div></section>'+
+ streakCard+
  '<section class="fmEditorialStats"><article class="fmEditorialStat"><span>ESTUDO DE HOJE</span><b>'+studyMinutes+' <small>min</small></b><small class="muted">Tempo registrado</small></article><article class="fmEditorialStat"><span>REVISÕES</span><b>'+dueCount+'</b><small class="muted">Flashcards pendentes</small></article><article class="fmEditorialStat"><span>CRONOGRAMA</span><b>'+done+'<small> / '+items.length+'</small></b><small class="muted">Tarefas concluídas</small></article></section>'+
  '<section class="fmEditorialMain"><article class="panel fmEditorialSchedule"><div class="fmEditorialSectionTop"><div><span class="fmEditorialKicker">SEU PLANO</span><h3>Hoje, sem complicar.</h3></div><span class="fmEditorialCount">'+(items.length?done+'/'+items.length:'—')+'</span></div>'+(items.length?'<div class="fmEditorialProgress"><i style="width:'+progress+'%"></i></div><p class="muted fmEditorialProgressLabel">'+progress+'% do cronograma concluído</p>':'<p class="muted">Adicione algumas tarefas ao planejador para vê-las aqui.</p>')+tasks+(items.length?'<button class="btn ghost fmEditorialLink" onclick="go(\'Planejador de Estudos\')">Ver semana completa ↗</button>':'')+'</article>'+
  '<aside class="fmEditorialAside"><div class="fmEditorialAsideIntro"><span class="fmEditorialKicker">PRÓXIMO PASSO</span><h3>Escolha por onde começar.</h3><p class="muted">Sem precisar organizar tudo de uma vez.</p></div><button class="fmEditorialAction" onclick="go(\'Revisão\')"><span class="fmEditorialActionIcon">↻</span><span><b>Revisar flashcards</b><small>'+dueCount+' pendentes</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Banco de Questões\')"><span class="fmEditorialActionIcon">✎</span><span><b>Resolver questões</b><small>Praticar e acompanhar erros</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Métricas\')"><span class="fmEditorialActionIcon">↗</span><span><b>Ver minha evolução</b><small>Indicadores completos</small></span><span class="fmEditorialArrow">↗</span></button></aside></section>';
