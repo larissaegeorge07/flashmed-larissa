@@ -554,7 +554,7 @@ reconcileSUS241Definitive();
 
 
  let timer={on:false,start:0,elapsed:0,subject:'Geral'},route='Dashboard',study=[],idx=0,reveal=false,cloud=null,cloudTimer=null;
-const navGroups=[['INÍCIO',['Dashboard']],['ESTUDAR',['Banco de Questões','Flashcards','Revisão','Planejador de Estudos','Tutor de Estudos com IA','Flashcards IA','Caderno de Conhecimentos','Decorebas','Jogos']],['ROTINA',['Cronômetro','Lembretes']],['ACOMPANHAR',['Métricas']],['PRÁTICA CLÍNICA',['Casos Clínicos','Evoluções Médicas','Receituário']],['CONTA E DADOS',['Meu FlashMed','Nuvem & Backup']]];
+const navGroups=[['INÍCIO',['Dashboard']],['ESTUDAR',['Banco de Questões','Flashcards','Revisão','Planejador de Estudos','Agenda Geral','Tutor de Estudos com IA','Flashcards IA','Caderno de Conhecimentos','Decorebas','Jogos']],['ROTINA',['Cronômetro','Lembretes']],['ACOMPANHAR',['Métricas']],['PRÁTICA CLÍNICA',['Casos Clínicos','Evoluções Médicas','Receituário']],['CONTA E DADOS',['Meu FlashMed','Nuvem & Backup']]];
 const icons={'Banco de Questões':'📝',Dashboard:'🏠',Matérias:'🃏','Adicionar flashcard':'＋',Revisão:'🔄','Aleatório':'⤨','Questões erradas':'✎','Importar do ChatGPT':'✦','Flashcards IA':'✦','Planejador de Estudos':'🗓️','Agenda Geral':'📅','Tutor de Estudos com IA':'🤖','Caderno de Conhecimentos':'📚',Métricas:'📊','Cronômetro':'⏱️',Lembretes:'⏰','Nuvem & Backup':'☁️','Casos Clínicos':'🩺','Receituário':'🧾','Jogos':'🎮','Decorebas':'📒','Meu FlashMed':'⚙️'};
 function toggleSidebar(){ensureFlashMedSettings();db.settings.sidebarCollapsed=!db.settings.sidebarCollapsed;applyPersonalization();save()}
 let bankLocalFontSize=17;
