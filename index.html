@@ -389,6 +389,31 @@ body.fm-dark .fmEditorialQuote p{color:#d5cbdc}
 body.fm-dark .fmEditorialActionIcon,body.fm-dark .fmEditorialCount{background:#40364a;color:#d7c9e6}
 @media(max-width:760px){.fmEditorialHead{padding:21px 19px}.fmEditorialHeadGrid{grid-template-columns:1fr;gap:17px}.fmEditorialQuote{max-width:520px}.fmEditorialMain{grid-template-columns:1fr}.fmEditorialStats{gap:7px}.fmEditorialStat{padding:12px 10px}.fmEditorialStat>b{font-size:23px}.fmEditorialStat>span{font-size:8px;letter-spacing:.07em}.fmEditorialStat>.muted{font-size:10px}}
 
+
+/* Agenda geral */
+.agendaQuick{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:stretch}
+.agendaQuick .field{min-width:0}
+.agendaToolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.agendaToggle{display:flex;gap:5px;padding:4px;background:var(--rose2);border-radius:13px}
+.agendaToggle button{border:0;background:transparent;color:var(--muted);padding:8px 12px;border-radius:10px;font-weight:750;cursor:pointer}
+.agendaToggle button.on{background:var(--card);color:var(--deep);box-shadow:0 2px 8px rgba(60,30,50,.08)}
+.agendaCalendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:12px}
+.agendaDow{text-align:center;font-size:11px;color:var(--muted);font-weight:800;padding:5px 0}
+.agendaDay{min-height:78px;border:1px solid var(--line);border-radius:12px;padding:6px;background:var(--card);color:var(--ink);text-align:left;min-width:0;cursor:pointer}
+.agendaDay.outside{opacity:.45;background:transparent}
+.agendaDay.today{border-color:var(--pink);box-shadow:inset 0 0 0 1px var(--pink)}
+.agendaDay.selected{background:var(--rose2);border-color:var(--deep)}
+.agendaDayNum{font-size:12px;font-weight:850;display:block;margin-bottom:4px}
+.agendaEventDot{display:block;font-size:10px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:3px;color:var(--deep)}
+.agendaEventDot:before{content:"• ";color:var(--pink);font-weight:900}
+.agendaEventRow{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.agendaEventTime{flex:0 0 62px;color:var(--deep);font-size:12px;font-weight:850;padding-top:2px}
+.agendaEventBody{flex:1;min-width:0}
+.agendaEventBody b{display:block;overflow-wrap:anywhere}
+.agendaEventMeta{font-size:11px;color:var(--muted);margin-top:4px}
+.agendaDelete{border:0;background:transparent;color:var(--muted);font-size:18px;padding:2px 6px;cursor:pointer}
+.agendaDraftGrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px}
+@media(max-width:600px){.agendaCalendar{gap:3px}.agendaDay{min-height:62px;padding:4px;border-radius:8px}.agendaEventDot{font-size:9px}.agendaDraftGrid{grid-template-columns:1fr 1fr}.agendaDraftGrid .agendaTitleField{grid-column:1/-1}.agendaQuick{grid-template-columns:1fr}.agendaQuick button{width:100%}}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes • Study Space ♡</div><div class="sideSignature"><b>Medicina, constância & propósito.</b><small>um passo por dia ✦</small></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div class="mobileGamesShortcut"><button class="btn" onclick="go('Jogos')">🎮 Abrir Jogos</button></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -530,7 +555,7 @@ reconcileSUS241Definitive();
 
  let timer={on:false,start:0,elapsed:0,subject:'Geral'},route='Dashboard',study=[],idx=0,reveal=false,cloud=null,cloudTimer=null;
 const navGroups=[['INÍCIO',['Dashboard']],['ESTUDAR',['Banco de Questões','Flashcards','Revisão','Planejador de Estudos','Tutor de Estudos com IA','Flashcards IA','Caderno de Conhecimentos','Decorebas','Jogos']],['ROTINA',['Cronômetro','Lembretes']],['ACOMPANHAR',['Métricas']],['PRÁTICA CLÍNICA',['Casos Clínicos','Evoluções Médicas','Receituário']],['CONTA E DADOS',['Meu FlashMed','Nuvem & Backup']]];
-const icons={'Banco de Questões':'📝',Dashboard:'🏠',Matérias:'🃏','Adicionar flashcard':'＋',Revisão:'🔄','Aleatório':'⤨','Questões erradas':'✎','Importar do ChatGPT':'✦','Flashcards IA':'✦','Planejador de Estudos':'🗓️','Tutor de Estudos com IA':'🤖','Caderno de Conhecimentos':'📚',Métricas:'📊','Cronômetro':'⏱️',Lembretes:'⏰','Nuvem & Backup':'☁️','Casos Clínicos':'🩺','Receituário':'🧾','Jogos':'🎮','Decorebas':'📒','Meu FlashMed':'⚙️'};
+const icons={'Banco de Questões':'📝',Dashboard:'🏠',Matérias:'🃏','Adicionar flashcard':'＋',Revisão:'🔄','Aleatório':'⤨','Questões erradas':'✎','Importar do ChatGPT':'✦','Flashcards IA':'✦','Planejador de Estudos':'🗓️','Agenda Geral':'📅','Tutor de Estudos com IA':'🤖','Caderno de Conhecimentos':'📚',Métricas:'📊','Cronômetro':'⏱️',Lembretes:'⏰','Nuvem & Backup':'☁️','Casos Clínicos':'🩺','Receituário':'🧾','Jogos':'🎮','Decorebas':'📒','Meu FlashMed':'⚙️'};
 function toggleSidebar(){ensureFlashMedSettings();db.settings.sidebarCollapsed=!db.settings.sidebarCollapsed;applyPersonalization();save()}
 let bankLocalFontSize=17;
 function toggleBankToolDock(btn){let dock=btn?.closest('.bankToolDock');if(dock)dock.classList.toggle('open')}
@@ -542,7 +567,7 @@ function renderNav(){
  const navButtons=g=>g[1].map(x=>{if(x==='Evoluções Médicas')return `<a data-mobile-extra="1" href="./evolucoes.html" style="display:block;padding:12px 13px;border-radius:14px;margin:3px 0;color:#f3dce7;text-decoration:none">🩺 <span class="navLabel">Evoluções Médicas ↗</span></a>`;let target=x==='Flashcards'?'Matérias':x,extra=mobileMain.has(x)?'0':'1';return `<button data-mobile-extra="${extra}" class='${route==target?'on':''}' onclick="go('${target}');closeMobileMore()"><span class="navIcon">${icons[x]||icons[target]||'▦'}</span><span class="navLabel">${x}</span></button>`}).join('');
  const mainGroups=navGroups.map(g=>`<div class=navTitle>${g[0]}</div>${navButtons(g)}`).join('');
  const groups=[
- {title:'ESTUDAR',icon:'📚',desc:'Questões, flashcards e memorização',items:[['Banco de Questões','Banco de Questões'],['Flashcards','Matérias'],['Revisão','Revisão'],['Planejador de Estudos','Planejador de Estudos'],['Tutor de Estudos com IA','Tutor de Estudos com IA'],['Flashcards IA','Flashcards IA'],['Caderno de Conhecimentos','Caderno de Conhecimentos'],['Decorebas','Decorebas'],['Jogos','Jogos']]},
+ {title:'ESTUDAR',icon:'📚',desc:'Questões, flashcards e memorização',items:[['Banco de Questões','Banco de Questões'],['Flashcards','Matérias'],['Revisão','Revisão'],['Planejador de Estudos','Planejador de Estudos'],['Agenda Geral','Agenda Geral'],['Agenda Geral','Agenda Geral'],['Tutor de Estudos com IA','Tutor de Estudos com IA'],['Flashcards IA','Flashcards IA'],['Caderno de Conhecimentos','Caderno de Conhecimentos'],['Decorebas','Decorebas'],['Jogos','Jogos']]},
  {title:'ROTINA',icon:'⏰',desc:'Organize seu tempo e seus lembretes',items:[['Cronômetro','Cronômetro'],['Lembretes','Lembretes']]},
  {title:'ACOMPANHAR',icon:'📊',desc:'Veja seu progresso nos estudos',items:[['Métricas','Métricas']]},
  {title:'PRÁTICA CLÍNICA',icon:'🩺',desc:'Treine raciocínio e registre atendimentos',items:[['Casos Clínicos','Casos Clínicos'],['Receituário','Receituário'],['Evoluções Médicas','Evoluções Médicas']]},
@@ -707,6 +732,84 @@ const plannerQuotes=[
 ];
 function plannerQuoteOfDay(){const d=new Date();const key=d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();return plannerQuotes[key%plannerQuotes.length]}
 function plannerTodayItems(){const p=db.studyPlan||{};const today=new Date().toISOString().slice(0,10);return (Array.isArray(p.weekSchedule)?p.weekSchedule:[]).filter(x=>x.date===today)}
+
+let agendaState={mode:'month',month:(()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),1)})(),selected:agendaDateKey(new Date()),draft:null};
+function agendaDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function agendaDateFromKey(k){if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(k))return null;const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0)}
+function agendaFormatDate(k,opts={weekday:'long',day:'2-digit',month:'long'}){const d=agendaDateFromKey(k);return d?d.toLocaleDateString('pt-BR',opts):''}
+function agendaEvents(){return Array.isArray(db.agendaEvents)?db.agendaEvents:[]}
+function agendaParseQuickText(raw){
+ const text=String(raw||'').trim();if(!text)return {title:'',date:'',time:''};
+ let work=text,date='',time='';
+ const nowDate=new Date();nowDate.setHours(12,0,0,0);
+ const explicit=work.match(/\b(?:dia\s*)?(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?\b/);
+ if(explicit){let y=explicit[3]?Number(explicit[3]):nowDate.getFullYear();if(y<100)y+=2000;const d=Number(explicit[1]),m=Number(explicit[2]);const candidate=new Date(y,m-1,d,12);if(candidate.getFullYear()===y&&candidate.getMonth()===m-1&&candidate.getDate()===d){date=agendaDateKey(candidate);work=work.replace(explicit[0],' ')}}
+ if(!date){
+  const rel=work.match(/\b(depois de amanh[ãa]|amanh[ãa]|hoje)\b/i);
+  if(rel){const d=new Date(nowDate);const word=rel[1].toLocaleLowerCase('pt-BR');d.setDate(d.getDate()+(word.startsWith('depois')?2:word.startsWith('amanh')?1:0));date=agendaDateKey(d);work=work.replace(rel[0],' ')}
+ }
+ if(!date){
+  const normalized=work.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+  const weekday=normalized.match(/\b(domingo|segunda(?:-feira)?|terca(?:-feira)?|quarta(?:-feira)?|quinta(?:-feira)?|sexta(?:-feira)?|sabado)\b/);
+  if(weekday){const names=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];let word=weekday[1].split('-')[0],target=names.indexOf(word),delta=(target-nowDate.getDay()+7)%7;const d=new Date(nowDate);d.setDate(d.getDate()+delta);date=agendaDateKey(d);work=work.replace(weekday[0],' ')}
+ }
+ const tm=work.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);
+ if(tm){time=String(Number(tm[1])).padStart(2,'0')+':'+(tm[2]||'00');work=work.replace(tm[0],' ')}
+ work=work.replace(/\b(?:às|as|dia|na|no|em)\b/gi,' ').replace(/[,\-–—]+/g,' ').replace(/\s+/g,' ').trim();
+ return {title:work,date,time};
+}
+function agendaQuickCapture(){
+ const raw=document.getElementById('agendaQuickText')?.value||'';const parsed=agendaParseQuickText(raw);
+ agendaState.draft={title:parsed.title,date:parsed.date,time:parsed.time,category:'Pessoal',raw};
+ const box=document.getElementById('agendaDraftBox');if(box)box.innerHTML=agendaDraftHtml(agendaState.draft);
+}
+function agendaDraftHtml(d){
+ return '<div class="panel" style="margin-top:12px;background:var(--rose2)"><h3 style="margin-top:0">Confira antes de adicionar</h3><p class="muted">Revise os dados reconhecidos. A data precisa ser confirmada; o horário pode ficar em branco para um compromisso sem hora definida.</p><div class="agendaDraftGrid"><label class="agendaTitleField">O que você vai fazer?<input id="agendaDraftTitle" class="field" maxlength="160" value="'+esc(d.title||'')+'" placeholder="Ex.: Ir à feira e comprar frutas"></label><label>Data<input id="agendaDraftDate" class="field" type="date" value="'+esc(d.date||'')+'"></label><label>Horário<input id="agendaDraftTime" class="field" type="time" value="'+esc(d.time||'')+'"></label><label>Tipo<select id="agendaDraftCategory" class="field"><option '+(d.category==='Pessoal'?'selected':'')+'>Pessoal</option><option '+(d.category==='Estudos'?'selected':'')+'>Estudos</option><option '+(d.category==='Estágio/rotação'?'selected':'')+'>Estágio/rotação</option><option '+(d.category==='Saúde'?'selected':'')+'>Saúde</option><option '+(d.category==='Data importante'?'selected':'')+'>Data importante</option><option '+(d.category==='Viagem'?'selected':'')+'>Viagem</option></select></label></div><div class="row" style="margin-top:12px"><button class="btn" onclick="agendaSaveDraft()">Confirmar e adicionar</button><button class="btn ghost" onclick="agendaCancelDraft()">Cancelar</button></div><p id="agendaDraftMessage" class="muted"></p></div>';
+}
+function agendaSaveDraft(){
+ const title=document.getElementById('agendaDraftTitle')?.value.trim()||'',date=document.getElementById('agendaDraftDate')?.value||'',time=document.getElementById('agendaDraftTime')?.value||'',category=document.getElementById('agendaDraftCategory')?.value||'Pessoal';
+ const msg=document.getElementById('agendaDraftMessage');
+ if(!title){if(msg)msg.textContent='Escreva uma descrição para o compromisso.';return}
+ if(!agendaDateFromKey(date)){if(msg)msg.textContent='Confirme a data antes de salvar.';return}
+ if(time&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)){if(msg)msg.textContent='Confira o horário informado.';return}
+ if(!Array.isArray(db.agendaEvents))db.agendaEvents=[];
+ const id='ag_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
+ db.agendaEvents.push({id,title,date,time,category,createdAt:new Date().toISOString(),updatedAt:Date.now()});
+ agendaState.selected=date;const d=agendaDateFromKey(date);agendaState.month=new Date(d.getFullYear(),d.getMonth(),1);agendaState.draft=null;
+ const ok=save();toast(ok?'Compromisso adicionado à agenda ♡':'Confira o salvamento da agenda');
+ render();
+}
+function agendaCancelDraft(){agendaState.draft=null;const box=document.getElementById('agendaDraftBox');if(box)box.innerHTML=''}
+function agendaDeleteEvent(id){if(!confirm('Excluir este compromisso da agenda?'))return;db.agendaEvents=agendaEvents().filter(e=>e.id!==id);save();render()}
+function agendaShift(delta){if(agendaState.mode==='month'){agendaState.month=new Date(agendaState.month.getFullYear(),agendaState.month.getMonth()+delta,1)}else{const d=agendaDateFromKey(agendaState.selected)||new Date();d.setDate(d.getDate()+delta*7);agendaState.selected=agendaDateKey(d);agendaState.month=new Date(d.getFullYear(),d.getMonth(),1)}render()}
+function agendaSetMode(mode){agendaState.mode=mode;render()}
+function agendaSelectDate(key){agendaState.selected=key;const d=agendaDateFromKey(key);if(d)agendaState.month=new Date(d.getFullYear(),d.getMonth(),1);render()}
+function agendaEventListHtml(events){
+ if(!events.length)return '<p class="muted">Nenhum compromisso para esta data. Use a anotação rápida acima para adicionar um.</p>';
+ return events.slice().sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99')).map(e=>'<div class="agendaEventRow"><div class="agendaEventTime">'+esc(e.time||'Sem horário')+'</div><div class="agendaEventBody"><b>'+esc(e.title)+'</b><div class="agendaEventMeta">'+esc(e.category||'Pessoal')+' · '+esc(agendaFormatDate(e.date,{day:'2-digit',month:'short'}))+'</div></div><button class="agendaDelete" title="Excluir compromisso" aria-label="Excluir '+esc(e.title)+'" onclick="agendaDeleteEvent('+JSON.stringify(e.id).replace(/"/g,'&quot;')+')">×</button></div>').join('');
+}
+function agendaGeneralView(){
+ const all=agendaEvents().filter(e=>e&&e.id&&e.date).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+ const m=agendaState.month,monthLabel=m.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ const dow=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+ let calendar='';
+ if(agendaState.mode==='month'){
+  const first=new Date(m.getFullYear(),m.getMonth(),1,12),start=new Date(first);start.setDate(first.getDate()-((first.getDay()+6)%7));
+  const today=agendaDateKey(new Date());
+  calendar='<div class="agendaCalendar">'+dow.map(x=>'<div class="agendaDow">'+x+'</div>').join('');
+  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=agendaDateKey(d),items=all.filter(e=>e.date===key);calendar+='<button class="agendaDay '+(d.getMonth()!==m.getMonth()?'outside ':'')+(key===today?'today ':'')+(key===agendaState.selected?'selected':'')+'" onclick="agendaSelectDate(\''+key+'\')" aria-label="'+esc(agendaFormatDate(key))+'"><span class="agendaDayNum">'+d.getDate()+'</span>'+items.slice(0,2).map(e=>'<span class="agendaEventDot">'+esc((e.time?e.time+' ':'')+e.title)+'</span>').join('')+(items.length>2?'<span class="agendaEventDot">+'+(items.length-2)+' mais</span>':'')+'</button>'}
+  calendar+='</div>';
+ }else{
+  const base=agendaDateFromKey(agendaState.selected)||new Date(),start=new Date(base);start.setDate(base.getDate()-((base.getDay()+6)%7));
+  calendar='<div class="agendaCalendar">'+dow.map(x=>'<div class="agendaDow">'+x+'</div>').join('');
+  for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=agendaDateKey(d),items=all.filter(e=>e.date===key);calendar+='<button class="agendaDay '+(key===agendaState.selected?'selected ':'')+(key===agendaDateKey(new Date())?'today':'')+'" onclick="agendaSelectDate(\''+key+'\')"><span class="agendaDayNum">'+d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+'</span>'+items.slice(0,4).map(e=>'<span class="agendaEventDot">'+esc((e.time?e.time+' ':'')+e.title)+'</span>').join('')+'</button>'}
+  calendar+='</div>';
+ }
+ const selected=agendaState.selected,selectedEvents=all.filter(e=>e.date===selected);
+ const upcoming=all.filter(e=>e.date>=agendaDateKey(new Date())).slice(0,5);
+ return '<div class="panel hero"><div class="row" style="align-items:center;gap:12px"><span style="font-size:30px">📅</span><div><h2 style="margin:0">Sua agenda, em um só lugar</h2><p style="margin:5px 0 0">Compromissos pessoais, estudos, estágio, viagens e datas importantes — com visualização semanal e mensal.</p></div></div><div class="grid" style="margin-top:14px"><div class="kpi"><span>Compromissos cadastrados</span><b>'+all.length+'</b></div><div class="kpi"><span>Hoje</span><b>'+all.filter(e=>e.date===agendaDateKey(new Date())).length+'</b></div><div class="kpi"><span>Próximos compromissos</span><b>'+upcoming.length+'</b></div></div></div><div class="panel" style="margin-top:14px"><h3>✍️ Anotação rápida</h3><p class="muted">Escreva do seu jeito. Ex.: “amanhã às 16h, ir à feira e comprar frutas”. Confira a interpretação antes de salvar.</p><div class="agendaQuick"><input id="agendaQuickText" class="field" placeholder="Ex.: terça-feira às 16h, ir à feira e comprar frutas"><button class="btn" onclick="agendaQuickCapture()">Interpretar anotação</button></div><div id="agendaDraftBox">'+(agendaState.draft?agendaDraftHtml(agendaState.draft):'')+'</div></div><div class="panel" style="margin-top:14px"><div class="agendaToolbar"><div><h3 style="margin:0">Calendário</h3><p class="muted" style="margin:5px 0 0;text-transform:capitalize">'+esc(monthLabel)+'</p></div><div class="row" style="gap:5px"><button class="btn ghost" onclick="agendaShift(-1)" aria-label="Período anterior">‹</button><button class="btn ghost" onclick="agendaShift(1)" aria-label="Próximo período">›</button><div class="agendaToggle"><button class="'+(agendaState.mode==='week'?'on':'')+'" onclick="agendaSetMode(\'week\')">Semana</button><button class="'+(agendaState.mode==='month'?'on':'')+'" onclick="agendaSetMode(\'month\')">Mês</button></div></div></div>'+calendar+'<div style="margin-top:18px"><h3 style="text-transform:capitalize">'+esc(agendaFormatDate(selected))+'</h3>'+agendaEventListHtml(selectedEvents)+'</div></div><div class="panel" style="margin-top:14px"><h3>Próximos compromissos</h3>'+agendaEventListHtml(upcoming)+'</div>';
+}
+
 function studyPlannerView(){
  const p=db.studyPlan||{examName:'',examDate:'',minutesPerDay:60,topics:(db.subjects||[]).join(', '),days:'Seg, Ter, Qua, Qui, Sex'};
  const topics=String(p.topics||'').split(/[,;\\n]/).map(x=>x.trim()).filter(Boolean);
@@ -1512,7 +1615,7 @@ let flashmedSyncQueue=Promise.resolve();
 function flashmedRecoverySnapshot(label,data){try{let key='flashmed_recovery_'+Date.now()+'_'+label;localStorage.setItem(key,JSON.stringify(flashmedLocalPayload(data)));let keys=Object.keys(localStorage).filter(x=>x.startsWith('flashmed_recovery_')).sort();while(keys.length>12)localStorage.removeItem(keys.shift())}catch(e){console.warn('Backup de recuperação indisponível',e)}}
 function flashmedMergePersonal(remote,local){
  if(!remote||!local)return false;let changed=false;
- for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id']]){
+ for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['agendaEvents','id']]){
   let a=Array.isArray(remote[key])?remote[key]:[],b=Array.isArray(local[key])?local[key]:[];
   let seen=new Set(a.map(x=>String(x?.[idKey]??'')));
   for(const item of b){let id=String(item?.[idKey]??'');if(!id||seen.has(id))continue;a.push(item);seen.add(id);changed=true}
@@ -1766,10 +1869,10 @@ function flashmedPageBanner(currentRoute){
  const info=pages[currentRoute]||['✨ FLASHMED',currentRoute,'Seu espaço de estudos.'];
  return `<section class="fmPageHero" aria-label="${esc(info[1])}"><span class="fmHeroSpark fmHeroSparkOne" aria-hidden="true">✦</span><span class="fmHeroSpark fmHeroSparkTwo" aria-hidden="true">✧</span><span class="fmHeroSpark fmHeroSparkThree" aria-hidden="true">✦</span><span class="fmHeroEyebrow">${esc(info[0])}</span><h2>${esc(info[1])}</h2><p>${esc(info[2])}</p></section>`;
 }
-function render(){applyPersonalization();title.textContent=route==='Matérias'?'Flashcards':route;title.setAttribute('data-route',route);date.textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});view.innerHTML=(route==='Dashboard'?'':flashmedPageBanner(route))+(route==='Dashboard'?dashboardEditorial():route==='Matérias'?subjects():route==='Adicionar flashcard'?addCardView():route==='Revisão'?review('due'):route==='Planejador de Estudos'?studyPlannerView():route==='Tutor de Estudos com IA'?studyTutorPlaceholder():route==='Aleatório'?review('random'):route==='Banco de Questões'?bankView():route==='Questões erradas'?questions():route==='Importar do ChatGPT'?importChat():route==='Flashcards IA'?importChat():route==='Caderno de Conhecimentos'?knowledgeNotesView():route==='Oclusão de imagem'?imageOcclusionView():route==='Métricas'?metrics():route==='Meu FlashMed'?myFlashMed():route==='Decorebas'?decorebasView():route==='Jogos'?gamesView():route==='Casos Clínicos'?clinicalCasesView():route==='Receituário'?receituarioView():route==='Cronômetro'?timerView():route==='Lembretes'?reminders():cloudView());if(route==='Dashboard')flashmedLoadAdminMemberCount()}
+function render(){applyPersonalization();title.textContent=route==='Matérias'?'Flashcards':route;title.setAttribute('data-route',route);date.textContent=now().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});view.innerHTML=(route==='Dashboard'?'':flashmedPageBanner(route))+(route==='Dashboard'?dashboardEditorial():route==='Matérias'?subjects():route==='Adicionar flashcard'?addCardView():route==='Revisão'?review('due'):route==='Planejador de Estudos'?studyPlannerView():route==='Agenda Geral'?agendaGeneralView():route==='Tutor de Estudos com IA'?studyTutorPlaceholder():route==='Aleatório'?review('random'):route==='Banco de Questões'?bankView():route==='Questões erradas'?questions():route==='Importar do ChatGPT'?importChat():route==='Flashcards IA'?importChat():route==='Caderno de Conhecimentos'?knowledgeNotesView():route==='Oclusão de imagem'?imageOcclusionView():route==='Métricas'?metrics():route==='Meu FlashMed'?myFlashMed():route==='Decorebas'?decorebasView():route==='Jogos'?gamesView():route==='Casos Clínicos'?clinicalCasesView():route==='Receituário'?receituarioView():route==='Cronômetro'?timerView():route==='Lembretes'?reminders():cloudView());if(route==='Dashboard')flashmedLoadAdminMemberCount()}
 setInterval(()=>{clock.textContent=now().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});if(route==='Cronômetro'&&timer.on){let e=document.querySelector('#timerText');if(e)e.textContent=fmt(timer.elapsed+Date.now()-timer.start)}db.reminders.forEach(r=>{if(!r.done&&new Date(r.when)<=now()){r.done=true;save();alert('⏰ '+r.text)}})},1000);renderNav();render();
 function flashmedEmptyAccountData(){
- return {owner:'FlashMed',subjects:[],subjectIcons:{},cards:[],questions:[],sessions:[],reminders:[],settings:{goal:60},updatedAt:Date.now(),knowledgeNotes:[],knowledgeBooks:[],bankQuestions:[],bankAttempts:[],bankAnnotations:{},bankSavedInk:{},bankReviewState:{},bankReviewSchedule:{},decorebas:[],imageAssets:{}};
+ return {owner:'FlashMed',subjects:[],subjectIcons:{},cards:[],questions:[],sessions:[],reminders:[],agendaEvents:[],settings:{goal:60},updatedAt:Date.now(),knowledgeNotes:[],knowledgeBooks:[],bankQuestions:[],bankAttempts:[],bankAnnotations:{},bankSavedInk:{},bankReviewState:{},bankReviewSchedule:{},decorebas:[],imageAssets:{}};
 }
 function flashmedResetLocalForAccount(userId){
  db=flashmedEmptyAccountData();
