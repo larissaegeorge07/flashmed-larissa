@@ -913,7 +913,7 @@ function agendaGeneralView(){
  }else{
   const base=agendaDateFromKey(agendaState.selected)||new Date(),start=new Date(base);start.setDate(base.getDate()-((base.getDay()+6)%7));
   calendar='<div class="agendaCalendar">'+dow.map(x=>'<div class="agendaDow">'+x+'</div>').join('');
-  for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=agendaDateKey(d),items=all.filter(e=>e.date===key);calendar+='<button class="agendaDay '+(key===agendaState.selected?'selected ':'')+(key===agendaDateKey(new Date())?'today':'')+'" onclick="agendaSelectDate(\''+key+'\')"><span class="agendaDayNum">'+d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+'</span>'+items.slice(0,4).map(e=>'<span class="agendaEventDot">'+esc((e.time?e.time+' ':'')+e.title)+'</span>').join('')+'</button>'}
+  for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=agendaDateKey(d),items=all.filter(e=>e.date===key);calendar+='<button class="agendaDay '+(key===agendaState.selected?'selected ':'')+(key===agendaDateKey(new Date())?'today':'')+'" onclick="agendaSelectDate(\''+key+'\')"><span class="agendaDayNum">'+d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})+'</span>'+items.slice(0,4).map(e=>'<span class="agendaEventDot priority-'+(e.priority==='alta'?'high':e.priority==='baixa'?'low':'normal')+'">'+esc((e.time?e.time+' ':'')+e.title)+'</span>').join('')+'</button>'}
   calendar+='</div>';
  }
  const selected=agendaState.selected,selectedEvents=all.filter(e=>e.date===selected);
