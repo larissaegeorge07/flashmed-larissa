@@ -747,15 +747,12 @@ function dashboardTodayPlanPanel(){
 }
 
 function flashmedStreakStats(){
- const active=new Set(),minimumMs=5*60*1000;
- Object.entries(db.studyTime||{}).forEach(([date,entries])=>{
-  const total=Object.values(entries||{}).reduce((sum,value)=>sum+(Number(value)||0),0);
-  if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&total>=minimumMs)active.add(date);
- });
- (db.sessions||[]).forEach(session=>{
-  const date=String(session.date||''),minutes=Number(session.minutes)||0;
-  if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&minutes>=1)active.add(date);
- });
+ const active=new Set();
+ const addDate=value=>{const date=String(value||'').slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(date))active.add(date)};
+ // Registros intencionais: cronômetro finalizado, questão respondida e tarefa marcada como concluída.
+ (db.sessions||[]).forEach(session=>{if((Number(session.minutes)||0)>=1)addDate(session.date)});
+ (db.bankAttempts||[]).forEach(attempt=>addDate(attempt.date));
+ (db.studyPlan?.weekSchedule||[]).forEach(task=>{if(task.done&&task.completedAt)addDate(task.completedAt)});
  const today=day(),yesterday=new Date(Date.parse(today+'T00:00:00Z')-86400000).toISOString().slice(0,10);
  const lastActive=active.has(today)?today:(active.has(yesterday)?yesterday:null);
  let current=0;
