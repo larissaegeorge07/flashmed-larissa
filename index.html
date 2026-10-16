@@ -745,7 +745,7 @@ function agendaParseQuickText(raw){
  const explicit=work.match(/\b(?:dia\s*)?(\d{1,2})[\/.-](\d{1,2})(?:[\/.-](\d{2,4}))?\b/);
  if(explicit){let y=explicit[3]?Number(explicit[3]):nowDate.getFullYear();if(y<100)y+=2000;const d=Number(explicit[1]),m=Number(explicit[2]);const candidate=new Date(y,m-1,d,12);if(candidate.getFullYear()===y&&candidate.getMonth()===m-1&&candidate.getDate()===d){date=agendaDateKey(candidate);work=work.replace(explicit[0],' ')}}
  if(!date){
-  const rel=work.match(/\b(depois de amanh[ãa]|amanh[ãa]|hoje)\b/i);
+  const rel=work.match(/\b(depois de amanh[ãa]|amanh[ãa]|hoje)(?=\s|$|[,.;])/i);
   if(rel){const d=new Date(nowDate);const word=rel[1].toLocaleLowerCase('pt-BR');d.setDate(d.getDate()+(word.startsWith('depois')?2:word.startsWith('amanh')?1:0));date=agendaDateKey(d);work=work.replace(rel[0],' ')}
  }
  if(!date){
@@ -756,7 +756,7 @@ function agendaParseQuickText(raw){
  }
  const tm=work.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);
  if(tm){time=String(Number(tm[1])).padStart(2,'0')+':'+(tm[2]||'00');work=work.replace(tm[0],' ')}
- work=work.replace(/(?:às|as|dia|na|no|em)\b/gi,' ').replace(/[,\-–—]+/g,' ').replace(/\s+/g,' ').trim();
+ work=work.replace(/\b(as|dia|na|no|em)\b|às/gi,' ').replace(/[,\-–—]+/g,' ').replace(/\s+/g,' ').trim();
  return {title:work,date,time};
 }
 function agendaQuickCapture(){
