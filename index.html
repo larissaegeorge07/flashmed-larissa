@@ -742,6 +742,91 @@ a{color:#6e5890}
   h1{font-size:1.55rem}
 }
 
+
+/* FlashMed unified editorial design system — October 2026 */
+:root{
+ --bg:#f7f5fa;--card:#fff;--panel:#fff;--ink:#29253a;--muted:#777187;
+ --pink:#a982d0;--pink2:#c9afe8;--rose:#e8dcf5;--rose2:#f4effa;--deep:#514267;
+ --line:#e7e0ef;--shadow:0 5px 18px rgba(49,35,72,.055);
+ --ok:#3f8a73;--bad:#c65f77;--warn:#a97735;--blue:#6e86b8;
+}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);letter-spacing:0}
+.app{grid-template-columns:244px minmax(0,1fr);background:var(--bg)}
+.side{background:linear-gradient(180deg,#302b3b 0%,#272332 100%);border-right:1px solid #e3dce9;padding:22px 12px;color:#f8f5fc;box-shadow:3px 0 18px rgba(31,24,43,.05)}
+.brand{font-size:22px;letter-spacing:-.045em;font-weight:850;padding:4px 10px}
+.brandMark .brandSeal{background:linear-gradient(145deg,#c9a8e7,#e9b3d4)!important;border-radius:12px!important;box-shadow:0 3px 9px #17111f25}
+.owner{color:#c9bfd8;padding-bottom:20px}
+.navTitle{font-size:10px;letter-spacing:.16em;color:#b8a9cc;font-weight:850;padding:19px 12px 7px}
+.nav button,.nav>a{display:flex;align-items:center;gap:10px;min-height:42px;padding:9px 11px;border:1px solid transparent;border-radius:12px;margin:3px 0;color:#dcd5e7;font-size:13px;font-weight:550;line-height:1.35;transition:background .18s,border-color .18s,color .18s}
+.nav button:hover,.nav button.on{background:linear-gradient(100deg,#ffffff19,#ffffff0c);border-color:#ffffff12;color:#fff}
+.nav button.on{box-shadow:inset 3px 0 #c9a9e8;font-weight:750}
+.nav button .navIcon{display:inline-grid;place-items:center;flex:0 0 30px;width:30px;height:30px;margin:0;border-radius:10px;background:#ffffff0b;color:#c7b2e3;font-size:17px;line-height:1}
+.nav button .navIcon svg{display:block;width:17px;height:17px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on .navIcon{background:#bda1df;color:#33283f}
+.navLabel{min-width:0}
+.main{max-width:1600px;padding:26px 30px 36px}
+.top{min-height:68px;background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:18px;padding:13px 16px;margin-bottom:14px;box-shadow:0 3px 12px rgba(49,35,72,.035)}
+.top h1{font-size:17px;font-weight:800;letter-spacing:-.025em;color:#3a304b}
+.clock{color:#49395e}
+.panel,.kpi,.subjectCard,.knowledgeBookCard,.fmEditorialHead,.fmEditorialStat,.fmStreakCard,.fmDashboardCalendar,.fmPageHero{border-color:var(--line)!important;box-shadow:var(--shadow)!important}
+.panel,.kpi{background:#fff;border-radius:17px}
+.panel{padding:20px}
+.kpi{padding:17px}
+.btn{background:linear-gradient(135deg,#74618d,#514267);box-shadow:none;border-radius:11px;font-weight:750}
+.btn:hover{filter:brightness(1.045);transform:translateY(-1px)}
+.btn.ghost{background:#fff;color:#55436d;border:1px solid #ddd2e9}
+.field,input,textarea,select,.bankExamMulti summary{border-color:#ded5e9!important;border-radius:11px!important;background:#fff;color:var(--ink)}
+.field:focus,input:focus,textarea:focus,select:focus{outline:3px solid #bca0df30;border-color:#b59ad7!important}
+.pill,.tag{background:#f1ebf8;border-color:#e3d7f0;color:#5d4b76}
+.hero,.fmPageHero{background:linear-gradient(112deg,#f1e9f8 0%,#e8dcf4 48%,#f8edf6 100%)!important;border:1px solid #e3d7ef!important;border-radius:20px!important;color:#332b43}
+.fmPageHero{padding:26px 30px!important;min-height:142px;box-shadow:none!important}
+.fmPageHero h2{font-size:clamp(25px,2.5vw,36px);letter-spacing:-.04em;font-weight:850;margin:13px 0 8px;color:#342943}
+.fmPageHero p{font-size:14px;color:#665a78;max-width:720px}
+.fmHeroEyebrow{background:#ffffff60;border:1px solid #ffffff75;color:#66517f;border-radius:999px;padding:6px 11px;font-weight:850;letter-spacing:.07em;font-size:10px}
+.fmHeroSpark{color:#8b70b0!important;opacity:.15!important}
+.fmEditorialHead{background:#fff!important;border:1px solid var(--line)!important;border-radius:20px!important;padding:26px!important}
+.fmEditorialKicker,.fmEditorialStat>span,.fmStreakEyebrow,.fmStreakRecord>span{color:#77668d!important;letter-spacing:.14em!important}
+.fmEditorialHead h2{color:#2f293d!important;font-size:clamp(28px,3vw,38px)!important;letter-spacing:-.045em!important}
+.fmEditorialHead h2 span{color:#9478b5!important}
+.fmEditorialQuote{border-left-color:#b99bd8!important}
+.fmStreakCard{background:#f4eff9!important;border:1px solid #e5d9f0!important;border-radius:18px!important}
+.fmEditorialStat{background:#fff!important;border:1px solid var(--line)!important;border-radius:16px!important}
+.fmEditorialStat:nth-child(3n+2){background:#edf5f4!important;border-color:#dcebe8!important}
+.fmEditorialStat:nth-child(3n){background:#f7f0e7!important;border-color:#eee1d1!important}
+.fmEditorialStat b{color:#30283d!important}
+.fmEditorialStat small{color:#777187}
+.fmDashboardTopRow{gap:14px!important}
+.fmDashboardCalendar{background:#f2ecf8!important;border:1px solid #e3d7ef!important;border-radius:17px!important}
+.fmDashboardCalendar button{border-radius:8px!important}
+.fmDashboardCalendar button.on,.fmDashboardCalendar button.active{background:#d8c4eb!important;color:#382c49!important}
+.fmEditorialStats{gap:10px!important}
+.fmDashboardMission,.fmDashboardNext,.fmDashboardCard{border-radius:17px!important}
+.qbox,.choice{border-color:var(--line);border-radius:12px}
+.choice{background:#f7f3fb}
+.bar{background:#ece5f4;box-shadow:none}
+.bar i{background:linear-gradient(90deg,#c7afe4,#9272b8);box-shadow:none;animation:none}
+.tabs .pill,.tabs button{border-radius:10px}
+table{border-color:var(--line)}
+.metricTable td,.metricTable th{border-bottom-color:var(--line)}
+hr{border:0;border-top:1px solid var(--line)}
+.toast{background:#342b43;border:1px solid #ffffff22;box-shadow:0 10px 28px #21192b25}
+@media(max-width:980px){
+ .app{grid-template-columns:1fr}
+ .side{background:linear-gradient(135deg,#302b3b,#40354e);border-right:0}
+ .main{padding:17px}
+}
+@media(max-width:780px){
+ .side{background:linear-gradient(135deg,#302b3b,#40354e)!important}
+ .nav{background:rgba(43,37,55,.97)!important;border-top:1px solid #ffffff20!important;backdrop-filter:blur(16px);box-shadow:0 -8px 25px #21192b20!important}
+ .nav button{display:block;min-height:0;border:0!important}
+ .nav button .navIcon{display:grid!important;margin:0 auto 3px!important;width:29px;height:27px;border-radius:9px;background:#ffffff0c}
+ .nav button.on .navIcon{background:#bda1df!important;color:#33283f!important}
+ .main{padding:12px 12px 24px}
+ .top{border-radius:15px;padding:12px}
+ .fmPageHero{padding:22px 18px!important;border-radius:17px!important}
+ .fmEditorialHead{padding:20px!important}
+ .panel,.kpi{border-radius:15px;padding:15px}
+}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
