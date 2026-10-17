@@ -986,7 +986,7 @@ function studyPlannerView(){
 function plannerImportGoCalendar(){
  const start=new Date(2026,9,12,12),end=new Date(2026,11,20,12),events=[];
  const key=d=>agendaDateKey(d);
- const add=(date,title,time='',duration=0,category='Internato GO',priority='normal')=>events.push({id:'go2026_'+date+'_'+title.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,42),title,date,time,duration,category,priority,createdAt:new Date().toISOString(),updatedAt:Date.now(),notes:'Escala de internato GO — Grupo 2'});
+ const add=(date,title,time='',duration=0,category='Internato GO',priority='normal')=>events.push({id:'go2026_'+date+'_'+title.toLowerCase().replace(/[^a-z0-9]+/g,'_').slice(0,42),title,date,time,duration,category,priority,createdAt:new Date().toISOString(),updatedAt:Date.now(),notes:'Escala de internato GO — Grupo 2. Escala GO tem prioridade sobre HGPV.'});
  const seminars=[
  ['2026-10-19','Seminário Obstetrícia: Hemorragia pós-parto'],
  ['2026-10-26','Seminário Obstetrícia: Diabetes gestacional'],
@@ -1008,31 +1008,29 @@ function plannerImportGoCalendar(){
  for(const [date,title] of seminars)add(date,title,'',0,'Seminários GO','alta');
  add('2026-11-29','PROVA SUS-BA','',0,'Prova','alta');
  add('2026-12-17','Avaliação teórica GO — confirmar com os professores','',0,'Avaliação','alta');
- const exceptions={
- '2026-10-30':'Sem PNAR no ESAU — feriado do servidor',
- '2026-11-02':'Finados — sem PNAR no ESAU',
- '2026-11-06':'Sem PNAR com Maurício (viagem)',
- '2026-11-09':'Aniversário de Vitória da Conquista — sem PNAR no ESAU'
- };
+ const noPNARESAU=new Set(['2026-10-30','2026-11-02','2026-11-09']);
  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-  const date=key(d),dow=d.getDay(),day=d.getDate(),month=d.getMonth()+1;
-  if(dow===0||dow===6){add(date,'Jequié — plantão no HGPV / fim de semana','',0,'Plantão','alta');continue}
-  if(exceptions[date])add(date,exceptions[date],'',0,'Dispensa / feriado','alta');
+  const date=key(d),dow=d.getDay(),day=d.getDate();
   if(date==='2026-11-29')continue;
   const period=date<='2026-11-01'?2:date<='2026-11-22'?3:date<='2026-12-06'?4:1;
   const put=(title,time,duration=300,cat='Internato GO')=>add(date,title,time,duration,cat);
   if(period===2){
-   if(dow===1){put('CAAV — Renivaldo (manhã)','08:00');put('CAAV — Renivaldo (tarde)','13:00');put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===1){if(date!=='2026-10-12'){put('CAAV — Renivaldo (manhã)','08:00');put('CAAV — Renivaldo (tarde)','13:00')}put('Aula de Obstetrícia','19:00',120,'Aula')}
    if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Maria Rosa — Ademário','13:00');put('Radiologia — Prof. Zamilute','19:00',120,'Aula')}
-   if(dow===3){if(date!=='2026-10-30')put('PNAR — Dra. Mayana (FSVC)','08:00');put('Maria Rosa — Ademário','13:00');put('Aula de Ginecologia','19:00',120,'Aula')}
+   if(dow===3){put('PNAR — Dra. Mayana (FSVC)','08:00');put('Maria Rosa — Ademário','13:00');put('Aula de Ginecologia','19:00',120,'Aula')}
    if(dow===4)put('Laboratório / Radiologia','13:00');
-   if(dow===5&&date!=='2026-10-30'&&date!=='2026-11-06')put('PNAR — Maurício (FSVC)','13:00');
+   // 30/10 é dispensa de PNAR na ESAU; a escala indica PNAR com Maurício na FSVC.
+   if(dow===5)put('PNAR — Maurício (FSVC)','13:00');
   }else if(period===3){
-   if(dow===1){if(date!=='2026-11-02'&&date!=='2026-11-09')put('PNAR — Thaís (FSVC)','08:00');put('Ginecologia — Jacqueline (CAE 2)','13:00');if(date!=='2026-11-02')put('Aula de Obstetrícia','19:00',120,'Aula')}
+   if(dow===1){
+    if(!noPNARESAU.has(date)&&date!=='2026-11-02')put('PNAR — Thaís (FSVC)','08:00');
+    put('Ginecologia — Jacqueline (CAE 2)','13:00');
+    if(date!=='2026-11-02')put('Aula de Obstetrícia','19:00',120,'Aula');
+   }
    if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Radiologia — Prof. Zamilute + plantão Dra. Kessiane','19:00',120,'Aula')}
    if(dow===3)put('Aula de Ginecologia','19:00',120,'Aula');
    if(dow===4)put('Cirurgia ginecológica + ambulatório pré-operatório — Dr. André','08:00');
-   if(dow===5&&[13,27].includes(day)) {put('Plantão equipe Mayanna (FSVC)','08:00');put('Plantão equipe Mayanna (FSVC)','13:00')}
+   if(dow===5&&[13,27].includes(day)){put('Plantão equipe Mayanna (FSVC)','08:00');put('Plantão equipe Mayanna (FSVC)','13:00')}
   }else if(period===4){
    if(dow===1){put('Dra. Renata — GIN Lagoa das Flores','08:00');put('Dra. Renata Sobreira — GIN Lagoa das Flores','13:00');put('Aula de Obstetrícia','19:00',120,'Aula')}
    if(dow===2){put('Patologia — Prof. Gabriel','08:00');put('Radiologia — Prof. Zamilute','19:00',120,'Aula')}
@@ -1045,15 +1043,25 @@ function plannerImportGoCalendar(){
    if(dow===4)put('Ginecologia — Jacqueline (CAE 2)','13:00');
    if(dow===5){put('USG — Maurício (FSVC)','08:00');put('PNAR — Maurício (FSVC)','13:00')}
   }
+  // HGPV é compromisso de reserva: só inserir se não houver atividade de GO
+  // naquele dia. Quando a própria escala GO prevê HGPV (sub-rodízio 03),
+  // o compromisso é inserido com essa justificativa.
+  if(dow===0||dow===6){
+   const goThatDay=events.some(e=>e.date===date&&['Internato GO','Aula','Seminários GO','Avaliação'].includes(e.category));
+   const hgpvIsExplicitInRotation=period===3;
+   if(hgpvIsExplicitInRotation||!goThatDay)add(date,'HGPV — Pronto-Socorro / Jequié','',0,'Plantão','alta');
+  }
  }
- const seen=new Set((db.agendaEvents||[]).map(e=>String(e.id)));
- const fresh=events.filter(e=>!seen.has(e.id));
- db.agendaEvents=db.agendaEvents||[];db.agendaEvents.push(...fresh);
+ // Refaz apenas os eventos gerados por esta importação, para corrigir versões
+ // anteriores sem tocar nos compromissos pessoais ou nas tarefas de estudo.
+ const fromDate='2026-10-12',toDate='2026-12-20';
+ db.agendaEvents=(db.agendaEvents||[]).filter(e=>!(String(e.id||'').startsWith('go2026_')&&e.date>=fromDate&&e.date<=toDate));
+ db.agendaEvents.push(...events);
  db.studyPlan=db.studyPlan||{};db.studyPlan.examName=db.studyPlan.examName||'SUS-BA';db.studyPlan.examDate=db.studyPlan.examDate||'2026-11-29';
  db.studyPlan.weeklyAvailability=db.studyPlan.weeklyAvailability||{seg:60,ter:60,qua:60,qui:60,sex:60,sab:0,dom:0};
  db.studyPlan.weeklyAvailability.sab=0;db.studyPlan.weeklyAvailability.dom=0;
  const ok=save();render();
- toast(ok?('Agenda GO importada: '+fresh.length+' novos eventos. Confira os feriados e a escala.'): 'Importação preparada, mas confira a sincronização.');
+ toast(ok?('Escala GO atualizada: '+events.length+' eventos revisados. Confira a agenda e a sincronização.'): 'Atualização preparada, mas confira a sincronização.');
 }
 function plannerParseNaturalTask(raw){let title=String(raw||'').trim(),date='',minutes=30,time='';const dm=title.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})\b/);if(dm){let y=+dm[3];if(y<100)y+=2000;const d=new Date(y,+dm[2]-1,+dm[1],12);if(d.getFullYear()!==y||d.getMonth()!==+dm[2]-1||d.getDate()!==+dm[1])return {error:'Confira a data.'};date=agendaDateKey(d);title=title.replace(dm[0],' ')}const du=title.match(/\b(?:durante|por)\s+(\d{1,3})\s*(?:minutos|min)\b/i)||title.match(/\b(\d{1,3})\s*(?:minutos|min)\b/i);if(du){minutes=+du[1];if(minutes<15||minutes>720)return {error:'Use duração de 15 a 720 minutos.'};title=title.replace(du[0],' ')}const tm=title.match(/\b(?:às?\s*)?([01]?\d|2[0-3])(?:h|:([0-5]\d))\b/i);if(tm){time=String(+tm[1]).padStart(2,'0')+':'+(tm[2]||'00');title=title.replace(tm[0],' ')}title=title.replace(/[,;]+/g,' ').replace(/\s+/g,' ').trim();if(!title)return {error:'Escreva a tarefa.'};if(!date)return {error:'Inclua a data (DD/MM/AAAA).'};return {title,date,minutes,time,priority:'normal'}}
 function plannerPriorityMeta(p){const map={alta:{label:'Alta prioridade',cls:'high'},normal:{label:'Prioridade normal',cls:'normal'},baixa:{label:'Pode ser feito depois',cls:'low'}};return map[p]||map.normal}
