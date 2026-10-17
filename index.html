@@ -614,6 +614,35 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
  .nav button .navLabel{white-space:normal!important}
 }
 
+
+/* Dashboard: ocupar melhor o espaço e mostrar semana, compromissos e viagens */
+.fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 260px!important;min-height:0!important;margin-bottom:14px!important}
+.fmDashboardTopRow .fmStreakCard{max-width:560px!important}
+.fmWeekPanel,.fmUpcomingPanel,.fmTripsPanel{margin:0 0 14px!important;min-width:0!important;background:#fffdfd!important;border-color:#d9cce3!important;box-shadow:0 7px 22px rgba(62,42,77,.055)!important}
+.fmWeekTop{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fmWeekTop h3{font-size:18px;margin:4px 0;color:#30283a}
+.fmWeekTop p{font-size:12px;margin:3px 0 0}
+.fmWeekGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.fmWeekDay{min-width:0;min-height:100px;padding:9px 8px;border:1px solid #e3d9e9;border-radius:12px;background:#f8f5fa}
+.fmWeekDay.isToday{border:1.5px solid #8c70a5;background:#eee6f4;box-shadow:inset 0 0 0 1px #8c70a51c}
+.fmWeekDayHead{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:8px;color:#766286;font-size:10px;font-weight:800}
+.fmWeekDayHead b{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#fff;color:#342740;font-size:12px}
+.fmWeekDay.isToday .fmWeekDayHead b{background:#74558b;color:white}
+.fmWeekDayItems{display:grid;gap:5px}
+.fmWeekPill{display:block;padding:5px 6px;border-radius:7px;font-size:10px;line-height:1.3;overflow-wrap:anywhere;background:#e4edf0;color:#314b52}
+.fmWeekPill.study{background:#e9e0f1;color:#514063}
+.fmWeekPill.academic{background:#f3e5d5;color:#704c2d}
+.fmWeekEmpty{font-size:10px;color:#a69bab}
+.fmUpcomingPanel,.fmTripsPanel{padding:17px 19px}
+.fmUpcomingItem{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #eee7f1}
+.fmUpcomingDate{display:flex;flex:0 0 46px;min-height:46px;flex-direction:column;align-items:center;justify-content:center;border-radius:11px;background:#eee6f4;color:#59416e}
+.fmUpcomingDate b{font-size:18px;line-height:1.1}.fmUpcomingDate small{font-size:10px;text-transform:uppercase}
+.fmUpcomingText{display:grid;gap:4px;min-width:0}.fmUpcomingText b{font-size:13px;color:#342740}.fmUpcomingText small{font-size:11px;color:#74667e}
+.fmTripMark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#e4edf0;color:#47636a}
+.fmTripNote{font-size:10px;color:#82758a;margin:10px 0 0}
+@media(max-width:850px){.fmWeekGrid{grid-template-columns:repeat(4,minmax(0,1fr))}.fmWeekDay{min-height:85px}}
+@media(max-width:560px){.fmWeekTop{align-items:flex-start;flex-direction:column}.fmWeekGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.fmWeekDay{min-height:72px}.fmWeekDay:last-child{grid-column:auto}}
+
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -1215,6 +1244,45 @@ function flashmedStudyCalendarHtml(){
 
 function flashcardsRevisionHub(){return '<section class="fmHubIntro"><span class="fmEditorialKicker">ESTUDAR</span><h2>Flashcards e revisão</h2><p>Revise os cartões pendentes e organize suas matérias na mesma página.</p></section><section class="fmHubSection"><h3>Revisões de hoje</h3>'+review('due')+'</section><section class="fmHubSection"><h3>Suas matérias e flashcards</h3>'+subjects()+'</section>'}
 function studyAgendaHub(){return '<section class="fmHubIntro"><span class="fmEditorialKicker">PLANEJAMENTO</span><h2>Seu plano e sua agenda</h2><p>Organize as tarefas de estudo e os compromissos pessoais em um só lugar.</p></section><section class="fmHubSection"><h3>Planejamento de estudos</h3>'+studyPlannerView()+'</section><section class="fmHubSection"><h3>Agenda geral</h3>'+agendaGeneralView()+'</section>'}
+
+function fmDashboardWeekHtml(){
+ const today=new Date(),start=new Date(today);start.setDate(today.getDate()-((today.getDay()+6)%7));
+ const schedule=Array.isArray(db.studyPlan?.weekSchedule)?db.studyPlan.weekSchedule:[];
+ const events=agendaEvents().filter(e=>e&&e.date);
+ const days=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+ let cells='';
+ for(let i=0;i<7;i++){
+  const d=new Date(start);d.setDate(start.getDate()+i);
+  const key=agendaDateKey(d),isToday=key===agendaDateKey(today);
+  const tasks=schedule.filter(x=>x.date===key),ev=events.filter(x=>x.date===key);
+  cells+='<div class="fmWeekDay'+(isToday?' isToday':'')+'"><div class="fmWeekDayHead"><span>'+days[i]+'</span><b>'+d.getDate()+'</b></div><div class="fmWeekDayItems">'+tasks.slice(0,2).map(t=>'<span class="fmWeekPill study">'+esc(t.title)+'</span>').join('')+ev.slice(0,2).map(e=>'<span class="fmWeekPill '+(/prova|avalia|semin.rio|exame/i.test(e.title||'')?'academic':'')+'">'+esc(e.time?e.time+' ':'')+esc(e.title)+'</span>').join('')+(!tasks.length&&!ev.length?'<span class="fmWeekEmpty">Livre</span>':'')+'</div></div>';
+ }
+ return '<section class="panel fmWeekPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">VISÃO DA SEMANA</span><h3>Calendário da semana</h3><p class="muted">Estudos e compromissos já cadastrados na agenda.</p></div><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Editar semana ↗</button></div><div class="fmWeekGrid">'+cells+'</div></section>';
+}
+function fmDashboardUpcomingHtml(){
+ const today=agendaDateKey(new Date()),events=agendaEvents().filter(e=>e&&e.date&&e.date>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+ const academic=events.filter(e=>/semin.rio|prova|avalia|te.rica|exame|apresenta/i.test((e.title||'')+' '+(e.type||''))).slice(0,5);
+ const next=academic.length?academic:events.slice(0,5);
+ const list=next.length?next.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaFormatDate(e.date,{weekday:'short'}))+(e.time?' · '+esc(e.time):'')+(e.location?' · '+esc(e.location):'')+'</small></span></div>').join(''):'<p class="muted">Seus seminários, provas e avaliações aparecerão aqui quando estiverem cadastrados na agenda.</p>';
+ return '<section class="panel fmUpcomingPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">VIDA ACADÊMICA</span><h3>Próximos compromissos</h3><p class="muted">Seminários, prova e avaliação teórica.</p></div><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Abrir agenda ↗</button></div>'+list+'</section>';
+}
+function fmDashboardTripsHtml(){
+ const holidays=[
+  {date:'2026-10-30',name:'Feriado do servidor'},
+  {date:'2026-11-02',name:'Finados'},
+  {date:'2026-11-20',name:'Consciência Negra'}
+ ];
+ const today=agendaDateKey(new Date()),trips=[];
+ holidays.forEach(h=>{
+  const d=agendaDateFromKey(h.date);if(!d||h.date<today)return;
+  // Para feriado na sexta-feira, sugere deslocamento na quinta anterior.
+  if(d.getDay()===5){const t=new Date(d);t.setDate(t.getDate()-1);const key=agendaDateKey(t);if(key>=today)trips.push({date:key,title:'Viagem provável para aproveitar '+h.name,detail:'Estimativa: véspera de feriado na sexta-feira.'})}
+ });
+ const explicit=agendaEvents().filter(e=>e&&e.date>=today&&/viagem|viajar|jequi[eé]|deslocamento/i.test(e.title||'')).map(e=>({date:e.date,title:e.title,detail:e.time||''}));
+ const all=[...explicit,...trips].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+ return '<section class="panel fmTripsPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">DESLOCAMENTOS</span><h3>Minhas viagens</h3><p class="muted">Previsões considerando feriados e a possibilidade de folga na sexta.</p></div><span class="fmTripMark">↗</span></div>'+(all.length?all.map(t=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(t.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(t.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(t.title)+'</b><small>'+esc(t.detail)+' · previsão, confirme sua folga</small></span></div>').join(''):'<p class="muted">Ainda não há viagens futuras cadastradas nem feriados de sexta próximos para sugerir deslocamento.</p>')+'<p class="fmTripNote">As viagens sugeridas são estimativas, não reservas confirmadas. Quando você cadastrar uma folga ou viagem, ela ficará registrada na agenda.</p></section>';
+}
+
 function dashboardEditorial(){
  ensureFlashMedSettings();
  const todayDate=new Date(),todayKey=todayDate.getFullYear()+'-'+String(todayDate.getMonth()+1).padStart(2,'0')+'-'+String(todayDate.getDate()).padStart(2,'0');
@@ -1230,9 +1298,9 @@ function dashboardEditorial(){
  const streakMessage=streak.studiedToday?'Você estudou hoje. Sequência em andamento!':streak.current?'Estude hoje para manter sua sequência.':'Cada sequência começa com um primeiro dia.';
  const streakCard='<section class="fmStreakCard" aria-label="Ofensiva de estudos"><div class="fmStreakIcon" aria-hidden="true">✦</div><div class="fmStreakCurrent"><span class="fmStreakEyebrow">SUA OFENSIVA</span><strong>'+streak.current+' <small>'+(streak.current===1?'dia':'dias')+'</small></strong><span class="fmStreakCaption">consecutivos de estudo</span></div><div class="fmStreakDivider"></div><div class="fmStreakRecord"><span>SEU RECORDE</span><strong>'+streak.best+' <small>'+(streak.best===1?'dia':'dias')+'</small></strong></div><p class="fmStreakMessage">'+streakMessage+'</p></section>';
  return admin+'<section class="fmEditorialHead"><div class="fmEditorialKicker">FLASHMED <span> / </span> CADERNO DE ESTUDOS</div><div class="fmEditorialHeadGrid"><div><p class="fmEditorialDate">'+esc(dateLabel.charAt(0).toLocaleUpperCase('pt-BR')+dateLabel.slice(1))+'</p><h2>Olá'+(db.settings.displayName?', '+esc(db.settings.displayName):'')+'. <span>Vamos por partes.</span></h2><p class="fmEditorialSub">Um plano possível vale mais do que um dia perfeito.</p></div><div class="fmEditorialQuote"><span>NOTA DO DIA</span><p>'+esc(quote)+'</p></div></div></section>'+
- '<div class="fmDashboardTopRow">'+streakCard+flashmedStudyCalendarHtml()+'</div>'+
+ '<div class="fmDashboardTopRow">'+streakCard+flashmedStudyCalendarHtml()+'</div>'+fmDashboardWeekHtml()+
  '<section class="fmEditorialStats"><article class="fmEditorialStat"><span>ESTUDO DE HOJE</span><b>'+studyMinutes+' <small>min</small></b><small class="muted">Tempo registrado</small></article><article class="fmEditorialStat"><span>REVISÕES</span><b>'+dueCount+'</b><small class="muted">Flashcards pendentes</small></article><article class="fmEditorialStat"><span>CRONOGRAMA</span><b>'+done+'<small> / '+items.length+'</small></b><small class="muted">Tarefas concluídas</small></article></section>'+
- '<section class="fmEditorialMain"><article class="panel fmEditorialSchedule"><div class="fmEditorialSectionTop"><div><span class="fmEditorialKicker">SEU PLANO</span><h3>Hoje, sem complicar.</h3></div><span class="fmEditorialCount">'+(items.length?done+'/'+items.length:'—')+'</span></div>'+(items.length?'<div class="fmEditorialProgress"><i style="width:'+progress+'%"></i></div><p class="muted fmEditorialProgressLabel">'+progress+'% do cronograma concluído</p>':'<p class="muted">Adicione algumas tarefas ao planejador para vê-las aqui.</p>')+tasks+(items.length?'<button class="btn ghost fmEditorialLink" onclick="go(\'Planejador de Estudos\')">Ver semana completa ↗</button>':'')+'</article>'+
+ fmDashboardUpcomingHtml()+fmDashboardTripsHtml()+'<section class="fmEditorialMain"><article class="panel fmEditorialSchedule"><div class="fmEditorialSectionTop"><div><span class="fmEditorialKicker">SEU PLANO</span><h3>Hoje, sem complicar.</h3></div><span class="fmEditorialCount">'+(items.length?done+'/'+items.length:'—')+'</span></div>'+(items.length?'<div class="fmEditorialProgress"><i style="width:'+progress+'%"></i></div><p class="muted fmEditorialProgressLabel">'+progress+'% do cronograma concluído</p>':'<p class="muted">Adicione algumas tarefas ao planejador para vê-las aqui.</p>')+tasks+(items.length?'<button class="btn ghost fmEditorialLink" onclick="go(\'Planejador de Estudos\')">Ver semana completa ↗</button>':'')+'</article>'+
  '<aside class="fmEditorialAside"><div class="fmEditorialAsideIntro"><span class="fmEditorialKicker">PRÓXIMO PASSO</span><h3>Escolha por onde começar.</h3><p class="muted">Sem precisar organizar tudo de uma vez.</p></div><button class="fmEditorialAction" onclick="go(\'Revisão\')"><span class="fmEditorialActionIcon">↻</span><span><b>Revisar flashcards</b><small>'+dueCount+' pendentes</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Banco de Questões\')"><span class="fmEditorialActionIcon">✎</span><span><b>Resolver questões</b><small>Praticar e acompanhar erros</small></span><span class="fmEditorialArrow">↗</span></button><button class="fmEditorialAction" onclick="go(\'Métricas\')"><span class="fmEditorialActionIcon">↗</span><span><b>Ver minha evolução</b><small>Indicadores completos</small></span><span class="fmEditorialArrow">↗</span></button></aside></section>';
 }
 
