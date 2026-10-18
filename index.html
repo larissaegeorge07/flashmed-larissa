@@ -2314,6 +2314,11 @@ function flashmedMergePersonal(remote,local){
   for(const item of b){let id=String(item?.[idKey]??'');if(!id||seen.has(id))continue;a.push(item);seen.add(id);changed=true}
   remote[key]=a;
  }
+ // Keep deletion markers in the cloud too, so removed calendar items do not return on the next sync.
+ const deleted=new Set([...(Array.isArray(remote.deletedAgendaEventIds)?remote.deletedAgendaEventIds:[]),...(Array.isArray(local.deletedAgendaEventIds)?local.deletedAgendaEventIds:[])].map(String));
+ if(deleted.size!==(remote.deletedAgendaEventIds||[]).length)changed=true;
+ remote.deletedAgendaEventIds=[...deleted];
+ if(deleted.size){const before=(remote.agendaEvents||[]).length;remote.agendaEvents=(remote.agendaEvents||[]).filter(e=>!deleted.has(String(e.id)));if(remote.agendaEvents.length!==before)changed=true}
  for(const key of ['bankAnnotations','bankSavedInk','bankReviewState','bankReviewSchedule','imageAssets']){
   if(local[key]&&typeof local[key]==='object'&&!Array.isArray(local[key])){
    remote[key]=remote[key]||{};
