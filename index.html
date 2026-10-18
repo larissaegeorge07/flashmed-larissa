@@ -2428,21 +2428,21 @@ function flashmedRepairCardSubjects(){
  const cards=Array.isArray(db.cards)?db.cards:[];
  db.subjects=Array.isArray(db.subjects)?db.subjects:[];
  db.subjectIcons=db.subjectIcons||{};
+ // Add subject labels only; never create, clone, or delete flashcards here.
  const ensure=(name,icon)=>{if(!db.subjects.includes(name))db.subjects.push(name);if(!db.subjectIcons[name])db.subjectIcons[name]=icon};
  ensure('Obstetrícia','🤰');ensure('Ginecologia','🌸');
  let moved=0;
- const obst=/pré.?eclâmpsia|eclâmpsia|hellp|gestaç|gestante|obst[eé]tr|pré.?natal|trabalho de parto|placenta|puerp[eé]rio|hemorragia pós.?parto|sangramento da primeira metade|sangramento da segunda metade|isoimunizaç|incompatibilidade rh|idade gestacional|gravidez ect[oó]pica|mola hidatiforme|hipertens[aã]o na gestaç|protein[uú]ria|amniorrexe|rpm[oó]|ruptura prematura de membranas|partograma|cardiotocografia|dist[oó]cia|apresentaç[aã]o fetal/i;
- const gyn=/ginecolog|sangramento uterino anormal|mioma|leiomioma|endometriose|adenomiose|síndrome dos ovários policísticos|ov[aá]rio polic[ií]stico|massa anexial|c[aâ]ncer do colo|colo do [uú]tero|c[aâ]ncer de ov[aá]rio|climat[eé]rio|menopausa|terapia de reposiç[aã]o hormonal|contraceptiv|anticoncepc|dispositivo intrauterino|diu|papanicolau|colpocitologia|vulvovagin|corrimento vaginal|candid[ií]ase vaginal|vaginose bacteriana|cervicite|cisto de bartholin|mastalgia|mastopatia|mam[aá]ria|histerectomia|prolapso genital|incontin[eê]ncia urin[aá]ria|infertilidade feminina|neoplasia intraepitelial cervical|nicolau/i;
- const ped=/pediatr|neonat|rec[eé]m.?nascido|lactente|crian[cç]a|adolescente|bronquiolite|reanim[aã]ção neonatal|apgar|aleitamento|vacina[cç][aã]o infantil|puericultura|fontanela|desidrata[cç][aã]o infantil|crise febril|convuls[aã]o febril|síndrome de west|dravet|impetigo|icter[ií]cia neonatal/i;
+ const obst=/pré.?eclâmpsia|eclâmpsia|hellp|gestaç|gestante|obst[eé]tr|pré.?natal|trabalho de parto|placenta|puerp[eé]rio|hemorragia pós.?parto|sangramento da primeira metade|sangramento da segunda metade|isoimunizaç|incompatibilidade rh|idade gestacional|gravidez ect[oó]pica|mola hidatiforme|hipertens[aã]o na gestaç|protein[uú]ria|amniorrexe|rpm[oó]|ruptura prematura de membranas|partograma|cardiotocografia|dist[oó]cia|apresentaç[aã]o fetal|sofrimento fetal|restriç[aã]o de crescimento fetal|crescimento intrauterino|prematuridade|pós.?datismo|indução do parto|pré.?termo|eclâmpsia/i;
+ const gyn=/ginecolog|sangramento uterino anormal|mioma|leiomioma|endometriose|adenomiose|ov[aá]rio polic[ií]stico|s[oí]ndrome dos ov[aá]rios polic[ií]sticos|massa anexial|c[aâ]ncer do colo|c[aâ]ncer de colo uterino|c[aâ]ncer de ov[aá]rio|c[aâ]ncer de endom[eé]trio|neoplasia endometrial|climat[eé]rio|menopausa|terapia de reposiç[aã]o hormonal|contraceptiv|anticoncepc|dispositivo intrauterino|\bdiu\b|papanicolau|colpocitologia|vulvovagin|corrimento vaginal|candid[ií]ase vaginal|vaginose bacteriana|cervicite|cisto de bartholin|mastalgia|mastopatia|mam[aá]ria|histerectomia|prolapso genital|incontin[eê]ncia urin[aá]ria|infertilidade|esterilidade|amenorreia|dismenorreia|dispareunia|vaginismo|vulvod[ií]nia|sangramento p[oó]s.?coital|sangramento p[oó]s.?menopausa|menorragia|metrorragia|oligomenorreia|polimenorreia|puberdade precoce|puberdade tardia|insufici[eê]ncia ovariana|reserva ovariana|s[ií]ndrome pr[eé].?menstrual|tens[aã]o pr[eé].?menstrual|doen[cç]a inflamat[oó]ria p[eé]lvica|dip\b|abscesso tubo.?ovariano|tor[cç][aã]o anexial|tor[cç][aã]o ovariana|cisto ovariano|cisto de ov[aá]rio|leiomiomatose|hiperplasia endometrial|neoplasia intraepitelial cervical|nic\b|les[aã]o intraepitelial|hpv|histeroscopia|colposcopia|vulva|disfun[cç][aã]o sexual feminina|incontin[eê]ncia de esfor[cç]o/i;
+ const ped=/pediatr|neonat|rec[eé]m.?nascido|lactente|crian[cç]a|adolescente|bronquiolite|reanim[aã]ção neonatal|apgar|aleitamento|vacina[cç][aã]o infantil|puericultura|fontanela|desidrata[cç][aã]o infantil|crise febril|convuls[aã]o febril|s[ií]ndrome de west|dravet|impetigo|icter[ií]cia neonatal/i;
  for(const c of cards){
-  if(!c)continue;
-  const current=String(c.subject||'');
-  const t=[c.front,c.back,c.tags,c.topic].filter(Boolean).join(' ').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ');
+  if(!c||!/pediatria/i.test(String(c.subject||'')))continue;
+  const t=[c.front,c.back,c.tags,c.topic,c.title].filter(Boolean).join(' ').replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&');
   let target='';
   if(obst.test(t))target='Obstetrícia';
   else if(gyn.test(t))target='Ginecologia';
-  else if(/pediatria/i.test(current)&&ped.test(t))target='Pediatria';
-  if(target&&current!==target&&(!current||/pediatria|obst[eé]tr[ií]cia|ginecologia/i.test(current))){c.subject=target;moved++}
+  else if(ped.test(t))target='Pediatria';
+  if(target&&target!=='Pediatria'){c.subject=target;moved++}
  }
  if(moved){db.updatedAt=Date.now();save()}
  return moved;
