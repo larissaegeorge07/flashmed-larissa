@@ -1602,9 +1602,7 @@ function fmDashboardTripsHtml(){
 }
 
 
-function fmSaveDashboardQuickNote(){
- const input=document.getElementById('fmDashboardQuickNoteInput');db.fmDashboardQuickNote=String(input?.value||'').slice(0,1200);const ok=save();const status=document.getElementById('fmDashboardQuickNoteStatus');if(status)status.textContent=ok?'Nota salva neste aparelho e sincronizada quando disponível.':'Não foi possível confirmar o salvamento.';
-}
+
 function fmDashboardAttentionHtml(){
  const settings=db.settings||(db.settings={}),notice=settings.fmImportantNotice||{enabled:false,title:'Aviso importante',message:''},enabled=!!notice.enabled,title=String(notice.title||'Aviso importante'),message=String(notice.message||''),visible=enabled&&message.trim();
  return (visible?'<section class="fmAttentionNotice" role="status"><span class="fmAttentionIcon">!</span><div><span class="fmEditorialKicker">ATENÇÃO</span><h3>'+esc(title)+'</h3><p>'+esc(message).replace(/\n/g,'<br>')+'</p></div></section>':'')+'<details class="panel fmAttentionSettings"><summary>⚙️ Configurar aviso importante da tela inicial</summary><div class="fmAttentionForm"><label class="fmAttentionEnable"><input id="fmAttentionEnabled" type="checkbox" '+(enabled?'checked':'')+'> Mostrar aviso ao abrir o FlashMed</label><label>Título<input id="fmAttentionTitle" class="field" maxlength="90" value="'+esc(title)+'" placeholder="Ex.: Entregar documentação do CRM"></label><label>Mensagem<textarea id="fmAttentionMessage" class="field" rows="2" maxlength="500" placeholder="O que você precisa lembrar?">'+esc(message)+'</textarea></label><div class="row"><button class="btn" onclick="fmSaveDashboardAttention()">Salvar aviso</button><button class="btn ghost" onclick="fmDisableDashboardAttention()">Desativar aviso</button></div><p class="muted" id="fmAttentionStatus"></p></div></details>';
