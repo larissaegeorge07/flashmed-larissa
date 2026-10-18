@@ -2411,6 +2411,21 @@ function flashmedResetLocalForAccount(userId){
  localStorage.setItem('flashmed_active_user_id',userId);
  localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
 }
+function flashmedRepairCardSubjects(){
+ const cards=Array.isArray(db.cards)?db.cards:[];
+ const subjects=Array.isArray(db.subjects)?db.subjects:[];
+ const ob=subjects.find(s=>/obst/i.test(String(s)))||'Obstetrícia';
+ if(!subjects.includes(ob)){subjects.push(ob);db.subjects=subjects;db.subjectIcons=db.subjectIcons||{};db.subjectIcons[ob]='👩‍⚕️'}
+ const pattern=/pré.?eclâmpsia|eclâmpsia|hellp|gestaç|gestante|obst[eé]tr|pré.?natal|trabalho de parto|placenta|puerp[eé]rio|hemorragia pós.?parto|sangramento da primeira metade|sangramento da segunda metade|isoimunizaç|incompatibilidade rh|idade gestacional|gravidez ect[oó]pica|mola hidatiforme|hipertens[aã]o na gestaç|protein[uú]ria|amniorrexe|rpm[oó]|ruptura prematura de membranas/i;
+ let moved=0;
+ for(const c of cards){
+  if(!c||!/pediatria/i.test(String(c.subject||'')))continue;
+  const t=[c.front,c.back,c.tags].filter(Boolean).join(' ').replace(/<[^>]*>/g,' ');
+  if(pattern.test(t)){c.subject=ob;moved++}
+ }
+ if(moved){db.updatedAt=Date.now();save()}
+ return moved;
+}
 async function bootAuth(){
  cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  flashmedPruneRecoverySnapshots(false);
@@ -2418,7 +2433,7 @@ async function bootAuth(){
  let z=await cloud.auth.getSession(),session=z.data.session;
  if(session&&session.user){
   currentUser=session.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
-  await syncDown(true);await occlusionHydrateAssets(db);refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+  await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
  }else{authGate.classList.remove('hidden');appRoot.classList.add('authHidden')}
 }
 loginBtn.onclick=async function(){
