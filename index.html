@@ -775,8 +775,8 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
 .plannerTimeDayHead span{display:block;font-size:10px;text-transform:uppercase}
 .plannerTimeDayHead b{font-size:13px}
 .plannerTimeDayHead.today{background:#e5d9ef;color:#543b69}
-.plannerTimeGrid tbody tr{height:39px}
-.plannerTimeGrid td{height:39px;background:#fff}
+.plannerTimeGrid tbody tr{height:32px}
+.plannerTimeGrid td{height:32px;background:#fff}
 .plannerSlotItem{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 5px;margin:1px 0 3px;padding:5px;border-radius:6px;font-size:10px;line-height:1.25;overflow-wrap:anywhere}
 .plannerSlotItem>span{grid-column:1;grid-row:2}
 .plannerSlotItem>b{font-size:9px;font-variant-numeric:tabular-nums}
@@ -1379,7 +1379,7 @@ function plannerEditFixedEvent(id){
  if(!title.trim()||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){toast('Confira o título e a data.');return}
  e.title=title.trim();e.date=date;e.time=time.trim();e.updatedAt=Date.now();db.agendaEvents=events;const ok=save();toast(ok?'Compromisso atualizado.':'Não foi possível confirmar o salvamento.');const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml((db.studyPlan||{}).weekSchedule||[]);
 }
-function plannerEventIsFixed(e){return /estágio|rotação|plantão|aula|seminário|feriado|dispensa|escala|pnar|hgpv|esau/i.test((e.category||'')+' '+(e.title||''))}
+function plannerEventIsFixed(e){return /estágio|rotação|plantão|aula|seminário|feriado|dispensa|escala|internato|grupo 2|pnar|hgpv|esau/i.test((e.category||'')+' '+(e.title||'')+' '+(e.notes||''))}
 function plannerDeduplicateEvents(events){
  const hasSeminar=events.some(e=>/^seminário obstetrícia\s*:/i.test(String(e.title||'')));
  const seen=new Set();return events.filter(e=>{let title=String(e.title||'').toLocaleLowerCase('pt-BR').trim();if(title==='aula de obstetrícia'&&hasSeminar)return false;if(title==='aula de obstetrícia')e={...e,title:'Seminário de Obstetrícia'};if(title==='aula de obstetrícia'||title==='seminário de obstetrícia')title='obstetrícia';const key=String(e.date||'')+'|'+title;if(seen.has(key))return false;seen.add(key);return true}).map(e=>String(e.title||'').toLocaleLowerCase('pt-BR').trim()==='aula de obstetrícia'?{...e,title:'Seminário de Obstetrícia'}:e)
