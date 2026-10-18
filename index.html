@@ -1327,8 +1327,8 @@ function plannerEditStudyTask(id){
  const title=prompt('Editar estudo:',item.title||'');if(title===null)return;
  const date=prompt('Data (AAAA-MM-DD):',item.date||'');if(date===null)return;
  const minutes=prompt('Duração em minutos:',String(item.minutes||60));if(minutes===null)return;
- const n=Number(minutes);if(!title.trim()||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!Number.isFinite(n)||n<5){toast('Confira o título, a data e a duração.');return}
- const time=prompt('Horário inicial (HH:MM, opcional):',item.startTime||'');if(time===null)return;if(time&&!/^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(time)){toast('Confira o horário no formato HH:MM.');return}item.title=title.trim();item.date=date;item.minutes=n;item.startTime=time;if(time){const startMin=Number(time.slice(0,2))*60+Number(time.slice(3,5)),endMin=startMin+n;item.endTime=String(Math.floor(endMin/60)%24).padStart(2,'0')+':'+String(endMin%60).padStart(2,'0')}save();const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml(p.weekSchedule||[]);
+ const n=Number(minutes);if(!title.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(n)||n<5){toast('Confira o título, a data e a duração.');return}
+ const time=prompt('Horário inicial (HH:MM, opcional):',item.startTime||'');if(time===null)return;if(time&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)){toast('Confira o horário no formato HH:MM.');return}item.title=title.trim();item.date=date;item.minutes=n;item.startTime=time;if(time){const startMin=Number(time.slice(0,2))*60+Number(time.slice(3,5)),endMin=startMin+n;item.endTime=String(Math.floor(endMin/60)%24).padStart(2,'0')+':'+String(endMin%60).padStart(2,'0')}save();const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml(p.weekSchedule||[]);
 }
 
 function toggleWeeklyTask(id,done){const p=db.studyPlan||{};const item=(p.weekSchedule||[]).find(x=>x.id===id);if(!item)return;item.done=!!done;item.completedAt=done?new Date().toISOString():null;save();const out=document.getElementById('spWeeklySchedule');if(out)out.innerHTML=plannerWeeklyScheduleHtml(p.weekSchedule);if(route==='Dashboard')render()}
@@ -1523,7 +1523,7 @@ function fmDashboardAttentionHtml(){
 }
 function fmSaveDashboardAttention(){
  const title=document.getElementById('fmAttentionTitle')?.value.trim()||'Aviso importante',message=document.getElementById('fmAttentionMessage')?.value.trim()||'',enabled=!!document.getElementById('fmAttentionEnabled')?.checked;
- db.settings=db.settings||{};db.settings.fmImportantNotice={enabled,title,message,updatedAt:Date.now()};const ok=save();render();const status=document.getElementById('fmAttentionStatus');if(status)status.textContent=ok?'Aviso salvo.':'Não foi possível confirmar o salvamento.';
+ db.settings=db.settings||{};db.settings.fmImportantNotice={enabled,title,message,updatedAt:Date.now()};const ok=save();toast(ok?'Aviso importante salvo.':'Não foi possível confirmar o salvamento.');render();
 }
 function fmDisableDashboardAttention(){db.settings=db.settings||{};const old=db.settings.fmImportantNotice||{};db.settings.fmImportantNotice={...old,enabled:false,updatedAt:Date.now()};save();render()}
 function dashboardEditorial(){
