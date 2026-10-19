@@ -1607,10 +1607,29 @@ function showMobileCategories(){document.getElementById('mobileCategoryHome')?.r
 function toggleMobileMore(){const p=document.getElementById('mobileMorePanel'),b=document.querySelector('[data-mobile-more]');if(!p)return;const open=!p.classList.contains('show');p.classList.toggle('show',open);document.getElementById('mobileMoreBackdrop')?.classList.toggle('show',open);p.setAttribute('aria-hidden',String(!open));if(b)b.setAttribute('aria-expanded',String(open))}
 function closeMobileMore(){document.getElementById('mobileMorePanel')?.classList.remove('show');document.getElementById('mobileMoreBackdrop')?.classList.remove('show');document.getElementById('mobileMorePanel')?.setAttribute('aria-hidden','true');document.querySelector('[data-mobile-more]')?.setAttribute('aria-expanded','false')}
 let currentUser=null;
-let studyClock={route:null,started:Date.now(),lastFlush:Date.now()};
-function flushStudyTime(forceCloud=false){let t=Date.now(),ms=t-studyClock.lastFlush;if(!currentUser||document.hidden||ms<15000){studyClock.lastFlush=t;return}db.studyTime=db.studyTime||{};let key=day(),label=studyClock.route||route||'Geral';db.studyTime[key]=db.studyTime[key]||{};db.studyTime[key][label]=(db.studyTime[key][label]||0)+ms;studyClock.lastFlush=t;db.updatedAt=t;try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)))}catch(e){}if(forceCloud&&cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,300)}}
-function go(x){flushStudyTime(true);route=x;studyClock.route=x;studyClock.lastFlush=Date.now();renderNav();render()}
-document.addEventListener('visibilitychange',()=>{if(document.hidden)flushStudyTime(true);else{studyClock.route=route;studyClock.lastFlush=Date.now()}});
+let studyClock={route:null,started:Date.now(),lastFlush:Date.now(),lastWasVisible:!document.hidden};
+const FM_SITE_STREAK_MINUTES=30;
+function flushStudyTime(forceCloud=false){
+ const t=Date.now(),ms=Math.max(0,t-studyClock.lastFlush),wasVisible=studyClock.lastWasVisible;
+ studyClock.lastFlush=t;
+ // A visibility-change flush may include the final foreground interval; background time never counts.
+ const countable=!!currentUser&&wasVisible&&(!document.hidden||forceCloud);
+ studyClock.lastWasVisible=!document.hidden;
+ if(!currentUser||!countable||ms<=0)return;
+ const key=day(),label=studyClock.route||route||'Geral';
+ db.siteUsage=db.siteUsage||{};
+ const before=Number(db.siteUsage[key])||0;
+ db.siteUsage[key]=before+ms;
+ db.studyTime=db.studyTime||{};
+ db.studyTime[key]=db.studyTime[key]||{};
+ if(ms>=15000)db.studyTime[key][label]=(db.studyTime[key][label]||0)+ms;
+ db.updatedAt=t;
+ try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)))}catch(e){}
+ const crossedThreshold=before<FM_SITE_STREAK_MINUTES*60000&&db.siteUsage[key]>=FM_SITE_STREAK_MINUTES*60000;
+ if(cloud&&(forceCloud||crossedThreshold)){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,300)}
+}
+function go(x){flushStudyTime(true);route=x;studyClock.route=x;studyClock.lastFlush=Date.now();studyClock.lastWasVisible=!document.hidden;renderNav();render()}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)flushStudyTime(true);else{studyClock.route=route;studyClock.lastFlush=Date.now();studyClock.lastWasVisible=true}});
 window.addEventListener('beforeunload',()=>flushStudyTime(false));
 setInterval(()=>flushStudyTime(false),30000)
 
@@ -2055,7 +2074,10 @@ let fmCalendarMonthOffset=0;
 function flashmedStreakStats(){
  const active=new Set();
  const addDate=value=>{const date=String(value||'').slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(date))active.add(date)};
- // Registros intencionais: cronômetro finalizado, questão respondida e tarefa marcada como concluída.
+ // A ofensiva do FlashMed representa uso real do site, não apenas estudo acadêmico.
+ // Trinta minutos acumulados com a página visível tornam o dia ativo.
+ Object.entries(db.siteUsage||{}).forEach(([date,ms])=>{if((Number(ms)||0)>=FM_SITE_STREAK_MINUTES*60000)addDate(date)});
+ // Mantém compatibilidade com registros antigos e outras atividades já salvas.
  (db.sessions||[]).forEach(session=>{if((Number(session.minutes)||0)>=1)addDate(session.date)});
  (db.bankAttempts||[]).forEach(attempt=>addDate(attempt.date));
  (db.studyPlan?.weekSchedule||[]).forEach(task=>{if(task.done&&task.completedAt)addDate(task.completedAt)});
