@@ -635,6 +635,7 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
 .fmWeekEmpty{font-size:10px;color:#a69bab}
 .fmUpcomingPanel,.fmTripsPanel{padding:17px 19px}
 .fmUpcomingItem{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #eee7f1}
+.fmHidePriorityBtn{flex:0 0 auto;border:1px solid #ded3e7;background:#fff;border-radius:8px;padding:5px 8px;color:#6c557e;font-size:11px;font-weight:700;cursor:pointer}.fmHidePriorityBtn:hover{background:#f2edf6}.fmUpcomingItem{gap:9px}.fmUpcomingText{flex:1}
 .fmUpcomingDate{display:flex;flex:0 0 46px;min-height:46px;flex-direction:column;align-items:center;justify-content:center;border-radius:11px;background:#eee6f4;color:#59416e}
 .fmUpcomingDate b{font-size:18px;line-height:1.1}.fmUpcomingDate small{font-size:10px;text-transform:uppercase}
 .fmUpcomingText{display:grid;gap:4px;min-width:0}.fmUpcomingText b{font-size:13px;color:#342740}.fmUpcomingText small{font-size:11px;color:#74667e}
@@ -1609,13 +1610,27 @@ function fmDashboardSeminarsHtml(){
  return '<section class="panel fmSeminarPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">ACOMPANHAMENTO</span><h3>Checklist de seminários</h3><p class="muted">Marque cada apresentação quando ela acontecer.</p></div><span class="tag">'+fmGoSeminars.filter(x=>done[x.date]).length+'/'+fmGoSeminars.length+' concluídos</span></div><div class="fmSeminarList">'+fmGoSeminars.map(x=>'<label class="fmSeminarRow'+(done[x.date]?' isDone':'')+'"><input type="checkbox" '+(done[x.date]?'checked':'')+' onchange="fmToggleSeminarDone(\''+x.date+'\',this.checked)"><span class="fmSeminarDate">'+esc(agendaDateFromKey(x.date)?.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})||'')+'</span><span class="fmSeminarName"><b>'+esc(x.title)+'</b><small>'+esc(x.names)+(x.mine?' · SEU SEMINÁRIO':'')+'</small></span></label>').join('')+'</div></section>';
 }
 
+function fmHideHighPriorityItem(source,id){
+ const tasks=db.studyPlan?.weeklyTasks||[],events=db.agendaEvents||[];
+ if(source==='task'){
+  const t=tasks.find(x=>String(x.id)===String(id));if(!t)return;
+  t.hideFromHighPriority=!t.hideFromHighPriority;
+  events.filter(e=>String(e.studyTaskId)===String(id)).forEach(e=>e.hideFromHighPriority=!!t.hideFromHighPriority);
+ }else{
+  const e=events.find(x=>String(x.id)===String(id));if(!e)return;
+  e.hideFromHighPriority=!e.hideFromHighPriority;
+  if(e.studyTaskId){const t=tasks.find(x=>String(x.id)===String(e.studyTaskId));if(t)t.hideFromHighPriority=!!e.hideFromHighPriority;}
+ }
+ save();render();
+ if(cloud)syncUp();
+}
 function fmDashboardUpcomingHtml(){
  const today=agendaDateKey(new Date());
- const planned=(db.studyPlan?.weeklyTasks||[]).filter(t=>t&&t.date>=today&&t.priority==='alta'&&!t.done).map(t=>({date:t.date,title:t.title,detail:(t.time||'')+' · tarefa',id:t.id,source:'task'}));
- const events=agendaEvents().filter(e=>e&&e.date>=today&&e.priority==='alta'&&!e.done).map(e=>({date:e.date,title:e.title,detail:(e.time||'')+(e.location?' · '+e.location:''),id:e.id,source:'agenda'}));
+ const planned=(db.studyPlan?.weeklyTasks||[]).filter(t=>t&&t.date>=today&&t.priority==='alta'&&!t.done&&!t.hideFromHighPriority).map(t=>({date:t.date,title:t.title,detail:(t.time||'')+' · tarefa',id:t.id,source:'task'}));
+ const events=agendaEvents().filter(e=>e&&e.date>=today&&e.priority==='alta'&&!e.done&&!e.hideFromHighPriority).map(e=>({date:e.date,title:e.title,detail:(e.time||'')+(e.location?' · '+e.location:''),id:e.id,source:'agenda'}));
  const all=[...planned,...events].filter((e,i,arr)=>arr.findIndex(x=>x.date===e.date&&x.title.toLowerCase()===e.title.toLowerCase())===i).sort((a,b)=>a.date.localeCompare(b.date)||(a.detail||'').localeCompare(b.detail||'')).slice(0,8);
- const list=all.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{weekday:'short'})||'')+(e.detail?' · '+esc(e.detail):'')+'</small></span></div>').join('');
- return '<section class="panel fmUpcomingPanel fmHighPriorityPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">LEMBRETES IMPORTANTES</span><h3>Alta prioridade</h3><p class="muted">Somente tarefas e compromissos marcados como alta prioridade.</p></div></div>'+(list||'<p class="muted">Nenhuma tarefa ou compromisso de alta prioridade próximo.</p>')+'</section>';
+ const list=all.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{weekday:'short'})||'')+(e.detail?' · '+esc(e.detail):'')+'</small></span><button type="button" class="fmHidePriorityBtn" title="Retirar dos lembretes importantes" onclick="fmHideHighPriorityItem('+JSON.stringify(e.source)+','+JSON.stringify(e.id).replace(/"/g,'&quot;')+')">Ocultar</button></div>').join('');
+ return '<section class="panel fmUpcomingPanel fmHighPriorityPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">LEMBRETES IMPORTANTES</span><h3>Alta prioridade</h3><p class="muted">Somente tarefas e compromissos marcados como alta prioridade. Você pode ocultar um item sem alterar sua prioridade.</p></div></div>'+(list||'<p class="muted">Nenhuma tarefa ou compromisso de alta prioridade próximo.</p>')+'</section>';
 }
 function fmDashboardTripsHtml(){
  const holidays=[
