@@ -1332,6 +1332,92 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   .fmPageHero .fmHeroSparkTwo{right:4%!important;top:42%!important;font-size:26px!important}
 }
 
+
+/* Barra inferior mobile: coluna fixa para ícone e rótulo, ambos centrados */
+@media(max-width:780px){
+  .nav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+  }
+  .nav>button[data-mobile-extra="0"],
+  .nav>button[data-mobile-more]{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    align-content:center!important;
+    gap:4px!important;
+    min-width:0!important;
+    width:100%!important;
+    height:62px!important;
+    min-height:62px!important;
+    max-height:62px!important;
+    padding:5px 2px!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    text-align:center!important;
+    overflow:hidden!important;
+  }
+  .nav>button[data-mobile-extra="0"] .navIcon,
+  .nav>button[data-mobile-more] .navIcon{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 23px!important;
+    width:100%!important;
+    height:23px!important;
+    min-height:23px!important;
+    margin:0!important;
+    padding:0!important;
+    line-height:1!important;
+    text-align:center!important;
+  }
+  .nav>button[data-mobile-extra="0"] .navLabel,
+  .nav>button[data-mobile-more] .navLabel{
+    display:flex!important;
+    flex:0 0 22px!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    height:22px!important;
+    min-height:22px!important;
+    max-width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    text-align:center!important;
+    line-height:1.05!important;
+    overflow:hidden!important;
+  }
+  .nav>button[data-mobile-extra="0"] .navLabelFull{display:none!important}
+  .nav>button[data-mobile-extra="0"] .navLabelShort,
+  .nav>button[data-mobile-more] .navLabelShort{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 auto!important;
+    padding:0!important;
+    color:#fff!important;
+    font-size:9px!important;
+    font-weight:750!important;
+    line-height:1.05!important;
+    text-align:center!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    overflow-wrap:normal!important;
+    word-break:keep-all!important;
+    letter-spacing:-.02em!important;
+  }
+}
+@media(max-width:380px){
+ .nav>button[data-mobile-extra="0"] .navLabelShort,
+ .nav>button[data-mobile-more] .navLabelShort{font-size:8px!important;letter-spacing:-.035em!important}
+}
+
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
