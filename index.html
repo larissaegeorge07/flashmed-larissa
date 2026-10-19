@@ -964,6 +964,91 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
  .fmPlannerMain .plannerWeeklyPanel{padding:10px!important}
 }
 
+/* Correção de layout do planejador: manter formulário e cronograma dentro da coluna principal */
+.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,315px)!important;gap:16px!important;align-items:start!important}
+.fmPlannerMain{min-width:0!important;width:100%!important}
+.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout .plannerWeeklyPanel{min-width:0!important;max-width:100%!important}
+.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(135px,1fr) minmax(95px,.7fr) minmax(150px,1.2fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
+.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
+.fmPlannerMain .fmTaskComposer label{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / -1;justify-self:start;white-space:normal}
+.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1;justify-self:start;min-width:160px;max-width:220px;white-space:normal}
+.fmPlannerMain .fmRecurringDays{max-width:100%;box-sizing:border-box}
+@media(max-width:1100px){.fmPlannerPageLayout{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerPageLayout>.plannerWeeklyPanel{grid-column:1}}
+@media(max-width:560px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1!important;justify-self:stretch!important;max-width:none!important}.fmPlannerMain .fmTaskComposer label{align-items:flex-start}}
+
+/* Dashboard: redistribuição compacta para aproveitar a largura e eliminar áreas vazias */
+.fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 250px!important;gap:12px!important;align-items:stretch!important;margin-bottom:12px!important}
+.fmDashboardTopLeft{grid-template-columns:minmax(0,1.8fr) minmax(210px,1fr)!important;grid-template-rows:auto!important;gap:10px!important;align-items:stretch!important}
+.fmDashboardTopLeft .fmWeekPanel{grid-column:1;grid-row:1;padding:12px!important}
+.fmDashboardTopLeft .fmStreakCard{grid-column:2;grid-row:1;display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;align-content:center;gap:8px!important;padding:12px!important;height:100%;box-sizing:border-box}
+.fmDashboardTopLeft .fmStreakIcon{grid-row:1 / span 2;width:34px;height:34px}
+.fmDashboardTopLeft .fmStreakCurrent,.fmDashboardTopLeft .fmStreakRecord{gap:2px}
+.fmDashboardTopLeft .fmStreakCurrent>strong{font-size:22px}
+.fmDashboardTopLeft .fmStreakDivider{display:none}
+.fmDashboardTopLeft .fmStreakMessage{grid-column:1 / -1;margin:4px 0 0;padding:7px 0 0;border-top:1px solid #dcd3e7;text-align:left;max-width:none;font-size:10px}
+.fmDashboardTopRow .fmUpcomingPanel{height:100%;max-height:460px;box-sizing:border-box}
+.fmDashboardCompactRow{margin:0 0 10px!important}
+.fmAudiobookPanel{padding:10px 13px!important}
+.fmAudioHead{margin-bottom:6px!important}
+.fmAudioForm .field{padding:7px 9px!important}
+.fmAudioHint{margin-top:4px!important}
+.fmAudioHistory{margin-top:6px!important;padding-top:5px!important}
+.fmEditorialStats{margin-bottom:12px!important;gap:9px!important}
+.fmEditorialStat{padding:12px 14px!important}
+.fmEditorialStat>b{margin:5px 0 2px!important}
+.fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto!important;gap:12px!important;margin-bottom:12px!important;align-items:start!important}
+.fmDashboardPlanningGrid .fmUpcomingPanel{grid-column:1!important;grid-row:1!important}
+.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:2!important;grid-row:1!important}
+.fmDashboardPlanningGrid .fmTripsPanel{grid-column:1 / -1!important;grid-row:2!important;height:auto!important}
+.fmDashboardPlanningGrid .fmSeminarList{grid-template-columns:1fr!important}
+.fmDashboardPlanningGrid .fmSeminarRow{padding:6px 2px!important}
+.fmEditorialMain{gap:12px!important}
+@media(max-width:1100px){
+ .fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 235px!important}
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(175px,1fr)!important}
+ .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+}
+@media(max-width:850px){
+ .fmDashboardTopRow{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(170px,1fr)!important}
+ .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardPlanningGrid .fmDashboardPlanningGrid .fmSeminarPanel,.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:1!important;grid-row:auto!important}
+ .fmDashboardPlanningGrid .fmTripsPanel{grid-column:1!important;grid-row:auto!important}
+}
+@media(max-width:560px){
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardTopLeft .fmWeekPanel,.fmDashboardTopLeft .fmStreakCard{grid-column:1!important;grid-row:auto!important}
+ .fmDashboardTopLeft .fmStreakCard{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important}
+ .fmEditorialStats{grid-template-columns:minmax(0,1fr)!important}
+}
+
+/* Dois cartões compactos: audiobooks e Kindle */
+.fmDashboardCompactRow{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;align-items:start}
+.fmDashboardCompactRow .fmReadingPanel{min-width:0!important;width:100%;box-sizing:border-box;margin:0!important}
+.fmReadingReview{display:grid;gap:4px;margin-top:8px}.fmReadingReviewLabel{font-size:10px;font-weight:800;color:#776486}.fmReadingStars{display:inline-flex;gap:2px;align-items:center}.fmReadingStars button{border:0;background:transparent;color:#b7a7c3;font-size:22px;line-height:1.1;padding:0 2px;cursor:pointer}.fmReadingStars button.selected{color:#d5a03b}.fmReadingStars button:hover{color:#c28e32}.fmReadingNote,.fmReadingHistoryNote{width:100%;min-width:0;box-sizing:border-box;resize:vertical;border:1px solid #e5dce9;border-radius:8px;padding:7px 9px;font:inherit;font-size:11px;color:#403249;background:#fff;line-height:1.4}.fmReadingHistoryNote{margin-top:5px}.fmReadingPanel .fmAudioHistoryItem>span:last-child{flex:1}.fmReadingPanel .fmAudioHistoryItem .fmReadingStars{margin-top:3px}.fmReadingPanel .fmAudioHistory{margin-top:8px!important}
+@media(max-width:780px){.fmDashboardCompactRow{grid-template-columns:minmax(0,1fr)!important}}
+
+/* Correção definitiva do planejador: cronograma amplo e controles acessíveis */
+.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;align-items:start!important;width:100%!important}
+.fmPlannerPageLayout>.fmPlannerMain,.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout>.fmPlannerPriorityRail{grid-column:1!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerPriorityRail{position:static!important}
+.fmPlannerPriorityRail .fmHighPriorityPanel{max-height:none!important;overflow:visible!important}
+.fmPlannerMain{min-width:0!important}
+.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(180px,2fr) minmax(140px,1fr) minmax(105px,.7fr) minmax(210px,1.2fr) minmax(150px,1fr) minmax(170px,1.1fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
+.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
+.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 2!important;justify-self:start!important}
+.fmPlannerMain .fmTaskComposer>button{grid-column:3 / span 2!important;justify-self:start!important;max-width:220px!important;white-space:normal!important}
+.plannerWeeklyPanel{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important}
+.plannerWeeklyGridWrap{width:100%!important;max-width:100%!important;overflow-x:auto!important;overscroll-behavior-x:contain}
+.plannerCompactGrid{min-width:1050px!important;width:100%!important;table-layout:fixed!important}
+.plannerCompactGrid td{min-width:125px!important;vertical-align:top!important}
+.plannerCompactGrid .plannerDayItems{min-width:0!important}
+@media(max-width:1250px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(3,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 1!important}.fmPlannerMain .fmTaskComposer>button{grid-column:2 / span 1!important}}
+@media(max-width:760px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1!important;justify-self:stretch!important;max-width:none!important}.plannerCompactGrid{min-width:1050px!important}}
+@media(max-width:480px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer>*{grid-column:1!important}}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
@@ -2816,88 +2901,3 @@ bootAuth().catch(function(e){
  const gate=document.getElementById('authGate');
  if(gate)gate.classList.remove('hidden');
 });</script></body></html>
-/* Correção de layout do planejador: manter formulário e cronograma dentro da coluna principal */
-.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,315px)!important;gap:16px!important;align-items:start!important}
-.fmPlannerMain{min-width:0!important;width:100%!important}
-.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout .plannerWeeklyPanel{min-width:0!important;max-width:100%!important}
-.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(135px,1fr) minmax(95px,.7fr) minmax(150px,1.2fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
-.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
-.fmPlannerMain .fmTaskComposer label{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
-.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / -1;justify-self:start;white-space:normal}
-.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1;justify-self:start;min-width:160px;max-width:220px;white-space:normal}
-.fmPlannerMain .fmRecurringDays{max-width:100%;box-sizing:border-box}
-@media(max-width:1100px){.fmPlannerPageLayout{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerPageLayout>.plannerWeeklyPanel{grid-column:1}}
-@media(max-width:560px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1!important;justify-self:stretch!important;max-width:none!important}.fmPlannerMain .fmTaskComposer label{align-items:flex-start}}
-
-/* Dashboard: redistribuição compacta para aproveitar a largura e eliminar áreas vazias */
-.fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 250px!important;gap:12px!important;align-items:stretch!important;margin-bottom:12px!important}
-.fmDashboardTopLeft{grid-template-columns:minmax(0,1.8fr) minmax(210px,1fr)!important;grid-template-rows:auto!important;gap:10px!important;align-items:stretch!important}
-.fmDashboardTopLeft .fmWeekPanel{grid-column:1;grid-row:1;padding:12px!important}
-.fmDashboardTopLeft .fmStreakCard{grid-column:2;grid-row:1;display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;align-content:center;gap:8px!important;padding:12px!important;height:100%;box-sizing:border-box}
-.fmDashboardTopLeft .fmStreakIcon{grid-row:1 / span 2;width:34px;height:34px}
-.fmDashboardTopLeft .fmStreakCurrent,.fmDashboardTopLeft .fmStreakRecord{gap:2px}
-.fmDashboardTopLeft .fmStreakCurrent>strong{font-size:22px}
-.fmDashboardTopLeft .fmStreakDivider{display:none}
-.fmDashboardTopLeft .fmStreakMessage{grid-column:1 / -1;margin:4px 0 0;padding:7px 0 0;border-top:1px solid #dcd3e7;text-align:left;max-width:none;font-size:10px}
-.fmDashboardTopRow .fmUpcomingPanel{height:100%;max-height:460px;box-sizing:border-box}
-.fmDashboardCompactRow{margin:0 0 10px!important}
-.fmAudiobookPanel{padding:10px 13px!important}
-.fmAudioHead{margin-bottom:6px!important}
-.fmAudioForm .field{padding:7px 9px!important}
-.fmAudioHint{margin-top:4px!important}
-.fmAudioHistory{margin-top:6px!important;padding-top:5px!important}
-.fmEditorialStats{margin-bottom:12px!important;gap:9px!important}
-.fmEditorialStat{padding:12px 14px!important}
-.fmEditorialStat>b{margin:5px 0 2px!important}
-.fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto!important;gap:12px!important;margin-bottom:12px!important;align-items:start!important}
-.fmDashboardPlanningGrid .fmUpcomingPanel{grid-column:1!important;grid-row:1!important}
-.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:2!important;grid-row:1!important}
-.fmDashboardPlanningGrid .fmTripsPanel{grid-column:1 / -1!important;grid-row:2!important;height:auto!important}
-.fmDashboardPlanningGrid .fmSeminarList{grid-template-columns:1fr!important}
-.fmDashboardPlanningGrid .fmSeminarRow{padding:6px 2px!important}
-.fmEditorialMain{gap:12px!important}
-@media(max-width:1100px){
- .fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 235px!important}
- .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(175px,1fr)!important}
- .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
-}
-@media(max-width:850px){
- .fmDashboardTopRow{grid-template-columns:minmax(0,1fr)!important}
- .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(170px,1fr)!important}
- .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr)!important}
- .fmDashboardPlanningGrid .fmDashboardPlanningGrid .fmSeminarPanel,.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:1!important;grid-row:auto!important}
- .fmDashboardPlanningGrid .fmTripsPanel{grid-column:1!important;grid-row:auto!important}
-}
-@media(max-width:560px){
- .fmDashboardTopLeft{grid-template-columns:minmax(0,1fr)!important}
- .fmDashboardTopLeft .fmWeekPanel,.fmDashboardTopLeft .fmStreakCard{grid-column:1!important;grid-row:auto!important}
- .fmDashboardTopLeft .fmStreakCard{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important}
- .fmEditorialStats{grid-template-columns:minmax(0,1fr)!important}
-}
-
-/* Dois cartões compactos: audiobooks e Kindle */
-.fmDashboardCompactRow{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;align-items:start}
-.fmDashboardCompactRow .fmReadingPanel{min-width:0!important;width:100%;box-sizing:border-box;margin:0!important}
-.fmReadingReview{display:grid;gap:4px;margin-top:8px}.fmReadingReviewLabel{font-size:10px;font-weight:800;color:#776486}.fmReadingStars{display:inline-flex;gap:2px;align-items:center}.fmReadingStars button{border:0;background:transparent;color:#b7a7c3;font-size:22px;line-height:1.1;padding:0 2px;cursor:pointer}.fmReadingStars button.selected{color:#d5a03b}.fmReadingStars button:hover{color:#c28e32}.fmReadingNote,.fmReadingHistoryNote{width:100%;min-width:0;box-sizing:border-box;resize:vertical;border:1px solid #e5dce9;border-radius:8px;padding:7px 9px;font:inherit;font-size:11px;color:#403249;background:#fff;line-height:1.4}.fmReadingHistoryNote{margin-top:5px}.fmReadingPanel .fmAudioHistoryItem>span:last-child{flex:1}.fmReadingPanel .fmAudioHistoryItem .fmReadingStars{margin-top:3px}.fmReadingPanel .fmAudioHistory{margin-top:8px!important}
-@media(max-width:780px){.fmDashboardCompactRow{grid-template-columns:minmax(0,1fr)!important}}
-
-/* Correção definitiva do planejador: cronograma amplo e controles acessíveis */
-.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;align-items:start!important;width:100%!important}
-.fmPlannerPageLayout>.fmPlannerMain,.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout>.fmPlannerPriorityRail{grid-column:1!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-.fmPlannerPriorityRail{position:static!important}
-.fmPlannerPriorityRail .fmHighPriorityPanel{max-height:none!important;overflow:visible!important}
-.fmPlannerMain{min-width:0!important}
-.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(180px,2fr) minmax(140px,1fr) minmax(105px,.7fr) minmax(210px,1.2fr) minmax(150px,1fr) minmax(170px,1.1fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
-.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
-.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
-.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 2!important;justify-self:start!important}
-.fmPlannerMain .fmTaskComposer>button{grid-column:3 / span 2!important;justify-self:start!important;max-width:220px!important;white-space:normal!important}
-.plannerWeeklyPanel{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important}
-.plannerWeeklyGridWrap{width:100%!important;max-width:100%!important;overflow-x:auto!important;overscroll-behavior-x:contain}
-.plannerCompactGrid{min-width:1050px!important;width:100%!important;table-layout:fixed!important}
-.plannerCompactGrid td{min-width:125px!important;vertical-align:top!important}
-.plannerCompactGrid .plannerDayItems{min-width:0!important}
-@media(max-width:1250px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(3,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 1!important}.fmPlannerMain .fmTaskComposer>button{grid-column:2 / span 1!important}}
-@media(max-width:760px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1!important;justify-self:stretch!important;max-width:none!important}.plannerCompactGrid{min-width:1050px!important}}
-@media(max-width:480px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer>*{grid-column:1!important}}
