@@ -2829,3 +2829,23 @@ bootAuth().catch(function(e){
 .fmDashboardCompactRow .fmReadingPanel{min-width:0!important;width:100%;box-sizing:border-box;margin:0!important}
 .fmReadingReview{display:grid;gap:4px;margin-top:8px}.fmReadingReviewLabel{font-size:10px;font-weight:800;color:#776486}.fmReadingStars{display:inline-flex;gap:2px;align-items:center}.fmReadingStars button{border:0;background:transparent;color:#b7a7c3;font-size:22px;line-height:1.1;padding:0 2px;cursor:pointer}.fmReadingStars button.selected{color:#d5a03b}.fmReadingStars button:hover{color:#c28e32}.fmReadingNote,.fmReadingHistoryNote{width:100%;min-width:0;box-sizing:border-box;resize:vertical;border:1px solid #e5dce9;border-radius:8px;padding:7px 9px;font:inherit;font-size:11px;color:#403249;background:#fff;line-height:1.4}.fmReadingHistoryNote{margin-top:5px}.fmReadingPanel .fmAudioHistoryItem>span:last-child{flex:1}.fmReadingPanel .fmAudioHistoryItem .fmReadingStars{margin-top:3px}.fmReadingPanel .fmAudioHistory{margin-top:8px!important}
 @media(max-width:780px){.fmDashboardCompactRow{grid-template-columns:minmax(0,1fr)!important}}
+
+/* Correção definitiva do planejador: cronograma amplo e controles acessíveis */
+.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;align-items:start!important;width:100%!important}
+.fmPlannerPageLayout>.fmPlannerMain,.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout>.fmPlannerPriorityRail{grid-column:1!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerPriorityRail{position:static!important}
+.fmPlannerPriorityRail .fmHighPriorityPanel{max-height:none!important;overflow:visible!important}
+.fmPlannerMain{min-width:0!important}
+.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(180px,2fr) minmax(140px,1fr) minmax(105px,.7fr) minmax(210px,1.2fr) minmax(150px,1fr) minmax(170px,1.1fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
+.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
+.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 2!important;justify-self:start!important}
+.fmPlannerMain .fmTaskComposer>button{grid-column:3 / span 2!important;justify-self:start!important;max-width:220px!important;white-space:normal!important}
+.plannerWeeklyPanel{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;overflow:hidden!important}
+.plannerWeeklyGridWrap{width:100%!important;max-width:100%!important;overflow-x:auto!important;overscroll-behavior-x:contain}
+.plannerCompactGrid{min-width:1050px!important;width:100%!important;table-layout:fixed!important}
+.plannerCompactGrid td{min-width:125px!important;vertical-align:top!important}
+.plannerCompactGrid .plannerDayItems{min-width:0!important}
+@media(max-width:1250px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(3,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / span 1!important}.fmPlannerMain .fmTaskComposer>button{grid-column:2 / span 1!important}}
+@media(max-width:760px){.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1!important;justify-self:stretch!important;max-width:none!important}.plannerCompactGrid{min-width:1050px!important}}
+@media(max-width:480px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer>*{grid-column:1!important}}
