@@ -1441,6 +1441,17 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
 
 
 .fmWeekPillDone .fmWeekPillTitle{text-decoration:line-through;text-decoration-thickness:1.5px;opacity:.62}
+
+.bankResolutionBlock{margin:14px 0;padding:16px 18px;border:1px solid #eadced;border-radius:15px;background:#fffdfd}
+.bankResolutionBlock h3{margin:0 0 9px;color:#55305f;font-size:1.02rem;line-height:1.35}
+.bankResolutionBlock p{margin:7px 0;line-height:1.65}
+.bankResolutionBlock .muted{font-size:.92rem}
+.bankAlternativeAnalysis{display:grid;gap:9px;margin-top:10px}
+.bankAlternativeNote{padding:12px 14px;border:1px solid #eee1e9;border-radius:11px;background:#fff}
+.bankAlternativeNote.isCorrect{border-color:#b9dfc7;background:#f4fbf6}
+.bankAlternativeNote>b{display:block;line-height:1.5}
+.bankAlternativeNote p{margin:7px 0 0;line-height:1.55}
+.bankTakeaway{border-left:4px solid #b15c9b;background:#fcf6fb}
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
