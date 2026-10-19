@@ -912,6 +912,58 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
 
 /* Disponibilidade semanal removida: sem campos ou espaço residual no planejador. */
 .fmWeeklyPlanner,.fmAvailabilityDetails,.plannerAvailabilityGrid{display:none!important}
+
+/* Correção definitiva do layout do Planejamento e Agenda */
+.fmPlannerPageLayout{grid-template-columns:minmax(0,1fr) 280px!important;gap:16px;align-items:start}
+.fmPlannerMain{min-width:0;width:100%}
+.fmPlannerMain>.panel.hero{padding:20px;min-width:0}
+.fmPlannerMain>.panel.hero>.panel{max-width:100%;overflow-wrap:anywhere}
+.fmPlannerMain>.panel.hero h2{font-size:clamp(19px,1.7vw,24px);line-height:1.25}
+.fmPlannerMain>.panel.hero p{line-height:1.5}
+.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1.6fr) minmax(145px,1fr) minmax(115px,.8fr);align-items:stretch;gap:10px}
+.fmPlannerMain .fmTaskComposer>.field{width:100%;min-width:0;margin:0;height:46px}
+.fmPlannerMain .fmTaskComposer .plannerTaskColorLabel{width:100%;min-width:0;white-space:normal;justify-content:space-between;gap:8px;min-height:46px}
+.fmPlannerMain .fmTaskComposer .plannerTaskColorLabel select{width:100%;min-width:0;max-width:none;flex:1}
+.fmPlannerMain .fmTaskComposer .plannerTaskColorLabel input[type=number]{width:100%!important;min-width:60px;max-width:110px}
+.fmPlannerMain .fmTaskComposer #spTaskPriority{width:100%;min-width:0}
+.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / 2;display:flex;align-items:center;gap:8px;min-height:42px;white-space:normal}
+.fmPlannerMain .fmTaskComposer>.btn{grid-column:2 / 4;justify-self:start;min-width:160px;max-width:220px;min-height:44px;white-space:normal;line-height:1.25}
+.fmPlannerMain #spRecurringDays{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel,#fff)}
+.fmPlannerMain #spRecurringDays[hidden]{display:none}
+.fmPlannerMain #spRecurringDays small{flex-basis:100%;line-height:1.5}
+.fmPlannerMain .plannerWeeklyPanel{min-width:0;width:100%;padding:16px!important}
+.fmPlannerMain .plannerWeeklyPanel .plannerTimeGridWrap{max-width:100%;width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.fmPlannerMain .plannerWeeklyPanel .plannerCompactGrid{min-width:980px}
+.fmPlannerPriorityRail{width:100%;min-width:0}
+.fmPlannerPriorityRail>.panel,.fmPlannerPriorityRail .fmHighPriorityPanel{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+.fmPlannerPriorityRail .plannerCompactGrid,.fmPlannerPriorityRail .plannerTimeGrid{min-width:0}
+.fmPlannerPriorityRail .fmCalendarCard{display:none!important}
+@media(max-width:1250px){
+ .fmPlannerPageLayout{grid-template-columns:minmax(0,1fr) 250px!important}
+ .fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fmPlannerMain .fmTaskComposer #spTaskTitle{grid-column:1/-1}
+ .fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1}
+ .fmPlannerMain .fmTaskComposer>.btn{grid-column:2;justify-self:stretch;max-width:none}
+}
+@media(max-width:1000px){
+ .fmPlannerPageLayout{grid-template-columns:minmax(0,1fr)!important}
+ .fmPlannerPriorityRail{position:static}
+ .fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fmPlannerMain .fmTaskComposer #spTaskTitle{grid-column:1/-1}
+ .fmPlannerMain .fmTaskComposer>.btn{grid-column:1/-1;justify-self:start}
+}
+@media(max-width:600px){
+ .fmPlannerMain>.panel.hero{padding:15px}
+ .fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)}
+ .fmPlannerMain .fmTaskComposer>*,
+ .fmPlannerMain .fmTaskComposer #spTaskTitle,
+ .fmPlannerMain .fmTaskComposer .fmRecurringToggle,
+ .fmPlannerMain .fmTaskComposer>.btn{grid-column:1/-1!important;width:100%;max-width:none}
+ .fmPlannerMain .fmTaskComposer>.btn{justify-self:stretch}
+ .fmPlannerMain .fmTaskComposer .plannerTaskColorLabel{min-height:44px}
+ .fmPlannerMain .plannerWeeklyPanel{padding:10px!important}
+}
+
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
