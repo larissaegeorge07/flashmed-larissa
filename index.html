@@ -1159,6 +1159,98 @@ body h1,body h2,body h3,body h4,body h5,body h6,.fmEditorialHead h2,.fmEditorial
 }
 .agendaEventDot.priority-high:before{color:#c94d63!important}
 
+
+/* Acabamento mobile: navegação inferior alinhada e componentes adaptados */
+@media(max-width:780px){
+  body{padding-bottom:calc(96px + env(safe-area-inset-bottom))!important;overflow-x:hidden}
+  #appRoot{min-width:0;width:100%;overflow-x:clip}
+  .side{min-width:0}
+  .main{width:100%;min-width:0;padding:12px 11px calc(20px + env(safe-area-inset-bottom))!important}
+  .main>.top{width:100%;min-width:0;gap:8px!important;align-items:center!important}
+  .main>.top>div:first-child{min-width:0;flex:1}
+  .main>.top #title{font-size:clamp(18px,5vw,23px)!important;line-height:1.2!important;overflow-wrap:anywhere}
+  .main>.top>.row{min-width:0;max-width:55%;align-items:center!important;gap:5px!important}
+  .main>.top .clock{font-size:11px!important}
+  .main>.top .pill.cloud{display:none!important}
+  .main>.top .quickLogout{padding:7px 9px!important;font-size:11px!important}
+  .nav{
+    position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;
+    width:100%!important;min-width:0!important;height:auto!important;min-height:68px!important;
+    max-height:none!important;box-sizing:border-box!important;
+    display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-auto-rows:minmax(52px,auto)!important;align-items:stretch!important;justify-items:stretch!important;
+    gap:3px!important;margin:0!important;padding:5px 7px calc(5px + env(safe-area-inset-bottom))!important;
+    overflow:visible!important;border-radius:0!important;background:rgba(66,27,52,.98)!important;
+    box-shadow:0 -7px 24px rgba(50,20,40,.18)!important;z-index:1200!important;
+  }
+  .nav>.navTitle,.nav>button[data-mobile-extra="1"],.nav>a[data-mobile-extra="1"]{display:none!important}
+  .nav>button[data-mobile-extra="0"],.nav>button[data-mobile-more]{
+    display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    align-self:stretch!important;justify-self:stretch!important;gap:2px!important;
+    width:100%!important;min-width:0!important;max-width:none!important;height:100%!important;min-height:52px!important;
+    margin:0!important;padding:5px 2px!important;border:0!important;border-radius:11px!important;
+    box-sizing:border-box!important;text-align:center!important;white-space:normal!important;
+    font-size:10px!important;line-height:1.1!important;color:#f8e8f0!important;overflow:hidden!important;
+  }
+  .nav>button[data-mobile-extra="0"] .navIcon,.nav>button[data-mobile-more] .navIcon{
+    display:block!important;flex:0 0 auto!important;width:auto!important;height:21px!important;
+    margin:0!important;font-size:19px!important;line-height:21px!important;text-align:center!important;
+  }
+  .nav>button[data-mobile-extra="0"] .navLabel,.nav>button[data-mobile-more] .navLabel{
+    display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;
+    margin:0!important;font-size:9px!important;line-height:1.15!important;font-weight:700!important;
+    white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
+    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;overflow:hidden!important;
+  }
+  .nav>button[data-mobile-extra="0"].on,.nav>button[data-mobile-more][aria-expanded="true"]{
+    background:rgba(255,255,255,.17)!important;color:#fff!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.13)!important;
+  }
+  .mobileMorePanel.show{bottom:calc(76px + env(safe-area-inset-bottom))!important;max-height:min(70dvh,650px)!important}
+  .mobileMoreBackdrop.show{z-index:1198!important}
+  .fmDashboardCompactRow{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  .fmDashboardCompactRow .fmReadingPanel{width:100%!important;min-width:0!important}
+  .fmAudioForm{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:stretch!important;gap:7px!important}
+  .fmAudioForm .field{width:100%!important;min-width:0!important}
+  .fmAudioForm .btn{width:auto!important;min-width:72px!important;max-width:100%!important;white-space:nowrap!important}
+  .fmReadingNote,.fmReadingHistoryNote{font-size:12px!important;min-height:38px}
+  .fmReadingStars button{min-width:29px;min-height:30px}
+  .fmEditorialStats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .fmEditorialStat{min-width:0!important;overflow-wrap:anywhere}
+  .agendaToolbar{align-items:stretch!important}
+  .agendaToggle{max-width:100%;overflow-x:auto}
+  .agendaToggle button{padding:8px 9px!important;white-space:nowrap}
+  .agendaCalendar{grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:2px!important}
+  .agendaDay{min-width:0!important;min-height:53px!important;padding:3px!important;border-radius:7px!important}
+  .agendaDayNum{font-size:10px!important;margin-bottom:2px!important}
+  .agendaEventDot{font-size:8px!important;line-height:1.15!important}
+  .agendaEventRow{gap:7px!important}
+  .agendaEventTime{flex-basis:48px!important;font-size:11px!important}
+  .agendaDraftGrid{grid-template-columns:minmax(0,1fr)!important}
+  .agendaDraftGrid .agendaTitleField{grid-column:auto!important}
+  .plannerCompactGrid{max-width:100%!important;overflow-x:auto!important}
+  .plannerCompactGrid .plannerSlotItem{max-width:100%;overflow-wrap:normal!important}
+  .fmHighPriorityPanel .fmUpcomingItem{gap:7px!important;align-items:center!important}
+  .fmHidePriorityBtn{padding:6px 8px!important;min-height:32px!important;white-space:nowrap!important}
+  .main .panel,.main .card{min-width:0;max-width:100%}
+  .main input,.main select,.main textarea{max-width:100%}
+}
+@media(max-width:430px){
+  .main{padding-left:9px!important;padding-right:9px!important}
+  .nav{gap:2px!important;padding-left:4px!important;padding-right:4px!important}
+  .nav>button[data-mobile-extra="0"],.nav>button[data-mobile-more]{padding-left:1px!important;padding-right:1px!important}
+  .nav>button[data-mobile-extra="0"] .navLabel,.nav>button[data-mobile-more] .navLabel{font-size:8px!important}
+  .main>.top>.row{max-width:48%}
+  .fmAudioForm{grid-template-columns:minmax(0,1fr)!important}
+  .fmAudioForm .btn{width:100%!important}
+  .fmEditorialStats{gap:5px!important}
+  .fmEditorialStat{padding:10px 6px!important}
+  .fmEditorialStat>b{font-size:20px!important}
+  .agendaDay{min-height:46px!important}
+  .agendaEventDot{font-size:7px!important}
+}
+@media(min-width:781px){.nav>button[data-mobile-more]{display:none!important}}
+
 </style></head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><span class="brandSeal"></span><span>FlashMed</span></div><div class="owner">Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
 const KEY='flashmed_larissa_final', CFG='flashmed_cloud_cfg'; const SUPABASE_URL='https://irjpveynnpiaumdmticc.supabase.co'; const SUPABASE_KEY='sb_publishable_iYJdysVrOSuiI5jxFATgpg_7hX-Yecv'; const now=()=>new Date(), day=()=>now().toISOString().slice(0,10); const esc=s=>(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
