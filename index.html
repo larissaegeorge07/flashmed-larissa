@@ -1610,17 +1610,12 @@ function fmDashboardSeminarsHtml(){
 }
 
 function fmDashboardUpcomingHtml(){
- const today=agendaDateKey(new Date()),susDate='2026-11-29';
- const susDays=Math.max(0,Math.ceil((agendaDateFromKey(susDate)-agendaDateFromKey(today))/86400000));
- const high=agendaEvents().filter(e=>e&&e.date>=today&&(e.priority==='alta'||e.important===true||/cremeb|prova sus|avaliação teórica de go/i.test(e.title||''))).map(e=>({date:e.date,title:e.title,detail:(e.time||'')+(e.location?' · '+e.location:''),source:'agenda'}));
- const defaults=[
-  {id:'sus',date:susDate,title:'Prova SUS Bahia',detail:susDays===0?'É hoje!':susDays+' dias restantes',priority:'alta',important:true},
-  {id:'go-eval',date:'2026-12-17',title:'Avaliação teórica de GO',detail:'Data prevista — confirmar com os professores',priority:'alta',important:true},
-  {id:'course-end',date:'2026-12-20',title:'Término do curso',detail:'20 de dezembro',priority:'alta',important:true}
- ];
- const all=[...defaults,...high].filter((e,i,arr)=>arr.findIndex(x=>x.date===e.date&&x.title.toLowerCase()===e.title.toLowerCase())===i).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+ const today=agendaDateKey(new Date());
+ const planned=(db.studyPlan?.weeklyTasks||[]).filter(t=>t&&t.date>=today&&t.priority==='alta'&&!t.done).map(t=>({date:t.date,title:t.title,detail:(t.time||'')+' · tarefa',id:t.id,source:'task'}));
+ const events=agendaEvents().filter(e=>e&&e.date>=today&&e.priority==='alta'&&!e.done).map(e=>({date:e.date,title:e.title,detail:(e.time||'')+(e.location?' · '+e.location:''),id:e.id,source:'agenda'}));
+ const all=[...planned,...events].filter((e,i,arr)=>arr.findIndex(x=>x.date===e.date&&x.title.toLowerCase()===e.title.toLowerCase())===i).sort((a,b)=>a.date.localeCompare(b.date)||(a.detail||'').localeCompare(b.detail||'')).slice(0,8);
  const list=all.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{weekday:'short'})||'')+(e.detail?' · '+esc(e.detail):'')+'</small></span></div>').join('');
- return '<section class="panel fmUpcomingPanel fmHighPriorityPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">LEMBRETES IMPORTANTES</span><h3>Alta prioridade</h3><p class="muted">Só o que você não pode esquecer.</p></div></div>'+(list||'<p class="muted">Nenhum compromisso de alta prioridade próximo.</p>')+'</section>';
+ return '<section class="panel fmUpcomingPanel fmHighPriorityPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">LEMBRETES IMPORTANTES</span><h3>Alta prioridade</h3><p class="muted">Somente tarefas e compromissos marcados como alta prioridade.</p></div></div>'+(list||'<p class="muted">Nenhuma tarefa ou compromisso de alta prioridade próximo.</p>')+'</section>';
 }
 function fmDashboardTripsHtml(){
  const holidays=[
