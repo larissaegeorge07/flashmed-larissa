@@ -2755,3 +2755,16 @@ bootAuth().catch(function(e){
  const gate=document.getElementById('authGate');
  if(gate)gate.classList.remove('hidden');
 });</script></body></html>
+/* Correção de layout do planejador: manter formulário e cronograma dentro da coluna principal */
+.fmPlannerPageLayout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(300px,315px)!important;gap:16px!important;align-items:start!important}
+.fmPlannerMain{min-width:0!important;width:100%!important}
+.fmPlannerPageLayout>.plannerWeeklyPanel,.fmPlannerPageLayout .plannerWeeklyPanel{min-width:0!important;max-width:100%!important}
+.fmPlannerMain .fmTaskComposer{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(135px,1fr) minmax(95px,.7fr) minmax(150px,1.2fr)!important;gap:8px!important;align-items:center!important;width:100%!important}
+.fmPlannerMain .fmTaskComposer>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fmPlannerMain .fmTaskComposer .field{width:100%!important;min-width:0!important}
+.fmPlannerMain .fmTaskComposer label{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+.fmPlannerMain .fmTaskComposer .fmRecurringToggle{grid-column:1 / -1;justify-self:start;white-space:normal}
+.fmPlannerMain .fmTaskComposer>button{grid-column:1 / -1;justify-self:start;min-width:160px;max-width:220px;white-space:normal}
+.fmPlannerMain .fmRecurringDays{max-width:100%;box-sizing:border-box}
+@media(max-width:1100px){.fmPlannerPageLayout{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerPageLayout>.plannerWeeklyPanel{grid-column:1}}
+@media(max-width:560px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1!important;justify-self:stretch!important;max-width:none!important}.fmPlannerMain .fmTaskComposer label{align-items:flex-start}}
