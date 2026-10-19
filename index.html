@@ -1865,6 +1865,7 @@ function fmDashboardSeminarsHtml(){
  return '<section class="panel fmSeminarPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">ACOMPANHAMENTO</span><h3>Checklist de seminários</h3><p class="muted">Marque cada apresentação quando ela acontecer.</p></div><span class="tag">'+fmGoSeminars.filter(x=>done[x.date]).length+'/'+fmGoSeminars.length+' concluídos</span></div><div class="fmSeminarList">'+fmGoSeminars.map(x=>'<label class="fmSeminarRow'+(done[x.date]?' isDone':'')+'"><input type="checkbox" '+(done[x.date]?'checked':'')+' onchange="fmToggleSeminarDone(\''+x.date+'\',this.checked)"><span class="fmSeminarDate">'+esc(agendaDateFromKey(x.date)?.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})||'')+'</span><span class="fmSeminarName"><b>'+esc(x.title)+'</b><small>'+esc(x.names)+(x.mine?' · SEU SEMINÁRIO':'')+'</small></span></label>').join('')+'</div></section>';
 }
 
+function fmHideHighPriorityFromButton(button){if(!button)return;fmHideHighPriorityItem(button.dataset.source,button.dataset.itemId)}
 function fmHideHighPriorityItem(source,id){
  const tasks=db.studyPlan?.weeklyTasks||[],events=db.agendaEvents||[];
  if(source==='task'){
@@ -1876,15 +1877,14 @@ function fmHideHighPriorityItem(source,id){
   e.hideFromHighPriority=!e.hideFromHighPriority;
   if(e.studyTaskId){const t=tasks.find(x=>String(x.id)===String(e.studyTaskId));if(t)t.hideFromHighPriority=!!e.hideFromHighPriority;}
  }
- save();render();
- if(cloud)syncUp();
+ save();if(cloud)syncUp();render();
 }
 function fmDashboardUpcomingHtml(){
  const today=agendaDateKey(new Date());
  const planned=(db.studyPlan?.weeklyTasks||[]).filter(t=>t&&t.date>=today&&t.priority==='alta'&&!t.done&&!t.hideFromHighPriority).map(t=>({date:t.date,title:t.title,detail:(t.time||'')+' · tarefa',id:t.id,source:'task'}));
  const events=agendaEvents().filter(e=>e&&e.date>=today&&e.priority==='alta'&&!e.done&&!e.hideFromHighPriority).map(e=>({date:e.date,title:e.title,detail:(e.time||'')+(e.location?' · '+e.location:''),id:e.id,source:'agenda'}));
  const all=[...planned,...events].filter((e,i,arr)=>arr.findIndex(x=>x.date===e.date&&x.title.toLowerCase()===e.title.toLowerCase())===i).sort((a,b)=>a.date.localeCompare(b.date)||(a.detail||'').localeCompare(b.detail||'')).slice(0,8);
- const list=all.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{weekday:'short'})||'')+(e.detail?' · '+esc(e.detail):'')+'</small></span><button type="button" class="fmHidePriorityBtn" title="Retirar dos lembretes importantes" onclick="fmHideHighPriorityItem('+JSON.stringify(e.source)+','+JSON.stringify(e.id).replace(/"/g,'&quot;')+')">Ocultar</button></div>').join('');
+ const list=all.map(e=>'<div class="fmUpcomingItem"><span class="fmUpcomingDate"><b>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{day:'2-digit'})||'—')+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{month:'short'})||'')+'</small></span><span class="fmUpcomingText"><b>'+esc(e.title)+'</b><small>'+esc(agendaDateFromKey(e.date)?.toLocaleDateString('pt-BR',{weekday:'short'})||'')+(e.detail?' · '+esc(e.detail):'')+'</small></span><button type="button" class="fmHidePriorityBtn" title="Retirar dos lembretes importantes" data-source="'+esc(e.source)+'" data-item-id="'+esc(e.id)+'" onclick="fmHideHighPriorityFromButton(this)">Ocultar</button></div>').join('');
  return '<section class="panel fmUpcomingPanel fmHighPriorityPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">LEMBRETES IMPORTANTES</span><h3>Alta prioridade</h3><p class="muted">Somente tarefas e compromissos marcados como alta prioridade. Você pode ocultar um item sem alterar sua prioridade.</p></div></div>'+(list||'<p class="muted">Nenhuma tarefa ou compromisso de alta prioridade próximo.</p>')+'</section>';
 }
 function fmDashboardTripsHtml(){
@@ -1929,15 +1929,17 @@ function fmReadingPanelHtml(kind){
  const audio=kind==='audio',data=fmReadingData(kind),history=data.history;
  const current=String(data.current||''),rating=Number(data.ratings[current]||0),note=String(data.notes[current]||'');
  const rows=history.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(x=>'<div class="fmAudioHistoryItem"><span class="fmAudioHistoryDot">'+(audio?'♫':'▤')+'</span><span><b>'+esc(x.title)+'</b><small>'+esc(x.date?agendaFormatDate(x.date,{day:'2-digit',month:'short',year:'numeric'}):'Concluído')+'</small>'+fmReadingStars(kind,x.title,Number(data.ratings[x.title]||x.rating||0))+'<textarea class="fmReadingHistoryNote" maxlength="300" rows="1" placeholder="Minha opinião (opcional)" data-kind="'+esc(kind)+'" data-title="'+esc(x.title)+'" onblur="fmSaveReadingNoteFromField(this)">'+esc(data.notes[x.title]||x.note||'')+'</textarea></span></div>').join('');
- return '<section class="panel fmAudiobookPanel fmReadingPanel"><div class="fmAudioHead"><span class="fmAudioIcon">'+(audio?'♫':'▤')+'</span><div><span class="fmEditorialKicker">'+(audio?'MEU MOMENTO DE ESCUTA':'MINHAS LEITURAS')+'</span><h3>'+(audio?'Audiobook da semana':'Livro do Kindle')+'</h3></div></div><form class="fmAudioForm" onsubmit="event.preventDefault();fmSaveReading('+JSON.stringify(kind)+')"><input id="fmReading_'+kind+'" class="field" maxlength="140" value="'+esc(current)+'" placeholder="'+(audio?'Qual audiobook você está ouvindo?':'Qual livro você está lendo?')+'"><button class="btn" type="submit">Salvar</button></form>'+(current?'<div class="fmReadingReview"><span class="fmReadingReviewLabel">Minha avaliação</span>'+fmReadingStars(kind,current,rating)+'<textarea class="fmReadingNote" rows="2" maxlength="300" placeholder="O que achei? (opcional)" data-kind="'+esc(kind)+'" data-title="'+esc(current)+'" onblur="fmSaveReadingNoteFromField(this)">'+esc(note)+'</textarea></div>':'<p class="fmAudioHint">Adicione um título para avaliá-lo com estrelas e escrever uma nota breve.</p>')+'<details class="fmAudioHistory"><summary>Histórico ('+history.length+')</summary>'+(rows||'<p class="muted">Os títulos anteriores aparecerão aqui.</p>')+'</details></section>';
+ return '<section class="panel fmAudiobookPanel fmReadingPanel"><div class="fmAudioHead"><span class="fmAudioIcon">'+(audio?'♫':'▤')+'</span><div><span class="fmEditorialKicker">'+(audio?'MEU MOMENTO DE ESCUTA':'MINHAS LEITURAS')+'</span><h3>'+(audio?'Audiobook da semana':'Livro do Kindle')+'</h3></div></div><form class="fmAudioForm" data-kind="'+esc(kind)+'" onsubmit="return fmSaveReadingFromForm(this)"><input id="fmReading_'+kind+'" class="field" maxlength="140" value="'+esc(current)+'" placeholder="'+(audio?'Qual audiobook você está ouvindo?':'Qual livro você está lendo?')+'"><button class="btn" type="submit">Salvar</button></form>'+(current?'<div class="fmReadingReview"><span class="fmReadingReviewLabel">Minha avaliação</span>'+fmReadingStars(kind,current,rating)+'<textarea class="fmReadingNote" rows="2" maxlength="300" placeholder="O que achei? (opcional)" data-kind="'+esc(kind)+'" data-title="'+esc(current)+'" onblur="fmSaveReadingNoteFromField(this)">'+esc(note)+'</textarea></div>':'<p class="fmAudioHint">Adicione um título para avaliá-lo com estrelas e escrever uma nota breve.</p>')+'<details class="fmAudioHistory"><summary>Histórico ('+history.length+')</summary>'+(rows||'<p class="muted">Os títulos anteriores aparecerão aqui.</p>')+'</details></section>';
 }
 function fmAudiobookPanelHtml(){return fmReadingPanelHtml('audio')}
 function fmKindlePanelHtml(){return fmReadingPanelHtml('kindle')}
+function fmSaveReadingFromForm(form){if(!form)return false;const kind=form.dataset.kind;if(!['audio','kindle'].includes(kind))return false;fmSaveReading(kind);return false}
 function fmSaveReading(kind){
+ if(!['audio','kindle'].includes(kind))return;
  const title=(document.getElementById('fmReading_'+kind)?.value||'').trim();if(!title){toast('Digite o título.');return}
  const data=fmReadingData(kind),previous=String(data.current||'').trim();
- if(previous&&previous!==title&&!data.history.some(x=>x.title===previous))data.history.push({title:previous,date:agendaDateKey(new Date())});
- data.current=title;save();render();if(cloud)syncUp();toast('Título salvo!');
+ if(previous&&previous.toLocaleLowerCase('pt-BR')!==title.toLocaleLowerCase('pt-BR')&&!data.history.some(x=>String(x.title||'').toLocaleLowerCase('pt-BR')===previous.toLocaleLowerCase('pt-BR')))data.history.push({title:previous,date:agendaDateKey(new Date()),rating:Number(data.ratings[previous]||0),note:String(data.notes[previous]||'')});
+ data.current=title;save();if(cloud)syncUp();render();toast('Título salvo!');
 }
 function fmSaveAudiobook(){fmSaveReading('audio')}
 function fmRateReading(kind,title,rating){const data=fmReadingData(kind);data.ratings[title]=rating;save();render();if(cloud)syncUp()}
