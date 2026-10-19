@@ -2263,7 +2263,7 @@ function dashboardEditorial(){
  const quote=typeof plannerQuoteOfDay==='function'?plannerQuoteOfDay():'Um passo de cada vez.';
  const dateLabel=todayDate.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
  const admin='';
- const tasks=items.length?items.map(x=>'<label class="fmEditorialTask"><input type="checkbox" '+(x.done?'checked':'')+' onchange="toggleWeeklyTask(\''+String(x.id).replace(/'/g,"\\'")+'\',this.checked)"><span class="fmEditorialTaskText"><b class="'+(x.done?'isDone':'')+'">'+esc(x.title)+'</b><small>'+Math.max(0,Number(x.minutes)||0)+' min</small></span><span class="fmEditorialStatus">'+(x.done?'Feita':'A fazer')+'</span></label>').join(''):'<div class="fmEditorialEmpty"><span>Seu cronograma está livre por enquanto.</span><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Organizar meu dia ↗</button></div>';
+ const tasks=items.length?items.map(x=>'<div class="fmEditorialTask'+(x.done?' isDone':'')+'"><span class="fmEditorialTaskText"><b class="'+(x.done?'isDone':'')+'">'+esc(x.title)+'</b><small>'+Math.max(0,Number(x.minutes)||0)+' min</small></span><span class="fmEditorialStatus">'+(x.done?'✓ Concluída':'A fazer')+'</span></div>').join(''):'<div class="fmEditorialEmpty"><span>Seu cronograma está livre por enquanto.</span><button class="btn ghost" onclick="go(\\'Planejador de Estudos\\')">Organizar meu dia ↗</button></div>';
  const progress=items.length?Math.round(done/items.length*100):0;
  const streak=flashmedStreakStats();
  const streakMessage=streak.studiedToday?'Você estudou hoje. Sequência em andamento!':streak.current?'Estude hoje para manter sua sequência.':'Cada sequência começa com um primeiro dia.';
