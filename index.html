@@ -2768,3 +2768,49 @@ bootAuth().catch(function(e){
 .fmPlannerMain .fmRecurringDays{max-width:100%;box-sizing:border-box}
 @media(max-width:1100px){.fmPlannerPageLayout{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer{grid-template-columns:repeat(2,minmax(0,1fr))!important}.fmPlannerPageLayout>.plannerWeeklyPanel{grid-column:1}}
 @media(max-width:560px){.fmPlannerMain .fmTaskComposer{grid-template-columns:minmax(0,1fr)!important}.fmPlannerMain .fmTaskComposer .fmRecurringToggle,.fmPlannerMain .fmTaskComposer>button{grid-column:1!important;justify-self:stretch!important;max-width:none!important}.fmPlannerMain .fmTaskComposer label{align-items:flex-start}}
+
+/* Dashboard: redistribuição compacta para aproveitar a largura e eliminar áreas vazias */
+.fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 250px!important;gap:12px!important;align-items:stretch!important;margin-bottom:12px!important}
+.fmDashboardTopLeft{grid-template-columns:minmax(0,1.8fr) minmax(210px,1fr)!important;grid-template-rows:auto!important;gap:10px!important;align-items:stretch!important}
+.fmDashboardTopLeft .fmWeekPanel{grid-column:1;grid-row:1;padding:12px!important}
+.fmDashboardTopLeft .fmStreakCard{grid-column:2;grid-row:1;display:grid!important;grid-template-columns:36px minmax(0,1fr)!important;align-content:center;gap:8px!important;padding:12px!important;height:100%;box-sizing:border-box}
+.fmDashboardTopLeft .fmStreakIcon{grid-row:1 / span 2;width:34px;height:34px}
+.fmDashboardTopLeft .fmStreakCurrent,.fmDashboardTopLeft .fmStreakRecord{gap:2px}
+.fmDashboardTopLeft .fmStreakCurrent>strong{font-size:22px}
+.fmDashboardTopLeft .fmStreakDivider{display:none}
+.fmDashboardTopLeft .fmStreakMessage{grid-column:1 / -1;margin:4px 0 0;padding:7px 0 0;border-top:1px solid #dcd3e7;text-align:left;max-width:none;font-size:10px}
+.fmDashboardTopRow .fmUpcomingPanel{height:100%;max-height:460px;box-sizing:border-box}
+.fmDashboardCompactRow{margin:0 0 10px!important}
+.fmAudiobookPanel{padding:10px 13px!important}
+.fmAudioHead{margin-bottom:6px!important}
+.fmAudioForm .field{padding:7px 9px!important}
+.fmAudioHint{margin-top:4px!important}
+.fmAudioHistory{margin-top:6px!important;padding-top:5px!important}
+.fmEditorialStats{margin-bottom:12px!important;gap:9px!important}
+.fmEditorialStat{padding:12px 14px!important}
+.fmEditorialStat>b{margin:5px 0 2px!important}
+.fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;grid-template-rows:auto!important;gap:12px!important;margin-bottom:12px!important;align-items:start!important}
+.fmDashboardPlanningGrid .fmUpcomingPanel{grid-column:1!important;grid-row:1!important}
+.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:2!important;grid-row:1!important}
+.fmDashboardPlanningGrid .fmTripsPanel{grid-column:1 / -1!important;grid-row:2!important;height:auto!important}
+.fmDashboardPlanningGrid .fmSeminarList{grid-template-columns:1fr!important}
+.fmDashboardPlanningGrid .fmSeminarRow{padding:6px 2px!important}
+.fmEditorialMain{gap:12px!important}
+@media(max-width:1100px){
+ .fmDashboardTopRow{grid-template-columns:minmax(0,1fr) 235px!important}
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(175px,1fr)!important}
+ .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+}
+@media(max-width:850px){
+ .fmDashboardTopRow{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1.5fr) minmax(170px,1fr)!important}
+ .fmDashboardPlanningGrid{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardPlanningGrid .fmDashboardPlanningGrid .fmSeminarPanel,.fmDashboardPlanningGrid .fmSeminarPanel{grid-column:1!important;grid-row:auto!important}
+ .fmDashboardPlanningGrid .fmTripsPanel{grid-column:1!important;grid-row:auto!important}
+}
+@media(max-width:560px){
+ .fmDashboardTopLeft{grid-template-columns:minmax(0,1fr)!important}
+ .fmDashboardTopLeft .fmWeekPanel,.fmDashboardTopLeft .fmStreakCard{grid-column:1!important;grid-row:auto!important}
+ .fmDashboardTopLeft .fmStreakCard{display:grid!important;grid-template-columns:36px minmax(0,1fr)!important}
+ .fmEditorialStats{grid-template-columns:minmax(0,1fr)!important}
+}
