@@ -4331,7 +4331,7 @@ let flashmedSyncQueue=Promise.resolve();
 function flashmedRecoverySnapshot(label,data){try{let key='flashmed_recovery_'+Date.now()+'_'+label;localStorage.setItem(key,JSON.stringify(flashmedLocalPayload(data)));let keys=Object.keys(localStorage).filter(x=>x.startsWith('flashmed_recovery_')).sort();while(keys.length>12)localStorage.removeItem(keys.shift())}catch(e){console.warn('Backup de recuperação indisponível',e)}}
 function flashmedMergePersonal(remote,local){
  if(!remote||!local)return false;let changed=false;
- for(const [key,idKey] of [['cards','id'],['bankAttempts,'id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['studyNotebooks','id'],['pdfLibrary','id'],['agendaEvents','id']]){
+ for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['studyNotebooks','id'],['pdfLibrary','id'],['agendaEvents','id']]){
   let a=Array.isArray(remote[key])?remote[key]:[],b=Array.isArray(local[key])?local[key]:[];
   let seen=new Set(a.map(x=>String(x?.[idKey]??'')));
   for(const item of b){let id=String(item?.[idKey]??'');if(!id||seen.has(id))continue;a.push(item);seen.add(id);changed=true}
