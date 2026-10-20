@@ -2001,16 +2001,21 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
 /* Logotipo original completo enviado pela Larissa */
 .side .brand.brandMark.brandImageMark{
  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
- width:100%!important;box-sizing:border-box!important;margin:0 0 18px!important;padding:0!important;
- border:0!important;border-bottom:0!important;background:transparent!important;gap:0!important;
+ position:relative!important;overflow:visible!important;
+ width:100%!important;min-height:0!important;height:auto!important;box-sizing:border-box!important;
+ margin:0 0 18px!important;padding:0!important;
+ border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;
+ border-radius:0!important;gap:0!important;
 }
+.side .brand.brandMark.brandImageMark:before,
+.side .brand.brandMark.brandImageMark:after{content:none!important;display:none!important}
 .side .brandFullLogo{
- display:block!important;width:138%!important;max-width:none!important;height:auto!important;
- object-fit:contain!important;object-position:center!important;margin:0 0 0 -19%!important;padding:0!important;
- border:0!important;border-radius:0!important;box-shadow:none!important;
+ display:block!important;width:120%!important;max-width:none!important;height:auto!important;
+ object-fit:contain!important;object-position:center!important;margin:0 0 0 -10%!important;padding:0!important;
+ border:0!important;outline:0!important;border-radius:0!important;box-shadow:none!important;
 }
 @media(max-width:780px){
- .side .brandFullLogo{width:122%!important;margin-left:-11%!important}
+ .side .brandFullLogo{width:112%!important;margin-left:-6%!important}
 }
 
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
