@@ -1,21 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
 <defs>
- <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8d8ff"/><stop offset=".45" stop-color="#d78cf1"/><stop offset="1" stop-color="#ad65d7"/></linearGradient>
- <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#ffe7ff"/></linearGradient>
- <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9d9ff"/><stop offset=".42" stop-color="#d88af4"/><stop offset=".72" stop-color="#c46de8"/><stop offset="1" stop-color="#f3a7e8"/></linearGradient>
+ <linearGradient id="page" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#ffe9ff"/></linearGradient>
+ <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#ffc9fa"/></linearGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
-<rect x="4" y="4" width="120" height="120" rx="32" fill="url(#tile)"/>
-<rect x="6" y="6" width="116" height="116" rx="30" fill="none" stroke="#fff" stroke-opacity=".72" stroke-width="2"/>
-<path d="M17 29Q26 12 47 12" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="3" stroke-linecap="round"/>
-<g fill="none" stroke="url(#ink)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
- <path d="M64 47v56"/>
- <circle cx="64" cy="30" r="8" fill="#fff" stroke-width="2"/>
- <path d="M64 47c-15 0-19 11-9 17 8 5 20 5 17 14-2 7-13 8-13 16"/>
- <path d="M58 101c-10-10-20-15-33-14l-5-30c16-2 29 5 39 20"/>
- <path d="M70 101c10-10 20-15 33-14l5-30c-16-2-29 5-39 20"/>
- <path d="M22 94c15-3 27 2 38 11 2 2 3 3 4 3s2-1 4-3c11-9 23-14 38-11"/>
- <path d="M33 66l4 15 17 3M95 66l-4 15-17 3" opacity=".8"/>
+<rect x="3" y="3" width="122" height="122" rx="31" fill="url(#tile)"/>
+<rect x="6" y="6" width="116" height="116" rx="29" fill="none" stroke="#fff" stroke-width="2.5" stroke-opacity=".9"/>
+<rect x="10" y="10" width="108" height="108" rx="26" fill="none" stroke="#fce7ff" stroke-width="1" stroke-opacity=".8"/>
+<path d="M16 27Q24 12 43 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+<g filter="url(#glow)" stroke="url(#edge)" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M61 91C49 79 35 75 20 77L17 52C33 48 48 54 61 67Z" fill="url(#page)" stroke-width="2.2"/>
+ <path d="M67 91C79 79 93 75 108 77L111 52C95 48 80 54 67 67Z" fill="url(#page)" stroke-width="2.2"/>
+ <path d="M22 56C35 55 46 60 57 72M106 56C93 55 82 60 71 72" fill="none" stroke="#d99af2" stroke-width="2.3"/>
+ <path d="M20 81C36 79 49 85 61 96L64 100L67 96C79 85 92 79 108 81" fill="none" stroke="#fff" stroke-width="3"/>
+ <path d="M64 32V101" fill="none" stroke="#fff" stroke-width="3.6"/>
+ <circle cx="64" cy="25" r="7.5" fill="#fff" stroke="#fff" stroke-width="1.5"/>
+ <path d="M61 43C47 39 42 46 48 52C54 58 76 55 79 63C82 70 69 72 63 77C58 82 61 87 68 88" fill="none" stroke="#fff" stroke-width="3.4"/>
+ <path d="M88 18L92 28L102 32L92 36L88 46L84 36L74 32L84 28Z" fill="#fff" stroke="#fff" stroke-width="1"/>
+ <circle cx="108" cy="18" r="1.8" fill="#fff" stroke="none"/>
 </g>
-<path d="M91 23l3.2 8.2 8.2 3.2-8.2 3.2-3.2 8.2-3.2-8.2-8.2-3.2 8.2-3.2z" fill="#fff" filter="url(#glow)"/>
-<circle cx="108" cy="20" r="2" fill="#fff"/>
 </svg>
