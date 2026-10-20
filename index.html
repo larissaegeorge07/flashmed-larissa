@@ -2449,6 +2449,152 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   .mobileMorePanel .mobileCategoryIntro h3{font-size:19px!important}
 }
 
+
+/* FIX DEFINITIVO — alinhamento do menu de categorias no celular */
+@media (max-width:1100px){
+  #mobileMorePanel.mobileMorePanel.show{
+    box-sizing:border-box!important;
+    display:block!important;
+    padding:16px 14px calc(18px + env(safe-area-inset-bottom))!important;
+    overflow-x:hidden!important;
+    background:#fffdfd!important;
+    color:#35202d!important;
+  }
+  #mobileMorePanel .mobileMoreHead{
+    min-height:52px!important;
+    display:flex!important;align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;padding:0 2px 14px!important;
+    margin:0!important;border-bottom:1px solid #d9cbd4!important;
+  }
+  #mobileMorePanel .mobileMoreHead small{color:#76536f!important;font-size:11px!important;line-height:1.4!important}
+  #mobileMorePanel .mobileMoreHead b{color:#35202d!important;font-size:18px!important;line-height:1.25!important}
+  #mobileMorePanel .mobileMoreHead button{
+    width:40px!important;height:40px!important;flex:0 0 40px!important;
+    display:grid!important;place-items:center!important;
+    background:#f5e3ee!important;color:#6d3152!important;
+    border:1px solid #e4c8d7!important;border-radius:13px!important;
+  }
+  #mobileMorePanel .mobileCategoryHint{
+    margin:14px 2px 12px!important;padding:0!important;
+    color:#6e5263!important;font-size:13px!important;line-height:1.45!important;
+    opacity:1!important;
+  }
+  #mobileMorePanel .mobileCategoryCard{
+    box-sizing:border-box!important;display:flex!important;
+    align-items:center!important;gap:12px!important;
+    width:100%!important;min-height:72px!important;height:auto!important;
+    margin:8px 0!important;padding:12px!important;
+    border:1px solid #e4d2dd!important;border-radius:16px!important;
+    background:#fff!important;color:#35202d!important;
+    text-align:left!important;white-space:normal!important;
+  }
+  #mobileMorePanel .mobileCategoryIcon{
+    box-sizing:border-box!important;display:flex!important;
+    align-items:center!important;justify-content:center!important;
+    width:44px!important;height:44px!important;flex:0 0 44px!important;
+    margin:0!important;padding:0!important;border-radius:14px!important;
+    background:#f3dced!important;color:#653650!important;
+  }
+  #mobileMorePanel .mobileCategoryIcon svg{width:23px!important;height:23px!important;display:block!important}
+  #mobileMorePanel .mobileCategoryText{
+    display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+    align-items:flex-start!important;justify-content:center!important;
+    gap:4px!important;min-width:0!important;margin:0!important;
+  }
+  #mobileMorePanel .mobileCategoryText b{font-size:14px!important;line-height:1.3!important;color:#432538!important}
+  #mobileMorePanel .mobileCategoryText small{font-size:12px!important;line-height:1.4!important;color:#705a68!important}
+  #mobileMorePanel .mobileCategoryArrow{flex:0 0 auto!important;color:#9b3d73!important;line-height:1!important}
+  #mobileMorePanel .mobileCategoryBack{
+    display:flex!important;align-items:center!important;align-self:flex-start!important;
+    width:auto!important;min-height:40px!important;height:auto!important;
+    margin:10px 0 12px!important;padding:6px 4px!important;
+    border:0!important;border-radius:8px!important;background:transparent!important;
+    color:#8d285e!important;font-size:13px!important;font-weight:800!important;
+    line-height:1.4!important;text-align:left!important;opacity:1!important;
+    white-space:normal!important;
+  }
+  #mobileMorePanel .mobileCategoryIntro{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:flex-start!important;gap:14px!important;
+    width:100%!important;box-sizing:border-box!important;
+    margin:0 0 16px!important;padding:0 2px!important;
+  }
+  #mobileMorePanel .mobileCategoryHeroIcon{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    box-sizing:border-box!important;flex:0 0 64px!important;
+    width:64px!important;height:64px!important;min-width:64px!important;
+    margin:0!important;padding:0!important;border-radius:19px!important;
+    background:#f3dced!important;color:#4d2540!important;font-size:0!important;
+  }
+  #mobileMorePanel .mobileCategoryHeroIcon svg{
+    display:block!important;width:28px!important;height:28px!important;
+    max-width:100%!important;stroke:currentColor!important;
+  }
+  #mobileMorePanel .mobileCategoryIntro>div{
+    display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+    align-items:flex-start!important;justify-content:center!important;
+    gap:5px!important;min-width:0!important;margin:0!important;padding:0!important;
+  }
+  #mobileMorePanel .mobileCategoryIntro h3{
+    margin:0!important;padding:0!important;color:#35202d!important;
+    font-size:clamp(20px,5.5vw,26px)!important;line-height:1.15!important;
+    font-weight:850!important;letter-spacing:-.025em!important;
+  }
+  #mobileMorePanel .mobileCategoryIntro p{
+    margin:0!important;padding:0!important;color:#655361!important;
+    font-size:13px!important;line-height:1.4!important;
+  }
+  #mobileMorePanel .mobileMoreGrid{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;justify-content:stretch!important;
+    gap:10px!important;width:100%!important;box-sizing:border-box!important;
+    margin:0!important;padding:0!important;
+  }
+  #mobileMorePanel .mobileMoreItem{
+    box-sizing:border-box!important;display:flex!important;
+    flex-direction:column!important;align-items:center!important;
+    justify-content:flex-start!important;gap:8px!important;
+    width:100%!important;min-width:0!important;min-height:112px!important;height:auto!important;
+    margin:0!important;padding:10px 7px 12px!important;
+    overflow:visible!important;white-space:normal!important;
+    border:1px solid #eadde5!important;border-radius:16px!important;
+    background:#fff!important;color:#432638!important;
+    box-shadow:0 3px 12px rgba(78,32,57,.06)!important;
+    text-align:center!important;font-size:12px!important;font-weight:750!important;
+    line-height:1.35!important;
+  }
+  #mobileMorePanel .mobileMoreItem .mobileMoreIcon{
+    box-sizing:border-box!important;display:flex!important;
+    align-items:center!important;justify-content:center!important;
+    flex:0 0 48px!important;width:48px!important;height:48px!important;
+    min-height:48px!important;margin:0!important;padding:0!important;
+    border-radius:13px!important;background:#eee8f4!important;color:#4c2a4b!important;
+  }
+  #mobileMorePanel .mobileMoreItem .mobileMoreIcon svg{
+    display:block!important;width:24px!important;height:24px!important;
+    max-width:100%!important;stroke:currentColor!important;
+  }
+  #mobileMorePanel .mobileMoreItem>span:last-child{
+    display:block!important;flex:0 0 auto!important;
+    width:100%!important;min-width:0!important;margin:0!important;padding:0 2px!important;
+    color:inherit!important;overflow-wrap:anywhere!important;word-break:normal!important;
+    text-align:center!important;line-height:1.35!important;
+  }
+  #mobileMorePanel .mobileMoreItem.on{
+    border-color:#bd6d9b!important;background:#fff3fa!important;color:#70264e!important;
+    box-shadow:inset 0 0 0 1px #e8c0d7!important;
+  }
+  #mobileMorePanel .mobileMoreItem.on .mobileMoreIcon{background:#e7d4ef!important;color:#70264e!important}
+}
+@media(max-width:380px){
+  #mobileMorePanel.mobileMorePanel.show{left:7px!important;right:7px!important;padding-left:10px!important;padding-right:10px!important}
+  #mobileMorePanel .mobileMoreGrid{gap:7px!important}
+  #mobileMorePanel .mobileMoreItem{min-height:108px!important;font-size:11px!important}
+  #mobileMorePanel .mobileCategoryIntro{gap:10px!important}
+  #mobileMorePanel .mobileCategoryHeroIcon{flex-basis:56px!important;width:56px!important;height:56px!important;min-width:56px!important}
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark brandImageMark"><img class="brandFullLogo" src="assets/flashmed-logo.png?v=1" alt="FlashMed — By Larissa Fernandes"></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
