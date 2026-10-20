@@ -2641,17 +2641,17 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
 .studyNotebookToolbar label{font-size:12px;color:#63465a;font-weight:750;display:flex;align-items:center;gap:6px}
 .studyNotebookToolbar input[type=color]{width:36px;height:34px;border:0;background:transparent;padding:0}
 .studyNotebookToolbar input[type=range]{width:100px;accent-color:#9b4f7b}
-.studyNotebookPage{position:relative;overflow:hidden;background:#fffefc;border:1px solid #e0cbd5;border-radius:8px 16px 16px 8px;box-shadow:0 8px 24px #48263a12;min-height:420px}
+.studyNotebookPage{position:relative;overflow:visible;background:#fffefc;border:1px solid #e0cbd5;border-radius:8px 16px 16px 8px;box-shadow:0 8px 24px #48263a12;min-height:420px}
 .studyNotebookPage:before{content:"";position:absolute;z-index:0;left:48px;top:0;bottom:0;width:1px;background:#e7a8bd;pointer-events:none}
 .studyNotebookPage:after{content:"";position:absolute;z-index:0;left:0;right:0;top:0;bottom:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#d6e1f2 32px,#d6e1f2 33px);opacity:.95}
-.studyNotebookCanvas{position:relative;z-index:1;display:block;width:100%;height: min(68vh,720px);min-height:420px;touch-action:pan-y;cursor:crosshair}
+.studyNotebookCanvas{position:relative;z-index:1;display:block;width:100%;height:1000px;min-height:1000px;touch-action:pan-y;cursor:crosshair}
 .studyNotebookPageTitle{width:100%;border:0!important;border-bottom:1px solid #ead6e0!important;border-radius:0!important;background:rgba(255,255,255,.85)!important;color:#49283d!important;font-weight:800!important;font-size:16px!important;padding:12px 14px 12px 60px!important;position:relative;z-index:2}
 .studyNotebookPageTitle:focus{outline:2px solid #dcb2cc;outline-offset:-2px}
 .studyNotebookPages{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
 .studyNotebookPages button{border:1px solid #dfc6d5;border-radius:9px;background:#fff;padding:7px 11px;color:#5c3850}
 .studyNotebookPages button.active{background:#ead7e8;border-color:#a65b85;font-weight:800}
 .studyNotebookHint{font-size:12px;color:#76596b;line-height:1.5}
-@media(max-width:600px){.studyNotebookToolbar{gap:6px;padding:9px}.studyNotebookToolbar button{font-size:12px;padding:7px 9px}.studyNotebookPage:before{left:31px}.studyNotebookPageTitle{padding-left:42px!important}.studyNotebookCanvas{height:62vh;min-height:380px}.studyNotebookToolbar input[type=range]{width:74px}}
+@media(max-width:600px){.studyNotebookToolbar{gap:6px;padding:9px}.studyNotebookToolbar button{font-size:12px;padding:7px 9px}.studyNotebookPage:before{left:31px}.studyNotebookPageTitle{padding-left:42px!important}.studyNotebookCanvas{height:1000px;min-height:1000px}.studyNotebookToolbar input[type=range]{width:74px}}
 
 /* Imagens dentro do Caderno de Estudos */
 .studyNotebookImageTools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
@@ -2663,11 +2663,11 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
 .studyNotebookModeBar button{border:1px solid #dec3d4;border-radius:11px;padding:9px 13px;background:#fff;color:#4c2a40;font-weight:750}
 .studyNotebookModeBar button.active{background:#ead4e5;border-color:#a85b88}
 .studyNotebookCanvas.is-inactive{touch-action:pan-y;cursor:default}
-.studyNotebookTyping{display:none;position:relative;z-index:1;width:100%;min-height: min(68vh,720px);height: min(68vh,720px);resize:vertical;border:0;outline:0;border-radius:0;background-color:transparent;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#d6e1f2 32px,#d6e1f2 33px);padding:9px 14px 20px 60px;font:17px/33px 'Segoe UI',Arial,sans-serif;color:#332635;white-space:pre-wrap}
+.studyNotebookTyping{display:none;position:relative;z-index:1;width:100%;min-height:1000px;height:1000px;resize:vertical;border:0;outline:0;border-radius:0;background-color:transparent;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#d6e1f2 32px,#d6e1f2 33px);padding:9px 14px 20px 60px;font:17px/33px 'Segoe UI',Arial,sans-serif;color:#332635;white-space:pre-wrap}
 .studyNotebookTyping:focus{box-shadow:inset 0 0 0 2px #ead4e5}
 .studyNotebookPage.mode-typing:before{z-index:0}
 .studyNotebookPage.mode-typing:after{display:none}
-@media(max-width:600px){.studyNotebookTyping{height:62vh;min-height:380px;padding-left:42px;font-size:16px}}
+@media(max-width:600px){.studyNotebookTyping{height:1000px;min-height:1000px;padding-left:42px;font-size:16px}}
 
 
 /* Camada real de imagens: permite arrastar e redimensionar sem desenhar no canvas */
@@ -4036,7 +4036,7 @@ function studyNotebookRenderImages(){
  });
 }
 function studyNotebookSetMode(mode){const x=studyNotebookCurrent();if(!x)return;x.page.mode=mode==='type'?'type':'hand';studyNotebookActiveTool='none';save();studyNotebookApplyMode();studyNotebookDraw()}
-function studyNotebookApplyMode(){const x=studyNotebookCurrent(),page=document.querySelector('.studyNotebookPage'),canvas=studyNotebookCanvas(),ta=document.getElementById('studyNotebookTyping');if(!x||!page||!canvas||!ta)return;const typing=x.page.mode==='type';page.classList.toggle('mode-typing',typing);ta.style.display=typing?'block':'none';canvas.style.display=typing?'none':'block';ta.value=x.page.text||'';document.querySelectorAll('[data-study-mode]').forEach(b=>b.classList.toggle('active',b.dataset.studyMode===(typing?'type':'hand')));canvas.classList.toggle('is-inactive',studyNotebookActiveTool==='none'||studyNotebookActiveTool==='moveImage');if(studyNotebookActiveTool==='moveImage'&&x.page.mode!=='type')canvas.style.pointerEvents='none';else canvas.style.pointerEvents='auto';studyNotebookRenderImages();}
+function studyNotebookApplyMode(){const x=studyNotebookCurrent(),page=document.querySelector('.studyNotebookPage'),canvas=studyNotebookCanvas(),ta=document.getElementById('studyNotebookTyping');if(!x||!page||!canvas||!ta)return;const typing=x.page.mode==='type',drawing=['pen','highlighter','eraser'].includes(studyNotebookActiveTool)&&!typing;page.classList.toggle('mode-typing',typing);page.classList.toggle('mode-drawing',drawing);ta.style.display=typing?'block':'none';canvas.style.display=typing?'none':'block';ta.value=x.page.text||'';document.querySelectorAll('[data-study-mode]').forEach(b=>b.classList.toggle('active',b.dataset.studyMode===(typing?'type':'hand')));canvas.classList.toggle('is-inactive',!drawing&&studyNotebookActiveTool!=='moveImage');canvas.style.pointerEvents=studyNotebookActiveTool==='moveImage'&&!typing?'none':'auto';canvas.style.touchAction=drawing?'none':'pan-y';studyNotebookRenderImages();}
 function studyNotebookSetText(value){const x=studyNotebookCurrent();if(!x)return;x.page.text=value;x.book.updatedAt=Date.now();save()}
 
 function studyNotebookSetTool(tool){studyNotebookActiveTool=tool;studyNotebookApplyMode();studyNotebookDraw();studyNotebookRenderImages()}
@@ -4079,6 +4079,7 @@ function studyNotebookClear(){const x=studyNotebookCurrent();if(!x||!x.page.stro
 function studyNotebookCreateCanvas(){
  const canvas=studyNotebookCanvas();if(!canvas)return;
  canvas.onpointerdown=studyNotebookPointerDown;canvas.onpointermove=studyNotebookPointerMove;canvas.onpointerup=studyNotebookPointerUp;canvas.onpointercancel=studyNotebookPointerUp;canvas.onlostpointercapture=studyNotebookPointerUp;
+ canvas.style.touchAction=['pen','highlighter','eraser'].includes(studyNotebookActiveTool)?'none':'pan-y';
  if(studyNotebookCanvasResize)window.removeEventListener('resize',studyNotebookCanvasResize);
  studyNotebookCanvasResize=()=>{if(studyNotebookCanvas())studyNotebookResizeCanvas()};
  window.addEventListener('resize',studyNotebookCanvasResize,{passive:true});studyNotebookResizeCanvas();studyNotebookApplyMode();studyNotebookRenderImages();
