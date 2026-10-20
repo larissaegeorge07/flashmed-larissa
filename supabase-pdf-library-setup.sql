@@ -1,6 +1,8 @@
 -- FlashMed: armazenamento privado para Biblioteca de Leituras
--- Execute este arquivo no Supabase Dashboard > SQL Editor, conectado ao projeto FlashMed.
--- Os arquivos ficam em pasta com o ID do usuário autenticado; não use bucket público.
+-- Versão conservadora: não remove políticas existentes.
+-- Execute no Supabase Dashboard > SQL Editor do projeto FlashMed.
+-- O bucket é privado e os arquivos devem ficar em uma pasta cujo primeiro
+-- segmento seja o ID (UUID) do usuário autenticado.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -19,44 +21,81 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
--- Recria apenas as quatro políticas específicas da Biblioteca FlashMed.
-drop policy if exists "FlashMed library read own files" on storage.objects;
-drop policy if exists "FlashMed library upload own files" on storage.objects;
-drop policy if exists "FlashMed library update own files" on storage.objects;
-drop policy if exists "FlashMed library delete own files" on storage.objects;
+-- Cria cada política somente se ainda não existir.
+-- Nenhuma política existente é apagada ou substituída.
 
-create policy "FlashMed library read own files"
-on storage.objects for select
-to authenticated
-using (
-  bucket_id = 'flashmed-pdfs'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'FlashMed library read own files'
+  ) then
+    execute $policy$
+      create policy "FlashMed library read own files"
+      on storage.objects for select
+      to authenticated
+      using (
+        bucket_id = 'flashmed-pdfs'
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+      )
+    $policy$;
+  end if;
 
-create policy "FlashMed library upload own files"
-on storage.objects for insert
-to authenticated
-with check (
-  bucket_id = 'flashmed-pdfs'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'FlashMed library upload own files'
+  ) then
+    execute $policy$
+      create policy "FlashMed library upload own files"
+      on storage.objects for insert
+      to authenticated
+      with check (
+        bucket_id = 'flashmed-pdfs'
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+      )
+    $policy$;
+  end if;
 
-create policy "FlashMed library update own files"
-on storage.objects for update
-to authenticated
-using (
-  bucket_id = 'flashmed-pdfs'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-)
-with check (
-  bucket_id = 'flashmed-pdfs'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'FlashMed library update own files'
+  ) then
+    execute $policy$
+      create policy "FlashMed library update own files"
+      on storage.objects for update
+      to authenticated
+      using (
+        bucket_id = 'flashmed-pdfs'
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+      )
+      with check (
+        bucket_id = 'flashmed-pdfs'
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+      )
+    $policy$;
+  end if;
 
-create policy "FlashMed library delete own files"
-on storage.objects for delete
-to authenticated
-using (
-  bucket_id = 'flashmed-pdfs'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
-);
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'FlashMed library delete own files'
+  ) then
+    execute $policy$
+      create policy "FlashMed library delete own files"
+      on storage.objects for delete
+      to authenticated
+      using (
+        bucket_id = 'flashmed-pdfs'
+        and (storage.foldername(name))[1] = (select auth.uid())::text
+      )
+    $policy$;
+  end if;
+end
+$$;
