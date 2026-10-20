@@ -4637,7 +4637,49 @@ async function syncDown(quiet=false){
 async function logoutFlashMed(){if(!confirm('Deseja sair do FlashMed neste computador? Seus dados sincronizados na nuvem serão preservados.'))return;try{await syncUp();const result=await cloud.auth.signOut();if(result?.error)throw result.error;for(const key of [KEY,'flashmed_safety_journal_v1']){try{localStorage.removeItem(key)}catch(e){}}for(const key of Object.keys(localStorage)){if(key.startsWith('flashmed_recovery_'))localStorage.removeItem(key)}location.reload()}catch(e){console.error('Erro ao sair do FlashMed',e);toast('Não foi possível concluir a saída. Seus dados locais foram mantidos por segurança.')}}
 function exportFlashMedRecovery(){let keys=Object.keys(localStorage).filter(k=>k.startsWith('flashmed_recovery_')).sort().reverse();if(!keys.length)return toast('Ainda não há snapshots de recuperação neste navegador');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(keys.map(k=>({key:k,data:JSON.parse(localStorage.getItem(k))})),null,2)],{type:'application/json'}));a.download='flashmed-recuperacao-'+day()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
 function exportSafetyJournal(){let snap=localStorage.getItem(FLASHMED_JOURNAL);if(!snap)return toast('Ainda não há histórico de segurança');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([snap],{type:'application/json'}));a.download='flashmed-historico-seguranca.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
-function exportDB(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='flashmed-larissa-backup.json';a.click()}function importDB(i){let f=i.files[0],r=new FileReader;r.onload=()=>{try{db=JSON.parse(r.result);save();render();toast('Backup importado')}catch{toast('Arquivo inválido')}};r.readAsText(f)}
+function exportDB(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='flashmed-larissa-backup.json';a.click()}function flashmedMergeImportedBackup(current,imported){
+  if(!current||!imported||typeof current!=='object'||typeof imported!=='object')throw new Error('Backup inválido');
+  const clone=x=>JSON.parse(JSON.stringify(x));
+  const merged=clone(current);
+  const arrayKeys=['cards','questions','bankQuestions','bankAttempts','decorebas','sessions','knowledgeNotes','knowledgeBooks','studyNotebooks','pdfLibrary','agendaEvents','reminders','quickReminders','weeklyTasks','weekSchedule'];
+  const mergeArray=(a,b,key='id')=>{const out=Array.isArray(a)?a.slice():[],seen=new Set(out.map(x=>String(x?.[key]??'')));for(const item of (Array.isArray(b)?b:[])){const id=String(item?.[key]??'');if(id&&!seen.has(id)){out.push(item);seen.add(id)}else if(!id&&!out.some(x=>JSON.stringify(x)===JSON.stringify(item)))out.push(item)}return out};
+  for(const key of arrayKeys){if(Array.isArray(imported[key]))merged[key]=mergeArray(merged[key],imported[key],key==='reminders'?'when':'id')}
+  for(const [key,value] of Object.entries(imported)){if(key==='studyPlan'||key==='deletedAgendaEventIds'||arrayKeys.includes(key)||key==='updatedAt'||key==='imageAssets')continue;if(merged[key]===undefined||merged[key]===null)merged[key]=clone(value);else if(value&&typeof value==='object'&&!Array.isArray(value)&&merged[key]&&typeof merged[key]==='object'&&!Array.isArray(merged[key])){for(const [k,v] of Object.entries(value))if(!(k in merged[key]))merged[key][k]=clone(v)}}
+  const p=merged.studyPlan&&typeof merged.studyPlan==='object'?merged.studyPlan:{};
+  const ip=imported.studyPlan&&typeof imported.studyPlan==='object'?imported.studyPlan:{};
+  for(const [key,value] of Object.entries(ip)){
+    if(key==='weeklyTasks'||key==='weekSchedule'){p[key]=mergeArray(p[key],value,'id');continue}
+    if(key==='weeklyCardOrder'&&value&&typeof value==='object'){p[key]=p[key]||{};for(const [date,ids] of Object.entries(value)){if(!Array.isArray(p[key][date]))p[key][date]=clone(ids);else p[key][date]=[...new Set([...p[key][date],...(Array.isArray(ids)?ids:[])])]}continue}
+    if((key==='weeklyStartTimes'||key==='weeklyAvailability')&&value&&typeof value==='object'){p[key]=p[key]||{};for(const [k,v] of Object.entries(value))if(!(k in p[key]))p[key][k]=v;continue}
+    if(p[key]===undefined||p[key]===null||p[key]==='')p[key]=clone(value);
+  }
+  if(Object.keys(p).length)merged.studyPlan=p;
+  merged.deletedAgendaEventIds=[...new Set([...(Array.isArray(current.deletedAgendaEventIds)?current.deletedAgendaEventIds:[]),...(Array.isArray(imported.deletedAgendaEventIds)?imported.deletedAgendaEventIds:[])].map(String))];
+  if(merged.deletedAgendaEventIds.length)merged.agendaEvents=(merged.agendaEvents||[]).filter(e=>!merged.deletedAgendaEventIds.includes(String(e.id)));
+  if(imported.imageAssets&&typeof imported.imageAssets==='object'){merged.imageAssets=merged.imageAssets||{};for(const [k,v] of Object.entries(imported.imageAssets))if(!(k in merged.imageAssets))merged.imageAssets[k]=v}
+  merged.updatedAt=Date.now();
+  return merged;
+}
+function importDB(i){
+  const f=i.files&&i.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const imported=JSON.parse(r.result);
+      if(!imported||typeof imported!=='object'||Array.isArray(imported))throw new Error('JSON inválido');
+      flashmedRecoverySnapshot('before_manual_import',db);
+      const before={tasks:(db.studyPlan?.weeklyTasks||[]).length,schedule:(db.studyPlan?.weekSchedule||[]).length,events:(db.agendaEvents||[]).length};
+      db=flashmedMergeImportedBackup(db,imported);
+      const after={tasks:(db.studyPlan?.weeklyTasks||[]).length,schedule:(db.studyPlan?.weekSchedule||[]).length,events:(db.agendaEvents||[]).length};
+      const ok=save();render();
+      if(cloud&&currentUser)syncUp();
+      toast('Recuperação mesclada: '+Math.max(0,after.tasks-before.tasks)+' tarefas, '+Math.max(0,after.schedule-before.schedule)+' blocos e '+Math.max(0,after.events-before.events)+' eventos adicionados');
+      console.info('FlashMed backup merge counts',{before,after});
+    }catch(e){console.error('Falha ao importar backup sem substituir dados',e);toast('Não foi possível mesclar esse JSON. Seus dados atuais foram mantidos.')}
+    finally{i.value=''}
+  };
+  r.readAsText(f);
+}
 
 
 // --- Caderno de Decorebas ---
