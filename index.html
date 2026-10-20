@@ -1785,6 +1785,110 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
  .side .owner{font-size:9px!important;margin:0 4px 13px!important}
 }
 
+
+/* Sidebar signature — glossy framed brand inspired by the approved concept */
+.side{
+ background:
+  radial-gradient(ellipse at 18% 8%,rgba(244,165,255,.17),transparent 34%),
+  radial-gradient(ellipse at 92% 42%,rgba(215,113,237,.12),transparent 38%),
+  linear-gradient(155deg,#43264f 0%,#382047 48%,#2d1b3b 100%)!important;
+ border-right:1px solid rgba(255,255,255,.13)!important;
+ padding:22px 15px!important;
+}
+.side .brand.brandMark{
+ position:relative!important;
+ display:flex!important;align-items:center!important;gap:13px!important;
+ margin:4px 0 0!important;padding:20px 15px!important;
+ min-height:112px!important;box-sizing:border-box!important;
+ border:1px solid rgba(255,231,255,.65)!important;
+ border-radius:25px!important;
+ background:
+  linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.035) 55%,rgba(236,139,255,.11)),
+  linear-gradient(120deg,rgba(198,127,231,.12),rgba(45,24,65,.18))!important;
+ box-shadow:0 0 0 1px rgba(235,159,255,.14),0 0 25px rgba(222,111,255,.17),inset 0 1px 0 rgba(255,255,255,.28)!important;
+ overflow:hidden!important;
+}
+.side .brand.brandMark:before{
+ content:""!important;position:absolute!important;inset:0!important;pointer-events:none!important;
+ border-radius:inherit!important;
+ background:linear-gradient(118deg,transparent 20%,rgba(255,255,255,.09) 48%,transparent 75%)!important;
+}
+.side .brand.brandMark:after{
+ content:"✦"!important;position:absolute!important;right:13px!important;bottom:8px!important;
+ color:#ffd5ff!important;font-size:15px!important;line-height:1!important;
+ text-shadow:0 0 12px #ffb9ff!important;pointer-events:none!important;
+}
+.side .brandSealImg{
+ display:block!important;position:relative!important;z-index:1!important;
+ object-fit:contain!important;width:70px!important;height:70px!important;flex:0 0 70px!important;
+ border-radius:21px!important;
+ border:1px solid rgba(255,255,255,.65)!important;
+ box-shadow:0 0 0 4px rgba(255,255,255,.06),0 0 20px rgba(243,150,255,.42)!important;
+}
+.side .brandWordmark{
+ position:relative!important;z-index:1!important;
+ font-family:'Manrope','Avenir Next',ui-sans-serif,sans-serif!important;
+ font-size:clamp(22px,1.8vw,31px)!important;font-weight:800!important;
+ letter-spacing:-1.4px!important;line-height:1!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important;
+ text-shadow:0 2px 15px rgba(255,222,255,.28)!important;
+}
+.side .owner{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+ margin:10px 0 30px!important;padding:0 2px!important;
+ color:#e9d1f0!important;font-family:'Manrope','Avenir Next',ui-sans-serif,sans-serif!important;
+ font-size:11px!important;font-weight:700!important;letter-spacing:.09em!important;
+ text-align:center!important;line-height:1.5!important;
+}
+.side .owner:before,.side .owner:after{
+ content:""!important;display:block!important;flex:1 1 20px!important;max-width:48px!important;height:1px!important;
+ background:linear-gradient(90deg,transparent,rgba(247,190,255,.8))!important;
+}
+.side .owner:after{background:linear-gradient(90deg,rgba(247,190,255,.8),transparent)!important}
+.side .navTitle{
+ color:#d7b6e5!important;font-size:11px!important;letter-spacing:.18em!important;
+ padding:18px 12px 9px!important;font-weight:800!important;
+}
+.side .nav button{
+ position:relative!important;display:flex!important;align-items:center!important;gap:13px!important;
+ min-height:66px!important;padding:12px 13px!important;margin:7px 0!important;
+ border:1px solid rgba(255,255,255,.11)!important;border-radius:23px!important;
+ background:linear-gradient(110deg,rgba(255,255,255,.045),rgba(255,255,255,.015))!important;
+ color:#f6eaf9!important;font-family:'Manrope','Avenir Next',ui-sans-serif,sans-serif!important;
+ font-size:15px!important;font-weight:700!important;text-align:left!important;
+ transition:background .2s ease,box-shadow .2s ease,transform .2s ease!important;
+}
+.side .nav button:hover{
+ background:rgba(255,255,255,.10)!important;border-color:rgba(255,208,255,.28)!important;
+ transform:translateX(2px)!important;
+}
+.side .nav button.on{
+ background:linear-gradient(110deg,rgba(255,255,255,.16),rgba(255,255,255,.075))!important;
+ border-color:rgba(255,223,255,.27)!important;
+ box-shadow:inset 5px 0 0 #f18bd4,0 7px 20px rgba(12,4,20,.12)!important;
+ color:#fff!important;
+}
+.side .nav button.on:before{
+ content:""!important;display:block!important;flex:0 0 48px!important;width:48px!important;height:48px!important;
+ margin-left:3px!important;border-radius:17px!important;
+ background:linear-gradient(145deg,#f8d9ff,#dba5ed)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.65),0 4px 16px rgba(238,153,255,.22)!important;
+}
+.side .nav button.on{padding-left:12px!important}
+@media(min-width:781px){
+ .side{padding:22px 15px!important}
+ .side .brand.brandMark{min-height:112px!important}
+}
+@media(max-width:780px){
+ .side{padding:12px 9px!important}
+ .side .brand.brandMark{gap:8px!important;min-height:72px!important;padding:10px 8px!important;border-radius:18px!important}
+ .side .brandSealImg{width:43px!important;height:43px!important;flex-basis:43px!important;border-radius:14px!important}
+ .side .brandWordmark{font-size:20px!important;letter-spacing:-.8px!important}
+ .side .owner{font-size:8px!important;letter-spacing:.04em!important;margin:8px 0 18px!important}
+ .side .nav button{min-height:48px!important;padding:8px!important;gap:7px!important;border-radius:15px!important;font-size:12px!important}
+ .side .nav button.on:before{flex-basis:31px!important;width:31px!important;height:31px!important;border-radius:11px!important}
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><img class="brandSealImg" src="assets/flashmed-symbol.svg" alt="Símbolo exclusivo FlashMed"><span class="brandWordmark">FlashMed</span></div><div class="owner">By Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
