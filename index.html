@@ -2595,6 +2595,40 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   #mobileMorePanel .mobileCategoryHeroIcon{flex-basis:56px!important;width:56px!important;height:56px!important;min-width:56px!important}
 }
 
+
+/* Restaura o menu de categorias compacto e horizontal — correção após feedback visual */
+@media(max-width:1100px){
+  #mobileMorePanel .mobileCategoryCard{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:flex-start!important;gap:12px!important;
+    min-height:88px!important;height:auto!important;width:100%!important;
+    margin:8px 0!important;padding:12px 14px!important;
+    text-align:left!important;
+  }
+  #mobileMorePanel .mobileCategoryIcon{
+    flex:0 0 48px!important;width:48px!important;height:48px!important;
+    margin:0!important;border-radius:15px!important;
+  }
+  #mobileMorePanel .mobileCategoryText{
+    display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+    align-items:flex-start!important;justify-content:center!important;
+    gap:4px!important;min-width:0!important;text-align:left!important;
+  }
+  #mobileMorePanel .mobileCategoryText b{
+    font-size:14px!important;line-height:1.3!important;text-align:left!important;
+  }
+  #mobileMorePanel .mobileCategoryText small{
+    font-size:12px!important;line-height:1.4!important;text-align:left!important;
+  }
+  #mobileMorePanel .mobileCategoryArrow{
+    flex:0 0 20px!important;margin-left:auto!important;font-size:25px!important;
+    align-self:center!important;
+  }
+  #mobileMorePanel .mobileCategoryPage .mobileCategoryIntro{
+    flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+  }
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark brandImageMark"><img class="brandFullLogo" src="assets/flashmed-logo.png?v=1" alt="FlashMed — By Larissa Fernandes"></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
