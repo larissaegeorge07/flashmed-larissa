@@ -2119,6 +2119,37 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   }
 }
 
+
+/* Correção específica: centralizar a logo original dentro da barra lateral no computador */
+@media (min-width:781px){
+  .side .brand.brandMark.brandImageMark{
+    display:flex!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0 0 18px!important;
+    padding:0!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+    overflow:visible!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  .side .brand.brandMark.brandImageMark .brandFullLogo{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    max-height:none!important;
+    margin:0 auto!important;
+    transform:none!important;
+    object-fit:contain!important;
+    object-position:center!important;
+  }
+}
+
 /* Final mobile bottom navigation polish: consistent icon, label, spacing and active state */
 @media (max-width:780px){
   .side .nav{
