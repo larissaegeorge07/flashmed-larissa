@@ -3389,17 +3389,22 @@ function fmDashboardWeekHtml(){
  return '<section class="panel fmWeekPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">VISÃO DA SEMANA</span><h3>Calendário da semana</h3><p class="muted">Todas as atividades da semana, com horários quando informados.</p></div><button class="btn ghost" onclick="go(\'Planejador de Estudos\')">Editar semana ↗</button></div><div class="fmWeekGrid">'+cells+'</div></section>';
 }
 const fmGoSeminars=[
- {date:'2026-10-21',title:'Sangramento uterino anormal',names:'Nilo e Lindinês'},
- {date:'2026-10-28',title:'Métodos contraceptivos',names:'Matheus, Arthur e Vinicius'},
- {date:'2026-11-04',title:'HPV e câncer do colo uterino',names:'Brenno, Evailson e Italo'},
- {date:'2026-11-11',title:'Infecções sexualmente transmissíveis',names:'Henrique, Guilherme e Luana'},
- {date:'2026-11-16',title:'Sangramento da primeira metade da gestação',names:'Gabriela Souza e Larissa',mine:true},
- {date:'2026-11-18',title:'Climatério e TRH',names:'Alice, Eduarda e Cleiton'},
- {date:'2026-11-25',title:'Endometriose',names:'Gabriela Souza e Larissa',mine:true},
- {date:'2026-11-30',title:'TORCHS (sífilis, toxoplasmose e CMV)',names:'Arthur e Evailson'},
- {date:'2026-12-02',title:'Massas anexiais e câncer de ovário',names:'Gabriella Almeida e Maria'},
- {date:'2026-12-07',title:'Isoimunização ABO/Rh',names:'Nilo e Lindi'},
- {date:'2026-12-09',title:'Alterações funcionais benignas das mamas',names:'Aula do Prof. Thiago'}
+ {date:'2026-10-19',area:'Obstetrícia',title:'Hemorragia pós-parto',names:'Gabriella Almeida e Maria José'},
+ {date:'2026-10-21',area:'Ginecologia',title:'Sangramento uterino anormal',names:'Nilo e Lindinês'},
+ {date:'2026-10-26',area:'Obstetrícia',title:'Diabetes gestacional',names:'Brenno e Italo'},
+ {date:'2026-10-28',area:'Ginecologia',title:'Métodos contraceptivos',names:'Matheus, Arthur e Vinicius'},
+ {date:'2026-11-02',area:'Obstetrícia',title:'Síndromes hipertensivas na gestação',names:'Henrique, Luis Guilherme e Alice'},
+ {date:'2026-11-04',area:'Ginecologia',title:'HPV e câncer do colo uterino',names:'Brenno, Evailson e Italo'},
+ {date:'2026-11-09',area:'Obstetrícia',title:'Rotura prematura das membranas ovulares e trabalho de parto prematuro',names:'Luana, Eduarda e Cleiton'},
+ {date:'2026-11-11',area:'Ginecologia',title:'Infecções sexualmente transmissíveis',names:'Henrique, Guilherme e Luana'},
+ {date:'2026-11-16',area:'Obstetrícia',title:'Sangramento da primeira metade da gestação',names:'Gabriela Souza e Larissa',mine:true},
+ {date:'2026-11-18',area:'Ginecologia',title:'Climatério e TRH',names:'Alice, Eduarda e Cleiton'},
+ {date:'2026-11-23',area:'Obstetrícia',title:'Sangramento da segunda metade da gestação',names:'Matheus e Vinicius'},
+ {date:'2026-11-25',area:'Ginecologia',title:'Endometriose',names:'Gabriela Souza e Larissa',mine:true},
+ {date:'2026-11-30',area:'Obstetrícia',title:'TORCHS (sífilis, toxoplasmose e CMV)',names:'Arthur e Evailson'},
+ {date:'2026-12-02',area:'Ginecologia',title:'Massas anexiais e câncer de ovário',names:'Gabriella Almeida e Maria'},
+ {date:'2026-12-07',area:'Obstetrícia',title:'Isoimunização ABO/Rh',names:'Nilo e Lindi'},
+ {date:'2026-12-09',area:'Ginecologia',title:'Alterações funcionais benignas das mamas',names:'Aula do Prof. Thiago'}
 ];
 function fmToggleSeminarDone(date,checked){
  db.fmSeminarsDone=db.fmSeminarsDone||{};
@@ -3410,7 +3415,11 @@ function fmToggleSeminarDone(date,checked){
 }
 function fmDashboardSeminarsHtml(){
  const done=db.fmSeminarsDone||{};
- return '<section class="panel fmSeminarPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">ACOMPANHAMENTO</span><h3>Checklist de seminários</h3><p class="muted">Marque cada apresentação quando ela acontecer.</p></div><span class="tag">'+fmGoSeminars.filter(x=>done[x.date]).length+'/'+fmGoSeminars.length+' concluídos</span></div><div class="fmSeminarList">'+fmGoSeminars.map(x=>'<label class="fmSeminarRow'+(done[x.date]?' isDone':'')+'"><input type="checkbox" '+(done[x.date]?'checked':'')+' onchange="fmToggleSeminarDone(\''+x.date+'\',this.checked)"><span class="fmSeminarDate">'+esc(agendaDateFromKey(x.date)?.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})||'')+'</span><span class="fmSeminarName"><b>'+esc(x.title)+'</b><small>'+esc(x.names)+(x.mine?' · SEU SEMINÁRIO':'')+'</small></span></label>').join('')+'</div></section>';
+ const row=x=>'<label class="fmSeminarRow'+(done[x.date]?' isDone':'')+'"><input type="checkbox" '+(done[x.date]?'checked':'')+' onchange="fmToggleSeminarDone(\''+x.date+'\',this.checked)"><span class="fmSeminarDate">'+esc(agendaDateFromKey(x.date)?.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})||'')+'</span><span class="fmSeminarName"><b>'+esc(x.title)+'</b><small>'+esc(x.names)+(x.mine?' · SEU SEMINÁRIO':'')+'</small></span></label>';
+ const obst=fmGoSeminars.filter(x=>x.area==='Obstetrícia');
+ const gineco=fmGoSeminars.filter(x=>x.area==='Ginecologia');
+ const completed=fmGoSeminars.filter(x=>done[x.date]).length;
+ return '<section class="panel fmSeminarPanel"><div class="fmWeekTop"><div><span class="fmEditorialKicker">ACOMPANHAMENTO</span><h3>Checklist de seminários</h3><p class="muted">Marque cada apresentação quando ela acontecer.</p></div><span class="tag">'+completed+'/'+fmGoSeminars.length+' concluídos</span></div><div class="fmSeminarSections"><section class="fmSeminarGroup fmSeminarObst"><h4>🤰 Obstetrícia <span>'+obst.filter(x=>done[x.date]).length+'/'+obst.length+'</span></h4><div class="fmSeminarList">'+obst.map(row).join('')+'</div></section><section class="fmSeminarGroup fmSeminarGyn"><h4>🌸 Ginecologia <span>'+gineco.filter(x=>done[x.date]).length+'/'+gineco.length+'</span></h4><div class="fmSeminarList">'+gineco.map(row).join('')+'</div></section></div></section>';
 }
 
 function fmHideHighPriorityFromButton(button){if(!button)return;fmHideHighPriorityItem(button.dataset.source,button.dataset.itemId)}
