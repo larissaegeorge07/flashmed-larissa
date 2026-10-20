@@ -2018,6 +2018,74 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
  .side .brandFullLogo{width:112%!important;margin-left:-6%!important}
 }
 
+
+/* Mobile layout stabilization — override accumulated responsive rules without changing desktop */
+@media (max-width:780px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden}
+  body{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
+  .app{display:block!important;width:100%;min-width:0;min-height:100dvh}
+  .side{position:relative!important;top:auto!important;left:auto!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;transform:none!important;padding:10px 14px 4px!important;margin:0!important;border:0!important;border-radius:0 0 18px 18px}
+  .side .brand.brandMark.brandImageMark{width:100%!important;max-width:100%!important;margin:0 auto 4px!important;padding:0!important;display:flex!important;justify-content:center!important;align-items:center!important;overflow:hidden!important}
+  .side .brandFullLogo{display:block!important;width:min(100%,300px)!important;max-width:100%!important;height:auto!important;max-height:82px!important;object-fit:contain!important;object-position:center!important;margin:0 auto!important}
+  .side .nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;z-index:1200!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:stretch!important;gap:3px!important;overflow:visible!important;margin:0!important;padding:6px 7px calc(6px + env(safe-area-inset-bottom))!important;box-sizing:border-box!important;border-radius:0!important}
+  .side .nav button,.side .nav button[data-mobile-more]{display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:2px!important;min-width:0!important;width:100%!important;max-width:100%!important;height:54px!important;margin:0!important;padding:4px 1px!important;border:0!important;border-radius:10px!important;box-sizing:border-box!important;text-align:center!important;white-space:normal!important;overflow:hidden!important;font-size:10px!important;line-height:1.1!important}
+  .side .nav button[data-mobile-extra="1"]{display:none!important}
+  .side .nav button .navIcon{display:block!important;flex:0 0 auto!important;font-size:19px!important;line-height:21px!important;margin:0!important}
+  .side .nav button .navLabel{display:block!important;min-width:0!important;width:100%!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;font-size:10px!important;line-height:1.15!important}
+  .side .nav button .navLabelFull{display:none!important}
+  .side .nav button .navLabelShort{display:inline!important}
+  .side .nav button.on{background:rgba(255,255,255,.18)!important;box-shadow:inset 0 -2px #ff9cca!important}
+  .main{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:16px 12px 24px!important;overflow-x:clip}
+  .top{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0!important;margin-bottom:14px}
+  .top>div:first-child{min-width:0;flex:1}
+  .top h1{font-size:clamp(21px,6vw,28px)!important;line-height:1.15!important;margin:0 0 5px!important;overflow-wrap:anywhere}
+  .top>.row{min-width:0;max-width:48%;justify-content:flex-end;gap:6px!important;flex-wrap:wrap}
+  .clock{font-size:13px!important}
+  .panel,.kpi{min-width:0!important;max-width:100%;padding:14px!important;border-radius:16px!important}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin:12px 0!important}
+  .grid .kpi b{font-size:clamp(19px,5vw,25px)!important;overflow-wrap:anywhere}
+  .cols,.split{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  .subjectGrid,.deck{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  .missionGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  .knowledgeBookGrid,.knowledgeNotesGrid{grid-template-columns:minmax(0,1fr)!important}
+  .row{min-width:0;max-width:100%;gap:7px}
+  .row>*{min-width:0;max-width:100%}
+  input,textarea,select{max-width:100%;min-width:0}
+  .field{width:100%!important;min-width:0!important}
+  .bankExamMulti{min-width:0!important;width:100%;max-width:100%}
+  .bankQuestion{font-size:16px;line-height:1.65}
+  .bankChoice{padding:10px!important;gap:8px!important}
+  .questionTools{top:4px!important;max-width:100%;overflow-x:clip}
+  .bankToolGroups,.bankToolGroup{min-width:0;max-width:100%}
+  .metricTable{display:block;max-width:100%;overflow-x:auto}
+  .chart{gap:5px;height:155px}
+  .flash{min-height:260px!important;padding:18px!important}
+  .media img,.media video,.media iframe,.rich img{max-width:100%!important}
+  iframe{max-width:100%}
+  #mobileMorePanel{bottom:calc(76px + env(safe-area-inset-bottom))!important;max-height:calc(100dvh - 115px - env(safe-area-inset-bottom))!important;overflow-y:auto!important}
+  .mobileMoreItem{min-width:0!important;overflow-wrap:anywhere}
+  .sidebarToggle{display:none!important}
+}
+@media(max-width:480px){
+  .main{padding:13px 10px 22px!important}
+  .top{align-items:flex-start!important}
+  .top>.row .cloud{display:none!important}
+  .grid,.subjectGrid,.deck{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .panel,.kpi{padding:12px!important}
+  .missionGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .side .brandFullLogo{max-height:70px!important;width:min(100%,260px)!important}
+  .side .nav{grid-template-columns:repeat(5,minmax(0,1fr))!important;padding-left:4px!important;padding-right:4px!important}
+  .side .nav button,.side .nav button[data-mobile-more]{height:52px!important;font-size:9px!important}
+  .side .nav button .navLabel{font-size:9px!important}
+  .side .nav button .navIcon{font-size:18px!important;line-height:20px!important}
+}
+@media(max-width:350px){
+  .main{padding-left:8px!important;padding-right:8px!important}
+  .side .nav button .navIcon{font-size:17px!important}
+  .side .nav button .navLabel{font-size:8px!important}
+  .grid,.subjectGrid,.deck,.missionGrid{grid-template-columns:minmax(0,1fr)!important}
+  .top h1{font-size:20px!important}
+}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark brandImageMark"><img class="brandFullLogo" src="assets/flashmed-logo.png?v=1" alt="FlashMed — By Larissa Fernandes"></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
