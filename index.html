@@ -3507,3 +3507,35 @@ bootAuth().catch(function(e){
  const gate=document.getElementById('authGate');
  if(gate)gate.classList.remove('hidden');
 });</script></body></html>
+<style>
+
+/* Dashboard: eliminar coluna vazia na área de seminários e compromissos */
+.fmDashboardPlanningGrid{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr)!important;
+ gap:10px!important;
+ align-items:start!important;
+ margin:0 0 10px!important;
+}
+.fmDashboardPlanningGrid .fmUpcomingPanel,
+.fmDashboardPlanningGrid .fmSeminarPanel,
+.fmDashboardPlanningGrid .fmTripsPanel{
+ grid-column:1!important;
+ grid-row:auto!important;
+ height:auto!important;
+ min-width:0!important;
+}
+.fmDashboardPlanningGrid .fmSeminarList{
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ column-gap:20px!important;
+}
+.fmDashboardPlanningGrid .fmSeminarRow{padding:7px 2px!important}
+.fmDashboardPlanningGrid .fmSeminarPanel{width:100%!important}
+@media(min-width:1200px){
+ .fmDashboardPlanningGrid .fmSeminarList{grid-template-columns:repeat(3,minmax(0,1fr))!important;column-gap:18px!important}
+}
+@media(max-width:650px){
+ .fmDashboardPlanningGrid .fmSeminarList{grid-template-columns:minmax(0,1fr)!important}
+}
+
+</style>
