@@ -4337,6 +4337,21 @@ function flashmedMergePersonal(remote,local){
   for(const item of b){let id=String(item?.[idKey]??'');if(!id||seen.has(id))continue;a.push(item);seen.add(id);changed=true}
   remote[key]=a;
  }
+ // Study notebooks: merge the most recently edited full notebook so page strokes sync instead of only merging IDs.
+ if(Array.isArray(local.studyNotebooks)){
+  remote.studyNotebooks=Array.isArray(remote.studyNotebooks)?remote.studyNotebooks:[];
+  const studyById=new Map(remote.studyNotebooks.map(x=>[String(x.id),x]));
+  for(const item of local.studyNotebooks){
+   const id=String(item?.id??'');if(!id)continue;
+   const old=studyById.get(id);
+   if(!old){remote.studyNotebooks.push(item);studyById.set(id,item);changed=true}
+   else if((item.updatedAt||item.createdAt||0)>(old.updatedAt||old.createdAt||0)){
+    const ix=remote.studyNotebooks.findIndex(x=>String(x.id)===id);
+    if(ix>=0)remote.studyNotebooks[ix]=item;
+    studyById.set(id,item);changed=true;
+   }
+  }
+ }
  // PDF library metadata: preserve the most recently edited version for each file.
  if(Array.isArray(local.pdfLibrary)){remote.pdfLibrary=Array.isArray(remote.pdfLibrary)?remote.pdfLibrary:[];const pdfById=new Map(remote.pdfLibrary.map(x=>[String(x.id),x]));for(const item of local.pdfLibrary){const id=String(item?.id??'');if(!id)continue;const old=pdfById.get(id);if(!old){remote.pdfLibrary.push(item);pdfById.set(id,item);changed=true}else if((item.updatedAt||0)>(old.updatedAt||0)){const ix=remote.pdfLibrary.findIndex(x=>String(x.id)===id);if(ix>=0)remote.pdfLibrary[ix]=item;pdfById.set(id,item);changed=true}}}
  // Keep deletion markers in the cloud too, so removed calendar items do not return on the next sync.
