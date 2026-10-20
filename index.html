@@ -1889,6 +1889,27 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
  .side .nav button.on:before{flex-basis:31px!important;width:31px!important;height:31px!important;border-radius:11px!important}
 }
 
+
+/* Use the real navigation glyph inside the highlighted icon tile */
+.side .nav button.on:before{content:none!important;display:none!important}
+.side .nav button .navIcon{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 43px!important;width:43px!important;height:43px!important;
+ border-radius:14px!important;color:#e8d3f2!important;
+ background:rgba(255,255,255,.055)!important;
+ font-size:20px!important;line-height:1!important;
+ transition:background .2s ease,color .2s ease,box-shadow .2s ease!important;
+}
+.side .nav button.on .navIcon{
+ color:#49295c!important;
+ background:linear-gradient(145deg,#fbe2ff,#dba9ef)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.68),0 4px 17px rgba(235,151,255,.26)!important;
+}
+.side .nav button .navLabel{display:block!important;min-width:0!important}
+@media(max-width:780px){
+ .side .nav button .navIcon{flex-basis:31px!important;width:31px!important;height:31px!important;border-radius:10px!important;font-size:16px!important}
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><img class="brandSealImg" src="assets/flashmed-symbol.svg" alt="Símbolo exclusivo FlashMed"><span class="brandWordmark">FlashMed</span></div><div class="owner">By Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
