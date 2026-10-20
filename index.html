@@ -3908,13 +3908,26 @@ function flashmedRepairCardSubjects(){
 
 async function bootAuth(){
  cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
- flashmedPruneRecoverySnapshots(false);
- await occlusionLoadDedicatedCards(db);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db);
- let z=await cloud.auth.getSession(),session=z.data.session;
+ let session=null;
+ try{const z=await cloud.auth.getSession();session=z.data?.session||null}catch(e){console.error('FlashMed session check',e)}
  if(session&&session.user){
-  currentUser=session.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
-  await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
- }else{authGate.classList.remove('hidden');appRoot.classList.add('authHidden')}
+  currentUser=session.user;
+  authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
+  try{
+   flashmedPruneRecoverySnapshots(false);
+   await occlusionLoadDedicatedCards(db);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db);
+   await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+  }catch(e){
+   console.error('FlashMed pós-login: falha ao carregar dados',e);
+   authGate.classList.add('hidden');appRoot.classList.remove('authHidden');
+   const view=document.getElementById('view');
+   if(view&&!view.innerHTML.trim())view.innerHTML='<section class="panel"><h2>Você entrou no FlashMed</h2><p>O acesso foi confirmado, mas uma parte dos dados não carregou. Atualize a página para tentar novamente. Seus dados na nuvem não foram apagados.</p></section>';
+   const status=document.getElementById('saveState');if(status)status.textContent='falha ao carregar alguns dados';
+  }
+ }else{
+  try{flashmedPruneRecoverySnapshots(false);await occlusionLoadDedicatedCards(db);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db)}catch(e){console.warn('FlashMed recuperação local',e)}
+  authGate.classList.remove('hidden');appRoot.classList.add('authHidden');
+ }
 }
 loginBtn.onclick=async function(){
  authError.textContent='';
@@ -3932,11 +3945,18 @@ loginBtn.onclick=async function(){
   }
   if(!z.data?.user)throw new Error('O login não retornou uma sessão. Tente novamente.');
   currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
-  await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+  try{
+   await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+  }catch(postLoginError){
+   console.error('FlashMed: login confirmado, mas houve falha ao carregar dados',postLoginError);
+   authGate.classList.add('hidden');appRoot.classList.remove('authHidden');
+   const view=document.getElementById('view');
+   if(view&&!view.innerHTML.trim())view.innerHTML='<section class="panel"><h2>Login realizado</h2><p>Seu acesso foi confirmado. Uma parte dos dados não carregou; atualize a página para tentar novamente. Seus dados na nuvem não foram apagados.</p></section>';
+   authError.textContent='';
+  }
  }catch(e){
   console.error('FlashMed login',e);
-  authGate.classList.remove('hidden');appRoot.classList.add('authHidden');
-  authError.textContent='Não foi possível concluir o acesso. Verifique a conexão e tente novamente. Detalhe: '+(e?.message||'erro inesperado');
+  authError.textContent='Não foi possível entrar: '+(e?.message||'verifique a conexão e tente novamente.');
  }finally{
   loginBtn.disabled=false;loginBtn.textContent='Entrar';signupBtn.disabled=false;
  }
