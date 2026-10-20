@@ -4641,24 +4641,59 @@ function exportDB(){let a=document.createElement('a');a.href=URL.createObjectURL
   if(!current||!imported||typeof current!=='object'||typeof imported!=='object')throw new Error('Backup inválido');
   const clone=x=>JSON.parse(JSON.stringify(x));
   const merged=clone(current);
-  const arrayKeys=['cards','questions','bankQuestions','bankAttempts','decorebas','sessions','knowledgeNotes','knowledgeBooks','studyNotebooks','pdfLibrary','agendaEvents','reminders','quickReminders','weeklyTasks','weekSchedule'];
-  const mergeArray=(a,b,key='id')=>{const out=Array.isArray(a)?a.slice():[],seen=new Set(out.map(x=>String(x?.[key]??'')));for(const item of (Array.isArray(b)?b:[])){const id=String(item?.[key]??'');if(id&&!seen.has(id)){out.push(item);seen.add(id)}else if(!id&&!out.some(x=>JSON.stringify(x)===JSON.stringify(item)))out.push(item)}return out};
-  for(const key of arrayKeys){if(Array.isArray(imported[key]))merged[key]=mergeArray(merged[key],imported[key],key==='reminders'?'when':'id')}
-  for(const [key,value] of Object.entries(imported)){if(key==='studyPlan'||key==='deletedAgendaEventIds'||arrayKeys.includes(key)||key==='updatedAt'||key==='imageAssets')continue;if(merged[key]===undefined||merged[key]===null)merged[key]=clone(value);else if(value&&typeof value==='object'&&!Array.isArray(value)&&merged[key]&&typeof merged[key]==='object'&&!Array.isArray(merged[key])){for(const [k,v] of Object.entries(value))if(!(k in merged[key]))merged[key][k]=clone(v)}}
-  const p=merged.studyPlan&&typeof merged.studyPlan==='object'?merged.studyPlan:{};
-  const ip=imported.studyPlan&&typeof imported.studyPlan==='object'?imported.studyPlan:{};
-  for(const [key,value] of Object.entries(ip)){
-    if(key==='weeklyTasks'||key==='weekSchedule'){p[key]=mergeArray(p[key],value,'id');continue}
-    if(key==='weeklyCardOrder'&&value&&typeof value==='object'){p[key]=p[key]||{};for(const [date,ids] of Object.entries(value)){if(!Array.isArray(p[key][date]))p[key][date]=clone(ids);else p[key][date]=[...new Set([...p[key][date],...(Array.isArray(ids)?ids:[])])]}continue}
-    if((key==='weeklyStartTimes'||key==='weeklyAvailability')&&value&&typeof value==='object'){p[key]=p[key]||{};for(const [k,v] of Object.entries(value))if(!(k in p[key]))p[key][k]=v;continue}
-    if(p[key]===undefined||p[key]===null||p[key]==='')p[key]=clone(value);
+  const uniqueMerge=(existing,incoming,key='id')=>{
+    const out=Array.isArray(existing)?existing.slice():[];
+    const seen=new Set(out.map(x=>String(x?.[key]??'')));
+    let added=0;
+    for(const item of (Array.isArray(incoming)?incoming:[])){
+      const id=String(item?.[key]??'');
+      if(id&&seen.has(id))continue;
+      if(id)seen.add(id);
+      out.push(clone(item));added++;
+    }
+    return {items:out,added};
+  };
+  const result={tasks:0,blocks:0,events:0,reminders:0};
+  const currentPlan=merged.studyPlan&&typeof merged.studyPlan==='object'?merged.studyPlan:{};
+  const importPlan=imported.studyPlan&&typeof imported.studyPlan==='object'?imported.studyPlan:{};
+  const plan=clone(currentPlan);
+  for(const key of ['weeklyTasks','weekSchedule']){
+    const res=uniqueMerge(plan[key],importPlan[key],'id');
+    plan[key]=res.items;
+    result[key==='weeklyTasks'?'tasks':'blocks']=res.added;
   }
-  if(Object.keys(p).length)merged.studyPlan=p;
-  merged.deletedAgendaEventIds=[...new Set([...(Array.isArray(current.deletedAgendaEventIds)?current.deletedAgendaEventIds:[]),...(Array.isArray(imported.deletedAgendaEventIds)?imported.deletedAgendaEventIds:[])].map(String))];
-  if(merged.deletedAgendaEventIds.length)merged.agendaEvents=(merged.agendaEvents||[]).filter(e=>!merged.deletedAgendaEventIds.includes(String(e.id)));
-  if(imported.imageAssets&&typeof imported.imageAssets==='object'){merged.imageAssets=merged.imageAssets||{};for(const [k,v] of Object.entries(imported.imageAssets))if(!(k in merged.imageAssets))merged.imageAssets[k]=v}
+  for(const key of ['weeklyCardOrder']){
+    const a=plan[key]&&typeof plan[key]==='object'?plan[key]:{};
+    const b=importPlan[key]&&typeof importPlan[key]==='object'?importPlan[key]:{};
+    plan[key]=clone(a);
+    for(const [date,ids] of Object.entries(b)){
+      if(!Array.isArray(plan[key][date]))plan[key][date]=clone(ids);
+      else plan[key][date]=[...new Set([...plan[key][date],...(Array.isArray(ids)?ids:[])])];
+    }
+  }
+  for(const key of ['weeklyStartTimes','weeklyAvailability']){
+    const a=plan[key]&&typeof plan[key]==='object'?plan[key]:{};
+    const b=importPlan[key]&&typeof importPlan[key]==='object'?importPlan[key]:{};
+    plan[key]=clone(a);
+    for(const [k,v] of Object.entries(b))if(!(k in plan[key]))plan[key][k]=clone(v);
+  }
+  for(const [key,value] of Object.entries(importPlan)){
+    if(['weeklyTasks','weekSchedule','weeklyCardOrder','weeklyStartTimes','weeklyAvailability'].includes(key))continue;
+    if(plan[key]===undefined||plan[key]===null||plan[key]==='')plan[key]=clone(value);
+  }
+  merged.studyPlan=plan;
+  const deleted=new Set((Array.isArray(merged.deletedAgendaEventIds)?merged.deletedAgendaEventIds:[]).map(String));
+  const agenda=uniqueMerge((merged.agendaEvents||[]).filter(e=>!deleted.has(String(e.id))), (imported.agendaEvents||[]).filter(e=>!deleted.has(String(e.id))),'id');
+  merged.agendaEvents=agenda.items;
+  result.events=agenda.added;
+  // Recover quick reminders only if the backup actually contains them; this backup does not,
+  // so existing quick reminders are deliberately left untouched.
+  if(Array.isArray(imported.quickReminders)){
+    const qr=uniqueMerge(merged.quickReminders,imported.quickReminders,'id');
+    merged.quickReminders=qr.items;result.reminders=qr.added;
+  }
   merged.updatedAt=Date.now();
-  return merged;
+  return {data:merged,counts:result};
 }
 function importDB(i){
   const f=i.files&&i.files[0];if(!f)return;
@@ -4666,23 +4701,22 @@ function importDB(i){
   r.onload=()=>{
     try{
       const imported=JSON.parse(r.result);
-      if(!imported||typeof imported!=='object'||Array.isArray(imported))throw new Error('JSON inválido');
-      flashmedRecoverySnapshot('before_manual_import',db);
-      const before={tasks:(db.studyPlan?.weeklyTasks||[]).length,schedule:(db.studyPlan?.weekSchedule||[]).length,events:(db.agendaEvents||[]).length};
-      db=flashmedMergeImportedBackup(db,imported);
-      const after={tasks:(db.studyPlan?.weeklyTasks||[]).length,schedule:(db.studyPlan?.weekSchedule||[]).length,events:(db.agendaEvents||[]).length};
-      const ok=save();render();
+      if(!imported||typeof imported!=='object'||Array.isArray(imported)||!imported.studyPlan&&!Array.isArray(imported.agendaEvents))throw new Error('JSON não contém planejamento ou agenda');
+      flashmedRecoverySnapshot('before_planner_agenda_recovery',db);
+      const result=flashmedMergeImportedBackup(db,imported);
+      db=result.data;
+      const saved=save();
+      render();
       if(cloud&&currentUser)syncUp();
-      toast('Recuperação mesclada: '+Math.max(0,after.tasks-before.tasks)+' tarefas, '+Math.max(0,after.schedule-before.schedule)+' blocos e '+Math.max(0,after.events-before.events)+' eventos adicionados');
-      console.info('FlashMed backup merge counts',{before,after});
-    }catch(e){console.error('Falha ao importar backup sem substituir dados',e);toast('Não foi possível mesclar esse JSON. Seus dados atuais foram mantidos.')}
+      const c=result.counts;
+      const msg='Recuperação parcial concluída: '+c.tasks+' tarefas, '+c.blocks+' blocos do cronograma e '+c.events+' eventos da agenda adicionados'+(saved?'.':' . O armazenamento principal está cheio; o FlashMed tentará proteger os dados no backup de emergência e sincronizar na nuvem.');
+      toast(msg);
+      console.info('FlashMed planner/agenda recovery',c,'local save:',saved);
+    }catch(e){console.error('Falha ao mesclar backup de planejamento/agenda',e);toast('Não foi possível mesclar o backup. Os dados atuais foram mantidos.')}
     finally{i.value=''}
   };
   r.readAsText(f);
 }
-
-
-// --- Caderno de Decorebas ---
 function decorebaSuggestion(q){let ans=q.type==='short'?(q.expected||''):(q.alternatives?.[q.correctIndex]||'');let topic=q.topic||q.area||'Este tema';return ans?`${topic}: ${String(ans).replace(/\s+/g,' ').trim()}`:`${topic}: registre aqui o critério, valor, dose ou associação que precisa lembrar.`}
 function addDecorebaFromBank(id){let q=(db.bankQuestions||[]).find(x=>x.id===id);if(!q)return;db.decorebas=db.decorebas||[];let old=db.decorebas.find(x=>x.questionId===id);if(old)return toast('Essa questão já está no Caderno de Decorebas ♡');let suggestion=decorebaSuggestion(q),phrase=prompt('📒 Qual é a frase que você precisa decorar?\n\nEdite a sugestão abaixo para ficar do seu jeito:',suggestion);if(!phrase||!phrase.trim())return;db.decorebas.push({id:Date.now(),questionId:id,exam:q.exam||'',number:q.number||'',area:q.area||'',topic:q.topic||'',text:phrase.trim(),createdAt:Date.now(),mastered:false});save();toast('Decoreba salva no seu caderno 🩷')}
 function toggleDecoreba(id){let d=(db.decorebas||[]).find(x=>x.id==id);if(!d)return;d.mastered=!d.mastered;save();render()}
