@@ -2236,6 +2236,126 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   .side .nav>button,.side .nav>button[data-mobile-more]{border-radius:9px!important}
   .side .nav>button .navLabel{font-size:8px!important;letter-spacing:-.035em!important}
 }
+
+/* FlashMed mobile drawer: alignment, contrast and safe-area fixes (Oct 2026) */
+@media (max-width:780px){
+  .mobileMorePanel.show{
+    left:10px!important;right:10px!important;width:auto!important;
+    max-width:none!important;box-sizing:border-box!important;
+    padding:18px 14px calc(18px + env(safe-area-inset-bottom))!important;
+    background:#fffdfd!important;color:#35202d!important;
+    border:1px solid #e4c5d6!important;border-radius:24px!important;
+    box-shadow:0 18px 48px rgba(47,18,36,.30)!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    max-height:calc(100dvh - 104px - env(safe-area-inset-bottom))!important;
+  }
+  .mobileMorePanel .mobileMoreHead{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:12px!important;padding:0 2px 14px!important;
+    border-bottom:1px solid #d9c4d0!important;margin-bottom:12px!important;
+  }
+  .mobileMorePanel .mobileMoreHead small{
+    display:block!important;color:#743052!important;font-size:11px!important;
+    font-weight:900!important;letter-spacing:.12em!important;line-height:1.4!important;
+  }
+  .mobileMorePanel .mobileMoreHead b{
+    display:block!important;color:#35202d!important;font-size:18px!important;line-height:1.25!important;
+  }
+  .mobileMorePanel .mobileMoreHead button{
+    flex:0 0 38px!important;width:38px!important;height:38px!important;
+    display:grid!important;place-items:center!important;background:#f5e5ef!important;
+    color:#632744!important;border:1px solid #e8cada!important;border-radius:12px!important;
+  }
+  .mobileMorePanel .mobileCategoryHint{
+    color:#705666!important;font-size:13px!important;margin:12px 2px!important;
+  }
+  .mobileMorePanel .mobileCategoryCard{
+    display:flex!important;align-items:center!important;gap:12px!important;
+    min-height:68px!important;margin:8px 0!important;padding:12px!important;
+    border:1px solid #e5cbd9!important;border-radius:16px!important;
+    background:#fff!important;color:#35202d!important;box-shadow:0 3px 10px #57243b0d!important;
+  }
+  .mobileMorePanel .mobileCategoryIcon{
+    display:grid!important;place-items:center!important;flex:0 0 44px!important;
+    width:44px!important;height:44px!important;border-radius:14px!important;
+    background:#f2dced!important;color:#632744!important;
+  }
+  .mobileMorePanel .mobileCategoryIcon svg,
+  .mobileMorePanel .mobileCategoryHeroIcon svg{
+    display:block!important;width:24px!important;height:24px!important;
+    stroke:currentColor!important;
+  }
+  .mobileMorePanel .mobileCategoryText{display:grid!important;gap:4px!important;min-width:0!important}
+  .mobileMorePanel .mobileCategoryText b{color:#4b2038!important;font-size:13px!important;line-height:1.3!important}
+  .mobileMorePanel .mobileCategoryText small{color:#725a69!important;font-size:11px!important;line-height:1.4!important}
+  .mobileMorePanel .mobileCategoryArrow{color:#a52f70!important;font-size:27px!important}
+  .mobileMorePanel .mobileCategoryPage{min-width:0!important;width:100%!important}
+  .mobileMorePanel .mobileCategoryBack{
+    display:inline-flex!important;align-items:center!important;min-height:38px!important;
+    padding:8px 2px!important;margin:0 0 10px!important;background:transparent!important;
+    color:#8d285e!important;font-size:13px!important;font-weight:800!important;
+    line-height:1.4!important;opacity:1!important;
+  }
+  .mobileMorePanel .mobileCategoryIntro{
+    display:flex!important;align-items:center!important;gap:12px!important;
+    padding:8px 2px 16px!important;margin:0!important;
+  }
+  .mobileMorePanel .mobileCategoryHeroIcon{
+    display:grid!important;place-items:center!important;flex:0 0 64px!important;
+    width:64px!important;height:64px!important;border-radius:20px!important;
+    background:#f3d9eb!important;color:#4d2540!important;font-size:28px!important;
+  }
+  .mobileMorePanel .mobileCategoryIntro h3{
+    color:#35202d!important;font-size:21px!important;line-height:1.2!important;
+    margin:0 0 5px!important;font-weight:850!important;
+  }
+  .mobileMorePanel .mobileCategoryIntro p{
+    color:#5f4b58!important;font-size:13px!important;line-height:1.45!important;margin:0!important;
+  }
+  .mobileMorePanel .mobileMoreGrid{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:stretch!important;gap:10px!important;width:100%!important;
+    margin:0!important;padding:0!important;
+  }
+  .mobileMorePanel .mobileMoreItem{
+    display:flex!important;flex-direction:column!important;align-items:center!important;
+    justify-content:flex-start!important;gap:8px!important;
+    min-width:0!important;width:100%!important;min-height:98px!important;height:auto!important;
+    margin:0!important;padding:0 7px 12px!important;
+    overflow-wrap:anywhere!important;white-space:normal!important;
+    border:1px solid #eadde5!important;border-radius:16px!important;
+    background:#fff!important;color:#432638!important;
+    box-shadow:0 3px 12px rgba(78,32,57,.06)!important;
+    text-align:center!important;font-size:12px!important;font-weight:750!important;
+    line-height:1.35!important;
+  }
+  .mobileMorePanel .mobileMoreItem .mobileMoreIcon{
+    display:grid!important;place-items:center!important;flex:0 0 54px!important;
+    width:54px!important;height:54px!important;max-width:100%!important;
+    margin:0 0 0!important;border-radius:0 0 17px 17px!important;
+    background:#eee8f4!important;color:#4c2a4b!important;font-size:22px!important;
+  }
+  .mobileMorePanel .mobileMoreItem .mobileMoreIcon svg{
+    display:block!important;width:25px!important;height:25px!important;stroke:currentColor!important;
+  }
+  .mobileMorePanel .mobileMoreItem>span:last-child{
+    display:block!important;width:100%!important;min-width:0!important;
+    padding:0 2px!important;color:inherit!important;overflow-wrap:anywhere!important;
+  }
+  .mobileMorePanel .mobileMoreItem.on{
+    border-color:#bd6d9b!important;background:#fff3fa!important;color:#70264e!important;
+    box-shadow:inset 0 0 0 1px #e8c0d7!important;
+  }
+  .mobileMorePanel .mobileMoreItem.on .mobileMoreIcon{background:#e7d4ef!important;color:#70264e!important}
+}
+@media(max-width:380px){
+  .mobileMorePanel.show{left:7px!important;right:7px!important;padding-left:10px!important;padding-right:10px!important}
+  .mobileMorePanel .mobileMoreGrid{gap:7px!important}
+  .mobileMorePanel .mobileMoreItem{font-size:11px!important;min-height:94px!important}
+  .mobileMorePanel .mobileCategoryIntro h3{font-size:19px!important}
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark brandImageMark"><img class="brandFullLogo" src="assets/flashmed-logo.png?v=1" alt="FlashMed — By Larissa Fernandes"></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
