@@ -2086,6 +2086,124 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   .grid,.subjectGrid,.deck,.missionGrid{grid-template-columns:minmax(0,1fr)!important}
   .top h1{font-size:20px!important}
 }
+
+/* Final mobile bottom navigation polish: consistent icon, label, spacing and active state */
+@media (max-width:780px){
+  .side .nav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:4px!important;
+    align-items:center!important;
+    padding:7px 8px calc(7px + env(safe-area-inset-bottom))!important;
+    background:#54243f!important;
+    background-image:linear-gradient(180deg,#612849 0%,#482039 100%)!important;
+    border-top:1px solid rgba(255,220,237,.18)!important;
+    box-shadow:0 -5px 22px rgba(47,18,36,.20)!important;
+  }
+  .side .nav>button,
+  .side .nav>button[data-mobile-more]{
+    position:relative!important;
+    display:flex!important;
+    flex:initial!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:56px!important;
+    min-height:56px!important;
+    margin:0!important;
+    padding:6px 2px 5px!important;
+    gap:4px!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    align-items:center!important;
+    align-self:stretch!important;
+    border:1px solid transparent!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    color:#e9cbd9!important;
+    box-shadow:none!important;
+    transform:none!important;
+    text-align:center!important;
+    line-height:1!important;
+    overflow:hidden!important;
+  }
+  .side .nav>button .navIcon{
+    display:flex!important;
+    width:24px!important;
+    height:23px!important;
+    min-height:23px!important;
+    flex:0 0 23px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    margin:0!important;
+    font-size:19px!important;
+    line-height:1!important;
+    color:inherit!important;
+  }
+  .side .nav>button .navIcon svg{
+    display:block!important;
+    width:21px!important;
+    height:21px!important;
+    min-width:21px!important;
+    min-height:21px!important;
+    margin:0!important;
+    stroke:currentColor!important;
+    color:inherit!important;
+  }
+  .side .nav>button .navLabel{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:13px!important;
+    min-height:13px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    color:inherit!important;
+    font-size:10px!important;
+    font-weight:650!important;
+    letter-spacing:-.015em!important;
+    line-height:13px!important;
+    text-align:center!important;
+    text-overflow:clip!important;
+    white-space:nowrap!important;
+  }
+  .side .nav>button .navLabelFull{display:none!important}
+  .side .nav>button .navLabelShort{
+    display:inline!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:clip!important;
+    white-space:nowrap!important;
+    line-height:13px!important;
+  }
+  .side .nav>button.on,
+  .side .nav>button.on[data-mobile-more]{
+    background:#87365f!important;
+    background-image:linear-gradient(145deg,#91416b,#773052)!important;
+    border-color:#b7658d!important;
+    color:#fff7fb!important;
+    box-shadow:inset 0 0 0 1px rgba(255,220,237,.07),0 2px 7px rgba(25,8,18,.12)!important;
+  }
+  .side .nav>button.on .navIcon{color:#ffd1e5!important}
+  .side .nav>button:focus-visible{outline:2px solid #ffb5d4!important;outline-offset:-2px!important}
+  .side .nav>button:hover{transform:none!important}
+}
+@media(max-width:480px){
+  .side .nav{gap:3px!important;padding-left:6px!important;padding-right:6px!important}
+  .side .nav>button,.side .nav>button[data-mobile-more]{height:54px!important;min-height:54px!important;padding:5px 1px!important;gap:3px!important;border-radius:11px!important}
+  .side .nav>button .navIcon{width:22px!important;height:22px!important;flex-basis:22px!important}
+  .side .nav>button .navIcon svg{width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important}
+  .side .nav>button .navLabel{font-size:9px!important;font-weight:650!important;letter-spacing:-.025em!important}
+}
+@media(max-width:350px){
+  .side .nav{gap:2px!important;padding-left:4px!important;padding-right:4px!important}
+  .side .nav>button,.side .nav>button[data-mobile-more]{border-radius:9px!important}
+  .side .nav>button .navLabel{font-size:8px!important;letter-spacing:-.035em!important}
+}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark brandImageMark"><img class="brandFullLogo" src="assets/flashmed-logo.png?v=1" alt="FlashMed — By Larissa Fernandes"></div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
