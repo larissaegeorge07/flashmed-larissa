@@ -4018,7 +4018,7 @@ function studyNotebookDraw(){
   ctx.strokeStyle=st.tool==='highlighter'?(st.color||'#f6d84a')+'88':(st.color||'#35243b');
   ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=st.width*(st.tool==='highlighter'?3.5:1);ctx.lineCap='round';ctx.lineJoin='round';
   if(st.points.length===1){ctx.beginPath();ctx.arc(st.points[0].x*rect.width,st.points[0].y*rect.height,ctx.lineWidth/2,0,Math.PI*2);ctx.fill()}
-  else{ctx.beginPath();ctx.moveTo(st.points[0].x*rect.width,st.points[0].y*rect.height);for(let i=1;i<st.points.length;i++)ctx.lineTo(st.points[i].x*rect.width,st.points[i].y*rect.height);ctx.stroke()}
+  else{ctx.beginPath();ctx.moveTo(st.points[0].x*rect.width,st.points[0].y*rect.height);if(st.points.length===2){ctx.lineTo(st.points[1].x*rect.width,st.points[1].y*rect.height)}else{for(let i=1;i<st.points.length-1;i++){const mx=(st.points[i].x+st.points[i+1].x)*.5*rect.width,my=(st.points[i].y+st.points[i+1].y)*.5*rect.height;ctx.quadraticCurveTo(st.points[i].x*rect.width,st.points[i].y*rect.height,mx,my)}const last=st.points[st.points.length-1];ctx.lineTo(last.x*rect.width,last.y*rect.height)}ctx.stroke()}
   ctx.restore();
  }
  studyNotebookDrawImages(ctx,rect);
