@@ -1929,6 +1929,74 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
 .fmQuickDelete{border:0;background:transparent;color:#a77d96;font-size:19px;cursor:pointer;padding:0 3px}
 @media(max-width:620px){.fmQuickForm{grid-template-columns:1fr 1fr}.fmQuickForm input:first-child{grid-column:1/-1}.fmQuickForm .btn{grid-column:1/-1}.fmQuickReminder{flex-wrap:wrap}.fmQuickCountdown{font-size:10px}}
 
+
+/* Ajuste final da assinatura FlashMed: wordmark alinhado e tipografia limpa */
+.side .brand.brandMark{
+  width:100%!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+  padding:14px 12px!important;
+  margin:0 0 8px!important;
+  border:1px solid rgba(255,255,255,.42)!important;
+  border-radius:20px!important;
+  box-sizing:border-box!important;
+  text-align:center!important;
+  line-height:1!important;
+}
+.side .brandSealImg{
+  width:58px!important;height:58px!important;flex:0 0 58px!important;
+  display:block!important;object-fit:contain!important;
+  border-radius:17px!important;
+}
+.side .brandWordmark{
+  display:block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  margin:0!important;padding:0!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  font-size:clamp(20px,1.65vw,25px)!important;
+  font-weight:850!important;
+  letter-spacing:-.8px!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+  text-shadow:0 1px 8px rgba(20,5,30,.16)!important;
+}
+.side .owner{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  width:100%!important;
+  margin:0 auto 20px!important;
+  padding:0 4px!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  font-size:11px!important;
+  font-weight:650!important;
+  letter-spacing:.015em!important;
+  line-height:1.4!important;
+  text-align:center!important;
+  color:rgba(255,239,249,.86)!important;
+}
+.side .owner:before,.side .owner:after{
+  content:""!important;display:block!important;
+  flex:1 1 18px!important;max-width:28px!important;height:1px!important;
+  background:linear-gradient(90deg,transparent,rgba(255,207,239,.72))!important;
+  box-shadow:none!important;border-radius:2px!important;
+}
+.side .owner:after{background:linear-gradient(90deg,rgba(255,207,239,.72),transparent)!important}
+@media(max-width:780px){
+ .side .brand.brandMark{gap:10px!important;padding:10px!important;margin:0 0 7px!important}
+ .side .brandSealImg{width:45px!important;height:45px!important;flex-basis:45px!important;border-radius:14px!important}
+ .side .brandWordmark{font-size:21px!important;letter-spacing:-.6px!important}
+ .side .owner{font-size:10px!important;margin:0 auto 13px!important}
+}
+
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head><body><div id="authGate" class="authGate"><div class="authBox"><div style="font-size:42px">✦</div><h1>FlashMed</h1><p class="muted">Larissa Fernandes • Study Space ♡</p><input id="loginEmail" class="field" type="email" placeholder="Seu e-mail"><input id="loginPassword" class="field" type="password" placeholder="Sua senha"><button id="loginBtn" class="btn" style="width:100%">Entrar</button><button id="signupBtn" class="btn ghost" style="width:100%;margin-top:8px">Criar minha conta</button><p class="muted" style="font-size:12px;margin:8px 0 0">Use seu e-mail e uma senha com pelo menos 6 caracteres.</p><p id="authError" class="authError"></p></div></div><button id="sidebarToggle" class="sidebarToggle" onclick="toggleSidebar()" title="Mostrar/ocultar menu">☰</button><div class="app authHidden" id="appRoot"><aside class="side"><div class="brand brandMark"><img class="brandSealImg" src="assets/flashmed-symbol.svg" alt="Símbolo exclusivo FlashMed"><span class="brandWordmark">FlashMed</span></div><div class="owner">By Larissa Fernandes</div><div class="nav" id="nav"></div></aside><main class="main"><div class="top"><div><h1 id="title">Dashboard</h1><div class="muted" id="date"></div></div><div class="row"><span class="clock" id="clock"></span><span class="pill cloud"><i class="dot" id="cloudDot"></i><span id="saveState">salvo automaticamente</span></span><button class="btn ghost quickLogout" onclick="logoutFlashMed()" title="Sair da conta e limpar os dados deste aparelho">↪ Sair</button></div></div><div id="view"></div></main></div><div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="pediatria-chatgpt-2026-2.js"></script><script src="sus262.js"></script><script src="sus262-lessons.js"></script><script src="sus231.js?v=20260927-half1"></script><script src="sus241.js?v=20260929-booklet-order-2"></script><script src="sus241-lessons.js?v=20260929-booklet-order-2"></script><script src="sus251.js"></script><script src="sus252.js?v=20250927-full45"></script><script src="sus252-lessons.js?v=20250927-lessons"></script><script src="sus251-lessons.js"></script><script src="sus261-lessons.js"></script><script src="receituario.js"></script><script>
