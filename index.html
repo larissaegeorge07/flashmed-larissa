@@ -2404,7 +2404,8 @@ function fmQuickRemindersMakeMovable(){
  grip.addEventListener('pointerup',()=>{if(!moving)return;moving=false;try{localStorage.setItem('fmQuickRemindersPosition',JSON.stringify({left:box.style.left,top:box.style.top,width:box.style.width}))}catch(e){}});
  try{const p=JSON.parse(localStorage.getItem('fmQuickRemindersPosition')||'null');if(p){box.style.position='fixed';box.style.left=p.left;box.style.top=p.top;box.style.right='auto';box.style.width=p.width;box.style.zIndex='100'}}catch(e){}
 }
-\nfunction studyPlannerView(){
+
+function studyPlannerView(){
  const p=db.studyPlan||{examName:'',examDate:'',minutesPerDay:60,topics:(db.subjects||[]).join(', '),days:'Seg, Ter, Qua, Qui, Sex'};
  const topics=String(p.topics||'').split(/[,;\\n]/).map(x=>x.trim()).filter(Boolean);
  const dueCards=(db.cards||[]).filter(due).length;
