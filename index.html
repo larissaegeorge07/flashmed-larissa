@@ -2150,6 +2150,68 @@ body.fm-dark .fmPageHero h2:after{background:#b5a0cb}
   }
 }
 
+
+/* Paleta mobile unificada: off-white, lilás suave e ameixa do layout FlashMed */
+@media(max-width:780px){
+  :root{
+    --bg:#f2eff5!important;--card:#fffefa!important;--ink:#292532!important;
+    --muted:#625b6b!important;--pink:#8d6aa8!important;--pink2:#a58abb!important;
+    --rose:#e6dced!important;--rose2:#f1ebf5!important;--deep:#493456!important;
+    --line:#d8cfe0!important;--shadow:0 6px 20px rgba(58,43,70,.07)!important;
+  }
+  body{background:#f2eff5!important;color:#292532!important}
+  .side{
+    background:linear-gradient(180deg,#573e66 0%,#453251 54%,#34283e 100%)!important;
+    color:#f8f4fb!important;
+  }
+  .main,.top{color:#292532!important}
+  .panel,.kpi,.card,.hero,.qbox,.flash,.subjectCard,.missionCard,
+  .knowledgeBookCard,.knowledgeEditor,.fmTaskItem,.plannerAvailabilityGrid>div,
+  .agendaDay,.fmCalendarCard,.fmEditorialHead,.fmEditorialStat,
+  .fmEditorialSchedule,.fmEditorialAside,.fmCalendarCard{
+    background:#fffefa!important;border-color:#d8cfe0!important;
+    box-shadow:0 4px 16px rgba(43,31,54,.045)!important;
+  }
+  .field,input,select,textarea,.editor,.bankExamMulti summary{
+    background:#fff!important;color:#292532!important;border-color:#c9bdd5!important;
+  }
+  .btn:not(.ok):not(.bad):not(.warn):not(.blue),
+  .toolbar button,.toolbar select,.strikeBtn{
+    background:#eee7f3!important;color:#493456!important;
+    border:1px solid #d8cfe0!important;box-shadow:none!important;
+  }
+  .btn:not(.ghost):not(.ok):not(.bad):not(.warn):not(.blue){
+    background:linear-gradient(135deg,#8d6aa8,#715183)!important;color:#fff!important;
+    border-color:#8d6aa8!important;
+  }
+  .pill,.tag,.choice,.bankChoice,.noteBox,.bankToolDock,.bankToolDockHead,
+  .mobileMoreItem,.fmTaskActions button{
+    background:#f1ebf5!important;color:#493456!important;border-color:#d8cfe0!important;
+  }
+  .navTitle{color:#d9c9e5!important}
+  .side .nav{
+    background:linear-gradient(180deg,#573e66 0%,#34283e 100%)!important;
+    border-top:1px solid rgba(230,220,239,.25)!important;
+  }
+  .side .nav>button{color:#e6dced!important}
+  .side .nav>button.on{
+    background:linear-gradient(145deg,#8d6aa8,#715183)!important;
+    border-color:#b5a0c5!important;color:#fff!important;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)!important;
+  }
+  .side .nav>button.on .navIcon{color:#fff!important}
+  .side .nav>button:focus-visible{outline-color:#c7afd8!important}
+  .nav button:hover{background:#ffffff12!important}
+  .fmEditorialKicker,.fmEditorialDate,.fmEditorialStat>span,.muted,
+  .agendaEventMeta,.fmTaskItem small{color:#625b6b!important}
+  .fmEditorialHead h2,.fmEditorialSectionTop h3,.fmEditorialAsideIntro h3,
+  .fmCalendarTop h3,.fmEditorialStat>b,.fmEditorialTaskText b{color:#292532!important}
+  .bar{background:#e6dced!important}
+  .bar i{background:linear-gradient(90deg,#c7b2d8,#8d6aa8,#715183)!important}
+  .mobileMorePanel{background:#fffefa!important;border-color:#d8cfe0!important;color:#292532!important}
+}
+/* End paleta mobile unificada */
+
 /* Final mobile bottom navigation polish: consistent icon, label, spacing and active state */
 @media (max-width:780px){
   .side .nav{
