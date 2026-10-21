@@ -4936,7 +4936,9 @@ async function pdfLibraryOpen(id){
 function pdfLibraryReaderView(id){const d=db.pdfLibrary.find(x=>String(x.id)===String(id));if(!d)return '';return '<div class="panel" style="margin-top:14px"><div class="row"><button class="btn ghost" onclick="pdfLibraryBack()">← Biblioteca</button><h2 style="margin:0;flex:1">'+esc(d.title)+'</h2><button class="btn ghost" onclick="pdfLibraryOpen('+esc(JSON.stringify(String(d.id)))+')">Reabrir</button></div><div id="pdfLibraryReaderContent" style="margin-top:12px"><p class="muted">Carregando leitor…</p></div></div>'}
 function pdfLibraryBack(){pdfLibraryReaderId=null;pdfLibraryDocxHtml='';if(pdfLibraryObjectUrl){URL.revokeObjectURL(pdfLibraryObjectUrl);pdfLibraryObjectUrl=null}render()}
 function pdfLibrarySaveProgress(id){const d=db.pdfLibrary.find(x=>String(x.id)===String(id));const p=Math.max(1,Number(document.getElementById('pdfLibLastPage')?.value)||1);if(d){d.lastPage=p;d.updatedAt=Date.now();save();toast('Progresso de leitura salvo')}}
-function pdfLibraryPrintDocx(){const paper=document.getElementById('pdfLibDocxPaper');if(!paper)return;const w=window.open('','_blank');if(!w)return toast('Permita pop-ups para imprimir o documento');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Documento Word</title><style>body{font:12pt/1.6 Arial,sans-serif;max-width:850px;margin:30px auto;color:#222}img{max-width:100%}@media print{body{margin:15mm}}</style></head><body>'+paper.innerHTML+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),400)}
+function pdfLibraryPrintDocx(){const paper=document.getElementById('pdfLibDocxPaper');if(!paper)return;const w=window.open('','_blank');if(!w)return toast('Permita pop-ups para imprimir o documento');w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Documento Word</title><style>body{font:12pt/1.6 Arial,sans-serif;max-width:850px;margin:30px auto;color:#222}img{max-width:100%}@media print{body{margin:15mm}}
+
+</style></head><body>'+paper.innerHTML+'</body></html>');w.document.close();w.focus();setTimeout(()=>w.print(),400)}
 function pdfLibraryEditMeta(id){const d=db.pdfLibrary.find(x=>String(x.id)===String(id));if(!d)return;const title=prompt('Título do material:',d.title||'');if(title===null)return;const notes=prompt('Observações:',d.notes||'');if(notes===null)return;d.title=title.trim()||d.fileName;d.notes=notes.trim();d.updatedAt=Date.now();save();render()}
 async function pdfLibraryDelete(id){const d=db.pdfLibrary.find(x=>String(x.id)===String(id));if(!d||!confirm('Excluir "'+d.title+'" da biblioteca e da nuvem?'))return;try{const {error}=await cloud.storage.from(FLASHMED_PDF_BUCKET).remove([d.storagePath]);if(error)throw error;db.pdfLibrary=db.pdfLibrary.filter(x=>String(x.id)!==String(id));if(pdfLibraryReaderId===String(id))pdfLibraryReaderId=null;save();render();toast('Material excluído')}catch(e){toast('Não foi possível excluir o arquivo: '+(e.message||''))}}
 
@@ -5081,29 +5083,3 @@ bootAuth().catch(function(e){
  const gate=document.getElementById('authGate');
  if(gate)gate.classList.remove('hidden');
 });</script></body></html>
-/* Caderno: prioridade máxima para escrita à mão, sem zoom/gestos que desviem o traço */
-.studyNotebookCanvas{touch-action:none!important;overscroll-behavior:none!important;user-select:none!important;-webkit-user-select:none!important}
-.studyNotebookPage.is-scroll-locked .studyNotebookCanvas,.studyNotebookPage.is-scroll-locked{touch-action:none!important;overscroll-behavior:none!important}
-.studyNotebookPageTab{display:inline-flex;align-items:center;border:1px solid #dfc6d5;border-radius:9px;background:#fff;overflow:hidden}
-.studyNotebookPageTab.active{background:#ead7e8;border-color:#a65b85;font-weight:800}
-.studyNotebookPageSelect,.studyNotebookPageDelete{border:0!important;border-radius:0!important;background:transparent!important;padding:7px 9px!important;min-height:32px}
-.studyNotebookPageDelete{color:#a02e52!important;font-weight:900!important;border-left:1px solid #ead4e1!important;min-width:28px}
-.studyNotebookPageDelete:active{background:#f7dce6!important}
-.studyNotebookPageTab.active .studyNotebookPageSelect{font-weight:800}
-
-/* Estabilidade de escrita: sem zoom/rolagem/gestos de palma na folha */
-.studyNotebookCanvas{touch-action:none!important;overscroll-behavior:none!important;-webkit-user-select:none!important;user-select:none!important}
-.studyNotebookPage,.studyNotebookPage.is-scroll-locked,.studyNotebookPage.is-scroll-locked .studyNotebookCanvas{touch-action:none!important;overscroll-behavior:none!important}
-.studyNotebookLockBtn{touch-action:manipulation}
-
-/* Bloqueio real da página inteira durante a escrita */
-html.study-notebook-page-locked{overflow:hidden!important;overscroll-behavior:none!important;touch-action:none!important}
-html.study-notebook-page-locked body{overflow:hidden!important;overscroll-behavior:none!important;touch-action:none!important}
-html.study-notebook-page-locked #app,html.study-notebook-page-locked main{overscroll-behavior:none!important;touch-action:none!important}
-
-/* Barra compacta: o controle de espessura não pode ultrapassar a caixa */
-.studyNotebookToolbar,.studyToolOptions{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden}
-.studyToolOptions input[type=range][aria-label="Espessura"]{display:block;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;height:12px;margin:0;padding:0;grid-column:1/-1}
-.studyToolOptions button[aria-label="Diminuir espessura"],.studyToolOptions button[aria-label="Aumentar espessura"]{min-width:0!important;width:100%;padding:1px!important;font-size:10px!important;min-height:22px!important}
-.studyToolOptions .opacityLabel{font-size:8px!important;overflow-wrap:anywhere}
-@media(max-width:600px){.studyNotebookToolbar{width:48px!important;min-width:48px!important;overflow-x:hidden!important}.studyToolOptions{width:100%!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;padding:2px!important;gap:2px!important}}
