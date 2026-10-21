@@ -3017,19 +3017,29 @@ function flashmedSaveError(){let status=document.getElementById('saveState');if(
 function flashmedSaveOK(){document.getElementById('flashmedSaveAlert')?.remove()}
 function save(){
   db.updatedAt=Date.now();
-  let fullOK=false,payload=JSON.stringify(flashmedLocalPayload(db));
+  let payload;
+  try{payload=JSON.stringify(flashmedLocalPayload(db))}
+  catch(e){console.error('FlashMed: não foi possível preparar os dados para salvar',e);flashmedSaveError();return false}
+  let fullOK=false,fallbackPending=false;
   try{localStorage.setItem(KEY,payload);fullOK=true}
-  catch(e){
-    console.warn('FlashMed: limite do localStorage atingido; preservando em IndexedDB e na nuvem',e);
+  catch(firstError){
+    console.warn('FlashMed: primeira gravação local falhou; liberando snapshots antigos e tentando novamente',firstError);
     flashmedPruneRecoverySnapshots(true);
-    flashmedEmergencySave(db).then(ok=>{
-      if(ok){flashmedSaveOK();const st=document.getElementById('saveState');if(st)st.textContent=cloud?'backup local seguro • sincronizando nuvem':'backup local seguro (IndexedDB)'}
-      else{flashmedSaveError();console.error('FlashMed: falharam o armazenamento principal e o backup de emergência.')}
-    });
+    try{localStorage.setItem(KEY,payload);fullOK=true}
+    catch(storageError){
+      console.warn('FlashMed: localStorage continua indisponível; tentando IndexedDB e nuvem',storageError);
+      fallbackPending=true;
+      const st=document.getElementById('saveState');if(st)st.textContent='salvando backup local seguro…';
+      flashmedEmergencySave(db).then(ok=>{
+        if(ok){flashmedSaveOK();const status=document.getElementById('saveState');if(status)status.textContent=cloud?'backup local seguro • sincronizando nuvem':'backup local seguro (IndexedDB)'}
+        else{flashmedSaveError();console.error('FlashMed: falharam o armazenamento principal e o backup de emergência.')}
+      }).catch(err=>{console.error('FlashMed: falha inesperada no backup de emergência',err);flashmedSaveError()});
+    }
   }
-  if(fullOK){flashmedSaveOK();saveState.textContent=cloud?'salvo neste aparelho • sincronizando':'salvo neste aparelho'}
+  if(fullOK){flashmedSaveOK();const st=document.getElementById('saveState');if(st)st.textContent=cloud?'salvo neste aparelho • sincronizando':'salvo neste aparelho'}
   if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}
-  return fullOK;
+  // If IndexedDB fallback has started, avoid showing a false "save failed" in the feature UI.
+  return fullOK||fallbackPending;
 } function toast(s){let e=toastEl();e.textContent=s;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)} function toastEl(){return document.querySelector('#toast')}
 function mins(){return Math.round(db.sessions.reduce((a,s)=>a+s.minutes,0))}function stats(){let r=db.cards.reduce((a,c)=>(a.ok+=c.ok||0,a.bad+=c.bad||0,a),{ok:0,bad:0});return {...r,total:r.ok+r.bad,acc:r.ok+r.bad?Math.round(100*r.ok/(r.ok+r.bad)):0}}function due(c){return !c.due||new Date(c.due)<=now()}
 function subjStats(){return db.subjects.map(x=>{let cs=db.cards.filter(c=>c.subject==x),o=cs.reduce((a,c)=>a+(c.ok||0),0),b=cs.reduce((a,c)=>a+(c.bad||0),0),attempts=o+b;return{x,cards:cs.length,o,b,attempts,acc:attempts?Math.round(100*o/attempts):0,due:cs.filter(due).length}})}function subjectWeak(){return subjStats().filter(x=>x.attempts).sort((a,b)=>a.acc-b.acc)[0]?.x||'—'}
@@ -4511,7 +4521,15 @@ function reminders(){return `<div class=panel><h2>Lembretes</h2><div class=row><
 function cloudView(){return `<div class="cols"><div class="panel"><h2>☁ Backup e recuperação</h2><p><b>Supabase conectado.</b> Seus dados ficam associados ao seu usuário.</p><div class="row"><button class="btn" onclick="syncDown()">Sincronizar agora</button><button class="btn ghost" onclick="logoutFlashMed()">Sair da conta</button></div><p class="muted">As alterações são salvas neste aparelho e sincronizadas automaticamente com sua conta.</p></div><div class="panel"><h2>Backup manual</h2><div class="row"><button class="btn" onclick="exportDB()">Exportar JSON</button><button class="btn ghost" onclick="exportSafetyJournal()">Baixar histórico de segurança</button><button class="btn ghost" onclick="exportFlashMedRecovery()">Baixar snapshots de recuperação</button><label class="btn ghost">Importar JSON<input type="file" accept=".json" hidden onchange="importDB(this)"></label></div><h3>Status</h3><p>🟢 Conta conectada e sincronização ativa</p></div></div>`}
 
 let flashmedSyncQueue=Promise.resolve();
-function flashmedRecoverySnapshot(label,data){try{let key='flashmed_recovery_'+Date.now()+'_'+label;localStorage.setItem(key,JSON.stringify(flashmedLocalPayload(data)));let keys=Object.keys(localStorage).filter(x=>x.startsWith('flashmed_recovery_')).sort();while(keys.length>12)localStorage.removeItem(keys.shift())}catch(e){console.warn('Backup de recuperação indisponível',e)}}
+function flashmedRecoverySnapshot(label,data){
+  // Recovery copies belong in IndexedDB, not localStorage: duplicating the entire
+  // database in localStorage can exhaust the browser quota and block every save.
+  try{
+    const key='__flashmed_recovery_'+String(label||'snapshot').replace(/[^a-z0-9_-]/gi,'_');
+    flashmedAssetPut(key,{data:flashmedLocalPayload(data),savedAt:Date.now()})
+      .catch(e=>console.warn('Backup de recuperação IndexedDB indisponível',e));
+  }catch(e){console.warn('Backup de recuperação indisponível',e)}
+}
 function flashmedMergePersonal(remote,local){
  if(!remote||!local)return false;let changed=false;
  for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['studyNotebooks','id'],['pdfLibrary','id'],['agendaEvents','id']]){
