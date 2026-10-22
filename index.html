@@ -4620,6 +4620,9 @@ async function syncUp(){
    const settings=Object.assign({},q.data?.settings||{});
    const remote=settings.flashmed_data;
    if(remote){flashmedRecoverySnapshot('remote_before_merge',remote);flashmedMergePersonal(snapshot,remote);mergeCardStudyHistory(snapshot,remote)}
+   // Apply deletion tombstones after every merge so stale copies cannot resurrect a removed weekly task.
+   snapshot.deletedWeeklyTaskIds=Array.isArray(snapshot.deletedWeeklyTaskIds)?snapshot.deletedWeeklyTaskIds.map(String):[];
+   if(snapshot.deletedWeeklyTaskIds.length){const deletedTasks=new Set(snapshot.deletedWeeklyTaskIds);const p=snapshot.studyPlan||(snapshot.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedTasks.has(String(t.id)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedTasks.has(String(t.taskId||t.id)));snapshot.agendaEvents=(snapshot.agendaEvents||[]).filter(e=>!deletedTasks.has(String(e.studyTaskId||'')));}
    // Also merge changes made locally while this upload was waiting.
    flashmedMergePersonal(snapshot,db);mergeCardStudyHistory(snapshot,db);
    settings.flashmed_data=snapshot;
