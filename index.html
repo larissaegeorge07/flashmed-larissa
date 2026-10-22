@@ -4757,8 +4757,9 @@ async function syncDown(quiet=false){
       __fmSyncStep('verificação e atualização do banco de questões');
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
+      const removedDuolingo=flashmedApplyPermanentTitleDeletions(db);
       localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
-      if(evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
+      if(removedDuolingo||evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
       __fmSyncStep('mesclagem e eventuais gravações');
       render();
     } else {
