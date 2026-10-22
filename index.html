@@ -3073,21 +3073,8 @@ function applyPersonalization(){ensureFlashMedSettings();let b=document.body;if(
 function setPersonalization(k,v){ensureFlashMedSettings();db.settings[k]=v;applyPersonalization();save();render()}function setPersonalizationBool(k,v){ensureFlashMedSettings();db.settings[k]=!!v;applyPersonalization();save();render()}
 function toggleDashboardBlock(k){ensureFlashMedSettings();db.settings.dashboard[k]=!db.settings.dashboard[k];save();render()}
 function dashboardPreset(name){ensureFlashMedSettings();let d=db.settings.dashboard;if(name==='focus')Object.assign(d,{missions:true,kpis:false,focus:true,exams:true,study:false});else if(name==='minimal')Object.assign(d,{missions:true,kpis:true,focus:false,exams:false,study:false});else Object.assign(d,{missions:true,kpis:true,focus:true,exams:true,study:true});save();render()}
-function flashmedAskDisplayName(force=false){
- if(!currentUser)return;
- ensureFlashMedSettings();
- const promptKey='flashmed_display_name_prompted_'+String(currentUser.id);
- try{if(!force&&localStorage.getItem(promptKey)==='1')return}catch(_){}
- if(!force&&String(db.settings.displayName||'').trim()){try{localStorage.setItem(promptKey,'1')}catch(_){}return}
- if(document.getElementById('fmNameOverlay'))return;
- const overlay=document.createElement('div');overlay.id='fmNameOverlay';overlay.className='fm-name-overlay';
- overlay.innerHTML='<section class="fm-name-dialog" role="dialog" aria-modal="true" aria-labelledby="fmNameTitle"><h2 id="fmNameTitle">💗 Como você quer ser chamado(a)?</h2><p>Vamos personalizar seu FlashMed. Esse nome aparecerá no seu dashboard e ficará salvo somente nas configurações da sua conta.</p><label for="fmNameInput"><b>Seu nome</b></label><input id="fmNameInput" class="field" maxlength="60" autocomplete="nickname" placeholder="Digite seu nome" value="'+esc(db.settings.displayName||'')+'"><div class="row"><button class="btn" id="fmNameSave">Salvar meu nome</button></div><p id="fmNameError" role="status" style="margin:10px 0 0"></p></section>';
- document.body.appendChild(overlay);
- const input=overlay.querySelector('#fmNameInput');input.focus();
- const saveName=()=>{const name=input.value.trim();if(!name){overlay.querySelector('#fmNameError').textContent='Digite seu nome para continuar.';input.focus();return}setPersonalization('displayName',name.slice(0,60));try{localStorage.setItem('flashmed_display_name_prompted_'+String(currentUser.id),'1')}catch(_){}overlay.remove();render();};
- overlay.querySelector('#fmNameSave').addEventListener('click',saveName);
- input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveName()}});
-}
+function {return;}
+
 function myFlashMed(){ensureFlashMedSettings();let d=db.settings.dashboard;return `<div class='panel hero'><h2>⚙️ Meu FlashMed</h2><p>Deixe seu espaço de estudo com a sua cara — sem alterar seus dados, questões ou histórico.</p></div><div class=panel style='margin-top:16px'><h2>👤 Meu perfil</h2><p class=muted>Personalize sua conta com o nome que deseja ver no FlashMed. Esse nome é salvo nas configurações da sua própria conta.</p><div class=customizeGrid><div class=customizeOption style='grid-column:1/-1'><label for=flashmedDisplayName><b>Como você quer ser chamado(a)?</b></label><input id=flashmedDisplayName class=field maxlength=60 autocomplete=nickname placeholder='Digite seu nome' value="${esc(db.settings.displayName||'')}" onchange="setPersonalization('displayName',this.value.trim())"><p class=muted>Você pode alterar esse nome quando quiser.</p></div></div></div><div class=panel style='margin-top:16px'><h2>🎀 Aparência</h2><div class=customizeGrid><div class=customizeOption><b>Tema</b><select class=field onchange="setPersonalization('appearance',this.value)"><option value=light ${db.settings.appearance==='light'?'selected':''}>☀️ Claro</option><option value=dark ${db.settings.appearance==='dark'?'selected':''}>🌙 Escuro</option></select></div><div class=customizeOption><b>Tamanho das questões</b><select class=field onchange="setPersonalization('questionFont',this.value)"><option value=small ${db.settings.questionFont==='small'?'selected':''}>Pequena</option><option value=normal ${db.settings.questionFont==='normal'?'selected':''}>Confortável</option><option value=large ${db.settings.questionFont==='large'?'selected':''}>Grande</option></select></div><div class=customizeOption><b>Densidade</b><select class=field onchange="setPersonalization('density',this.value)"><option value=comfortable ${db.settings.density==='comfortable'?'selected':''}>Confortável</option><option value=compact ${db.settings.density==='compact'?'selected':''}>Compacta</option></select></div><div class=customizeOption><b>Estilo da fonte</b><select class=field onchange="setPersonalization('siteFont',this.value)"><option value=rounded ${db.settings.siteFont==='rounded'?'selected':''}>Arredondada</option><option value=classic ${db.settings.siteFont==='classic'?'selected':''}>Clássica</option></select></div><div class=customizeOption><label><input type=checkbox ${db.settings.highContrast?'checked':''} onchange="setPersonalizationBool('highContrast',this.checked)"> 🔎 Contraste reforçado</label><p class=muted>Deixa textos, bordas e informações mais nítidos.</p></div><div class=customizeOption><label><input type=checkbox ${db.settings.reduceMotion?'checked':''} onchange="setPersonalizationBool('reduceMotion',this.checked)"> 🌿 Reduzir animações</label><p class=muted>Interface mais estável e discreta durante o estudo.</p></div></div></div><div class=panel style='margin-top:16px'><h2>🏠 Meu Dashboard</h2><p class=muted>Escolha o que merece espaço na sua tela inicial.</p><div class=row><button class='btn ghost mini' onclick="dashboardPreset('complete')">🎀 Completo</button><button class='btn ghost mini' onclick="dashboardPreset('focus')">📚 Foco em prova</button><button class='btn ghost mini' onclick="dashboardPreset('minimal')">🧘 Minimalista</button></div><div class=customizeGrid style='margin-top:14px'>${[['missions','🎯 Central do dia'],['kpis','📊 Números gerais'],['focus','🧠 Onde melhorar'],['exams','🗂️ Provas disponíveis'],['study','🃏 Flashcards e abertas']].map(([k,n])=>`<div class=customizeOption><label><input type=checkbox ${d[k]?'checked':''} onchange="toggleDashboardBlock('${k}')"> ${n}</label></div>`).join('')}</div><p class=muted style='margin-top:14px'>Suas preferências ficam salvas junto ao FlashMed e podem ser alteradas quando quiser.</p></div>`}
 function studyTimeTodayHtml(){let z=db.studyTime?.[day()]||{},ms=Object.values(z).reduce((a,b)=>a+(Number(b)||0),0),m=Math.floor(ms/60000);return `<div class=bankMeta style='margin-top:10px'><span class=pill>⏱️ ${m} min de estudo hoje</span></div>`}
 
@@ -5101,7 +5088,7 @@ async function bootAuth(){
    await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();
    __fmBootStep('primeira renderização após sincronização');
    flashmedPerfSizeSummary(db);
-   flashmedAskDisplayName();await flashmedHandleSharedImport();
+   await flashmedHandleSharedImport();
    __fmBootStep('fluxo pós-carregamento');
   }catch(e){
    console.error('FlashMed pós-login: falha ao carregar dados',e);
@@ -5132,7 +5119,7 @@ loginBtn.onclick=async function(){
   if(!z.data?.user)throw new Error('O login não retornou uma sessão. Tente novamente.');
   currentUser=z.data.user;authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
   try{
-   await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+   await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();await flashmedHandleSharedImport();
   }catch(postLoginError){
    console.error('FlashMed: login confirmado, mas houve falha ao carregar dados',postLoginError);
    authGate.classList.add('hidden');appRoot.classList.remove('authHidden');
