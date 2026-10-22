@@ -4663,8 +4663,11 @@ function mergeCardStudyHistory(remote,local){
 }
 async function syncDown(quiet=false){
   if(!cloud||!currentUser)return;
+  const __fmSyncT0=performance.now();let __fmSyncMark=__fmSyncT0;
+  const __fmSyncStep=(name)=>{const t=performance.now();flashmedPerfLog('sincronização',{step:name,stepMs:Math.round(t-__fmSyncMark),totalMs:Math.round(t-__fmSyncT0)});__fmSyncMark=t};
   try{
     const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
+    __fmSyncStep('leitura do perfil na nuvem');
     if(q.error){
       if(q.error.code==='PGRST116'){
         const initial=flashmedEmptyAccountData();
@@ -4712,6 +4715,7 @@ async function syncDown(quiet=false){
       db.imageAssets=db.imageAssets||{};
       await occlusionPersistRemoteAssets(db);
       await occlusionHydrateAssets(db);
+      __fmSyncStep('recuperação e hidratação de mídias');
       // Keep built-in official question-bank content when the user's cloud data
       // predates a new app release. User data remains the source of truth for
       // personal content; only missing official seeded questions are merged in.
@@ -4750,10 +4754,12 @@ async function syncDown(quiet=false){
         if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded241=true}
       }
       const definitive241Corrected=reconcileSUS241Definitive();
+      __fmSyncStep('verificação e atualização do banco de questões');
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
       localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
       if(evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
+      __fmSyncStep('mesclagem e eventuais gravações');
       render();
     } else {
       db=localBeforeSync;
@@ -5037,17 +5043,58 @@ function flashmedRepairCardSubjects(){
  return moved;
 }
 
+// Lightweight performance diagnostics: timings and aggregate sizes only; never logs personal content.
+const FM_DIAGNOSTICS_KEY='flashmed_perf_diagnostics_v1';
+function flashmedPerfLog(event,detail={}){
+ try{const row={at:new Date().toISOString(),event,...detail};console.info('[FlashMed diagnóstico]',row)}catch(_){}
+}
+function flashmedPerfSizeSummary(source=db){
+ const byteSize=value=>{try{return new Blob([JSON.stringify(value)]).size}catch(_){return 0}};
+ const arr=(key)=>Array.isArray(source[key])?source[key]:[];
+ const categories={
+  flashcards:{count:arr('cards').length,bytes:byteSize(arr('cards'))},
+  questionBank:{count:arr('bankQuestions').length,bytes:byteSize(arr('bankQuestions'))},
+  questionAttempts:{count:arr('bankAttempts').length,bytes:byteSize(arr('bankAttempts'))},
+  agenda:{count:arr('agendaEvents').length,bytes:byteSize(arr('agendaEvents'))},
+  weeklyTasks:{count:Array.isArray(source.studyPlan?.weeklyTasks)?source.studyPlan.weeklyTasks.length:0,bytes:byteSize(source.studyPlan?.weeklyTasks||[])},
+  weeklySchedule:{count:Array.isArray(source.studyPlan?.weekSchedule)?source.studyPlan.weekSchedule.length:0,bytes:byteSize(source.studyPlan?.weekSchedule||[])},
+  notes:{count:arr('knowledgeNotes').length,bytes:byteSize(arr('knowledgeNotes'))},
+  notebooks:{count:arr('studyNotebooks').length,bytes:byteSize(arr('studyNotebooks'))},
+  books:{count:arr('knowledgeBooks').length,bytes:byteSize(arr('knowledgeBooks'))},
+  pdfLibraryMetadata:{count:arr('pdfLibrary').length,bytes:byteSize(arr('pdfLibrary'))},
+  reminders:{count:arr('reminders').length,bytes:byteSize(arr('reminders'))},
+  decorebas:{count:arr('decorebas').length,bytes:byteSize(arr('decorebas'))},
+  fullPayloadWithoutImageAssets:{count:1,bytes:byteSize(flashmedLocalPayload(source))}
+ };
+ flashmedPerfLog('tamanho agregado dos dados',categories);
+ try{
+  const journal=localStorage.getItem('flashmed_safety_journal_v1');
+  flashmedPerfLog('armazenamento local agregado',{journalBytes:journal?new Blob([journal]).size:0});
+ }catch(_){}
+ return categories;
+}
+
 async function bootAuth(){
+ const __fmBootT0=performance.now();let __fmBootMark=__fmBootT0;
+ const __fmBootStep=(name)=>{const t=performance.now();flashmedPerfLog('inicialização',{step:name,stepMs:Math.round(t-__fmBootMark),totalMs:Math.round(t-__fmBootT0)});__fmBootMark=t};
  cloud=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
  let session=null;
  try{const z=await cloud.auth.getSession();session=z.data?.session||null}catch(e){console.error('FlashMed session check',e)}
+ __fmBootStep('verificação de sessão');
  if(session&&session.user){
   currentUser=session.user;
   authGate.classList.add('hidden');appRoot.classList.remove('authHidden');cloudDot.classList.add('ok');
   try{
    flashmedPruneRecoverySnapshots(false);
    await occlusionLoadDedicatedCards(db);await flashmedEmergencyRestore(db);await occlusionHydrateAssets(db);
-   await syncDown(true);await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();flashmedAskDisplayName();await flashmedHandleSharedImport();
+   __fmBootStep('recuperação local e mídias');
+   await syncDown(true);
+   __fmBootStep('sincronização e preparação dos dados');
+   await occlusionHydrateAssets(db);flashmedRepairCardSubjects();refreshBankErrorFlashcards();renderNav();render();
+   __fmBootStep('primeira renderização após sincronização');
+   flashmedPerfSizeSummary(db);
+   flashmedAskDisplayName();await flashmedHandleSharedImport();
+   __fmBootStep('fluxo pós-carregamento');
   }catch(e){
    console.error('FlashMed pós-login: falha ao carregar dados',e);
    authGate.classList.add('hidden');appRoot.classList.remove('authHidden');
