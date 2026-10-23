@@ -4599,6 +4599,48 @@ function flashmedMergePersonal(remote,local){
 
  return changed;
 }
+/* Merge deletion markers from every replica, then apply them after the last data merge.
+   This prevents stale local/cloud copies from resurrecting intentionally deleted items. */
+function flashmedMergeDeletionMarkers(target,source){
+ if(!target||!source)return false;
+ let changed=false;
+ for(const key of ['deletedAgendaEventIds','deletedWeeklyTaskIds','deletedWeeklyTaskKeys','deletedWeeklyTaskTitles']){
+  const before=Array.isArray(target[key])?target[key]:[];
+  const incoming=Array.isArray(source[key])?source[key]:[];
+  const merged=[...new Set([...before,...incoming].map(v=>String(v)))];
+  if(merged.length!==before.length||!Array.isArray(target[key]))changed=true;
+  target[key]=merged;
+ }
+ return changed;
+}
+function flashmedApplyDeletionMarkers(target,source){
+ if(!target)return false;
+ let changed=flashmedMergeDeletionMarkers(target,source);
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');
+ const agendaDeleted=new Set((target.deletedAgendaEventIds||[]).map(String));
+ const taskDeleted=new Set((target.deletedWeeklyTaskIds||[]).map(String));
+ const occurrenceDeleted=new Set((target.deletedWeeklyTaskKeys||[]).map(String));
+ const titleDeleted=new Set((target.deletedWeeklyTaskTitles||[]).map(norm));
+ const signature=x=>String(x?.title||'').trim().toLocaleLowerCase('pt-BR')+'|'+String(x?.date||'');
+ const deletedTask=x=>taskDeleted.has(String(x?.id??''))||taskDeleted.has(String(x?.taskId??''))||occurrenceDeleted.has(signature(x))||titleDeleted.has(norm(x?.title));
+ const p=target.studyPlan&&typeof target.studyPlan==='object'?target.studyPlan:(target.studyPlan={});
+ for(const [owner,key,filter] of [
+  [p,'weeklyTasks',x=>!deletedTask(x)],
+  [p,'weekSchedule',x=>!deletedTask(x)],
+  [target,'agendaEvents',x=>!agendaDeleted.has(String(x?.id??''))&&!taskDeleted.has(String(x?.studyTaskId??''))&&!occurrenceDeleted.has(signature(x))&&!titleDeleted.has(norm(x?.title))]
+ ]){
+  const before=Array.isArray(owner[key])?owner[key]:[];
+  const after=before.filter(filter);
+  if(after.length!==before.length)changed=true;
+  owner[key]=after;
+ }
+ const beforeCount=[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length;
+ const beforeTitleMarkers=(target.deletedWeeklyTaskTitles||[]).length;
+ flashmedApplyPermanentTitleDeletions(target);
+ if(beforeCount!==[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length||(target.deletedWeeklyTaskTitles||[]).length!==beforeTitleMarkers)changed=true;
+ return changed;
+}
+
 async function syncUp(){
  if(!cloud||!currentUser)return;
  await occlusionHydrateAssets(db);
@@ -4610,18 +4652,22 @@ async function syncUp(){
    if(q.error)throw q.error;
    const settings=Object.assign({},q.data?.settings||{});
    const remote=settings.flashmed_data;
-   if(remote){flashmedRecoverySnapshot('remote_before_merge',remote);flashmedMergePersonal(snapshot,remote);mergeCardStudyHistory(snapshot,remote)}
-   flashmedApplyPermanentTitleDeletions(snapshot);
+   if(remote){flashmedRecoverySnapshot('remote_before_merge',remote);flashmedMergePersonal(snapshot,remote);mergeCardStudyHistory(snapshot,remote);flashmedMergeDeletionMarkers(snapshot,remote)}
+   flashmedApplyDeletionMarkers(snapshot);
    // Apply deletion tombstones after every merge so stale copies cannot resurrect a removed weekly task.
    snapshot.deletedWeeklyTaskIds=Array.isArray(snapshot.deletedWeeklyTaskIds)?snapshot.deletedWeeklyTaskIds.map(String):[];
    if(snapshot.deletedWeeklyTaskIds.length){const deletedTasks=new Set(snapshot.deletedWeeklyTaskIds);const p=snapshot.studyPlan||(snapshot.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedTasks.has(String(t.id)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedTasks.has(String(t.taskId||t.id)));snapshot.agendaEvents=(snapshot.agendaEvents||[]).filter(e=>!deletedTasks.has(String(e.studyTaskId||'')));}
    const deletedOccurrenceKeys=new Set(Array.isArray(snapshot.deletedWeeklyTaskKeys)?snapshot.deletedWeeklyTaskKeys.map(String):[]);if(deletedOccurrenceKeys.size){const sig=x=>String(x?.title||'').trim().toLocaleLowerCase('pt-BR')+'|'+String(x?.date||'');const p=snapshot.studyPlan||(snapshot.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));snapshot.agendaEvents=(snapshot.agendaEvents||[]).filter(e=>!deletedOccurrenceKeys.has(sig(e)));}
    // Also merge changes made locally while this upload was waiting.
    flashmedMergePersonal(snapshot,db);mergeCardStudyHistory(snapshot,db);
+   // Critical: the local merge above can reintroduce stale rows. Union tombstones and filter again immediately before upload.
+   flashmedApplyDeletionMarkers(snapshot,db);
    settings.flashmed_data=snapshot;
    const u=await cloud.from('profiles').update({settings,updated_at:new Date().toISOString()}).eq('user_id',currentUser.id);
    if(u.error)throw u.error;
    flashmedMergePersonal(db,snapshot);mergeCardStudyHistory(db,snapshot);
+   // Keep the in-memory and local copies consistent with the deletion-safe cloud snapshot.
+   flashmedApplyDeletionMarkers(db,snapshot);
    try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));}catch(localErr){console.warn('FlashMed: sincronizado na nuvem; espelho local excede a quota. Backup IndexedDB mantido.',localErr);flashmedEmergencySave(db);}
    cloudDot.classList.add('ok');flashmedSaveOK();saveState.textContent='salvo na nuvem';
   }catch(e){cloudDot.classList.remove('ok');saveState.textContent='erro na nuvem — dados locais preservados';console.error(e)}
@@ -4690,7 +4736,7 @@ async function syncDown(quiet=false){
       // on a new/incognito browser, whose freshly-created local DB may have a
       // newer timestamp but contains no user data.
       db=remote;
-      flashmedApplyPermanentTitleDeletions(db);
+      const recoveredDeletionMarkers=flashmedApplyDeletionMarkers(db,localBeforeSync);
       // Preserve intentional deletions of weekly planning tasks across cloud refreshes.
       db.deletedWeeklyTaskIds=Array.isArray(db.deletedWeeklyTaskIds)?db.deletedWeeklyTaskIds.map(String):[];
       if(db.deletedWeeklyTaskIds.length){const deletedTasks=new Set(db.deletedWeeklyTaskIds);const p=db.studyPlan||(db.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedTasks.has(String(t.id)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedTasks.has(String(t.taskId||t.id)));db.agendaEvents=(db.agendaEvents||[]).filter(e=>!deletedTasks.has(String(e.studyTaskId||'')));}
@@ -4758,7 +4804,7 @@ async function syncDown(quiet=false){
       __fmSyncStep('verificação e atualização do banco de questões');
       const removedOriginalTest=removeOriginalTestCard();
       const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
-      const removedDuolingo=flashmedApplyPermanentTitleDeletions(db);
+      const removedDuolingo=flashmedApplyDeletionMarkers(db,localBeforeSync)||recoveredDeletionMarkers;
       localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
       if(removedDuolingo||evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
       __fmSyncStep('mesclagem e eventuais gravações');
