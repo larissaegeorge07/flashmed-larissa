@@ -1,0 +1,835 @@
+/* Caderno de Estudos — cadernos pautados com escrita manual */
+let studyNotebookCurrentId=null,studyNotebookPageIndex=0,studyNotebookStroke=null,studyNotebookActiveTool='none',studyNotebookColor='#35243b',studyNotebookWidth=2.4,studyNotebookCanvasResize=null,studyNotebookDraggingImage=null,studyNotebookDragOffset=null,studyNotebookToolBeforeStylusErase=null;
+function studyNotebookInit(){db.studyNotebooks=Array.isArray(db.studyNotebooks)?db.studyNotebooks:[];db.studyNotebooks.forEach(b=>{b.pages=Array.isArray(b.pages)?b.pages:[];if(!b.pages.length)b.pages.push({id:'pg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),title:'Anotações',strokes:[],createdAt:Date.now()})})}
+studyNotebookInit();
+function studyNotebookView(){
+ studyNotebookInit();
+ if(studyNotebookCurrentId!==null&&!db.studyNotebooks.some(b=>String(b.id)===String(studyNotebookCurrentId)))studyNotebookCurrentId=null;
+ if(studyNotebookCurrentId!==null)return studyNotebookEditorView();
+ const books=[...db.studyNotebooks].sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+ return '<section class="panel hero"><h2>📓 Caderno de Estudos</h2><p>Seu caderno pautado para acompanhar videoaulas, organizar matérias e registrar os detalhes importantes. No tablet, os traços são feitos somente com a ponta da caneta digital.</p><div class="row"><span class="pill">'+books.length+' caderno(s)</span><span class="pill">Salvamento automático</span></div></section><section class="panel" style="margin-top:14px"><h3>Criar um caderno por matéria</h3><div class="row" style="align-items:flex-end"><label style="flex:1;min-width:190px">Matéria<input id="studyNotebookNewName" class="field" maxlength="90" placeholder="Ex.: Obstetrícia — Pré-eclâmpsia" onkeydown="if(event.key===\'Enter\')studyNotebookCreate()"></label><button class="btn" onclick="studyNotebookCreate()">＋ Criar caderno</button></div><p class="studyNotebookHint">Você pode criar um caderno para cada matéria ou tema e adicionar quantas páginas precisar.</p></section><div class="studyNotebookShelf">'+(books.length?books.map(b=>'<article class="studyNotebookCard"><div class="studyNotebookCover">📓</div><h3>'+esc(b.name)+'</h3><div class="muted">'+b.pages.length+' página(s) • atualizado '+new Date(b.updatedAt||b.createdAt||Date.now()).toLocaleDateString('pt-BR')+'</div><div class="row" style="margin-top:auto"><button class="btn" onclick="studyNotebookOpen('+knowledgeJsArg(b.id)+')">Abrir caderno</button><button class="btn ghost mini" onclick="studyNotebookRename('+knowledgeJsArg(b.id)+')">Renomear</button></div></article>').join(''):'<div class="panel" style="grid-column:1/-1;text-align:center"><h3>Seu primeiro caderno está esperando ✍️</h3><p class="muted">Digite uma matéria acima e toque em “Criar caderno”.</p></div>')+'</div>';
+}
+function studyNotebookCreate(){let el=document.getElementById('studyNotebookNewName'),name=(el?.value||'').trim();if(!name)return toast('Digite o nome da matéria');if(db.studyNotebooks.some(b=>b.name.toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return toast('Já existe um caderno com esse nome');let b={id:'snb_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name,createdAt:Date.now(),updatedAt:Date.now(),pages:[{id:'pg_'+Date.now(),title:'Anotações da aula',strokes:[],createdAt:Date.now()}]};db.studyNotebooks.unshift(b);studyNotebookCurrentId=b.id;studyNotebookPageIndex=0;save();render();toast('Caderno criado e salvo ✨')}
+function studyNotebookOpen(id){studyNotebookCurrentId=id;studyNotebookPageIndex=0;studyNotebookActiveTool='none';render()}
+function studyNotebookRename(id){let b=db.studyNotebooks.find(x=>String(x.id)===String(id));if(!b)return;let name=prompt('Novo nome para o caderno:',b.name);if(name===null)return;name=name.trim();if(!name)return toast('O nome não pode ficar vazio');b.name=name;b.updatedAt=Date.now();save();render()}
+function studyNotebookBack(){studyNotebookCurrentId=null;studyNotebookStroke=null;render()}
+function studyNotebookCurrent(){let b=db.studyNotebooks.find(x=>String(x.id)===String(studyNotebookCurrentId));if(!b)return null;b.pages=Array.isArray(b.pages)?b.pages:[];if(!b.pages.length)b.pages.push({id:'pg_'+Date.now(),title:'Anotações',strokes:[]});studyNotebookPageIndex=Math.max(0,Math.min(studyNotebookPageIndex,b.pages.length-1));return {book:b,page:b.pages[studyNotebookPageIndex]}}
+function studyNotebookEditorView(){
+ const item=studyNotebookCurrent();if(!item){studyNotebookCurrentId=null;return studyNotebookView()}
+ const b=item.book,p=item.page;
+ const tool=(id,label)=>'<button type="button" data-study-tool="'+id+'" class="'+(studyNotebookActiveTool===id?'active':'')+'" onclick="studyNotebookSetTool(this.dataset.studyTool)">'+label+'</button>';
+ return '<button class="btn ghost" onclick="studyNotebookBack()">← Meus cadernos</button><section class="panel hero" style="margin-top:10px"><div class="row" style="align-items:center"><div><div class="muted" style="font-size:11px;font-weight:850;letter-spacing:.1em">CADERNO DE ESTUDOS</div><h2 style="margin:3px 0">'+esc(b.name)+'</h2><p class="muted" style="margin:0">Escreva na página pautada usando somente a ponta da caneta digital. O toque do dedo não desenha.</p></div><span class="pill">'+b.pages.length+' página(s)</span></div></section><div class="studyNotebookPages">'+b.pages.map((pg,i)=>'<span class="studyNotebookPageTab '+(i===studyNotebookPageIndex?'active':'')+'"><button type="button" class="studyNotebookPageSelect" onclick="studyNotebookSelectPage('+i+')">Página '+(i+1)+'</button><button type="button" class="studyNotebookPageDelete" title="Excluir página '+(i+1)+'" aria-label="Excluir página '+(i+1)+'" onclick="studyNotebookDeletePage('+i+')">×</button></span>').join('')+'<button onclick="studyNotebookAddPage()">＋ Nova página</button></div><div class="studyNotebookModeBar" style="display:none"><button type="button" data-study-mode="hand" class="active" onclick="studyNotebookSetMode(&quot;hand&quot;)">✍️ Escrever à mão</button><button type="button" data-study-mode="type" onclick="studyNotebookSetMode(&quot;type&quot;)">⌨️ Digitar</button></div><div class="studyNotebookWorkspace"><aside class="studyNotebookToolbar" aria-label="Ferramentas de escrita"><button type="button" id="studyNotebookLockButton" class="studyNotebookLockBtn" aria-pressed="false" onclick="studyNotebookToggleLock()" title="Travar a tela para escrever" aria-label="Travar a tela para escrever"><span id="studyNotebookLockIcon">🔓</span><span id="studyNotebookLockText">Travar</span></button><div id="studyNotebookLockHint" class="studyNotebookLockHint">Rolagem livre</div><button type="button" data-study-tool="pen" onclick="studyNotebookToggleOptions(&quot;pen&quot;)" title="Caneta"><span class="toolIcon">✎</span></button><div id="studyNotebookPenOptions" class="studyToolOptions" style="display:none"><button class="studyColorSwatch" title="Preto" aria-label="Preto" style="background:#171717" onclick="studyNotebookSetColor(&quot;#171717&quot;)"></button><button class="studyColorSwatch" title="Azul" aria-label="Azul" style="background:#2458b8" onclick="studyNotebookSetColor(&quot;#2458b8&quot;)"></button><button class="studyColorSwatch" title="Vermelho" aria-label="Vermelho" style="background:#c9364b" onclick="studyNotebookSetColor(&quot;#c9364b&quot;)"></button><button title="Caneta" aria-label="Caneta" onclick="studyNotebookSetPenStyle(&quot;pen&quot;)">✒</button><button title="Lápis" aria-label="Lápis" onclick="studyNotebookSetPenStyle(&quot;pencil&quot;)">✏</button><button title="Traço fino" aria-label="Traço fino" onclick="studyNotebookSetPenStyle(&quot;fine&quot;)">╱</button><span class="opacityLabel">Espessura</span><button aria-label="Diminuir espessura" onclick="studyNotebookSetWidth(studyNotebookWidth-.5)">−</button><input aria-label="Espessura" type="range" min="1" max="8" step=".5" value="2.4" oninput="studyNotebookSetWidth(this.value)"><button aria-label="Aumentar espessura" onclick="studyNotebookSetWidth(studyNotebookWidth+.5)">+</button></div><button type="button" data-study-tool="highlighter" onclick="studyNotebookToggleOptions(&quot;highlighter&quot;)" title="Marca-texto"><span class="toolIcon">▰</span></button><div id="studyNotebookHighlighterOptions" class="studyToolOptions" style="display:none"><button class="studyColorSwatch" title="Amarelo" aria-label="Amarelo" style="background:#f6d84a" onclick="studyNotebookSetColor(&quot;#f6d84a&quot;)"></button><button class="studyColorSwatch" title="Verde" aria-label="Verde" style="background:#8ed8a2" onclick="studyNotebookSetColor(&quot;#8ed8a2&quot;)"></button><button class="studyColorSwatch" title="Azul" aria-label="Azul" style="background:#8fc9f5" onclick="studyNotebookSetColor(&quot;#8fc9f5&quot;)"></button><span class="opacityLabel">Intensidade</span><button aria-label="Diminuir intensidade" onclick="studyNotebookHighlighterOpacity=Math.max(.15,studyNotebookHighlighterOpacity-.1);studyNotebookDraw()">−</button><input aria-label="Intensidade" type="range" min="15" max="100" value="55" oninput="studyNotebookHighlighterOpacity=Number(this.value)/100;studyNotebookDraw()"><button aria-label="Aumentar intensidade" onclick="studyNotebookHighlighterOpacity=Math.min(1,studyNotebookHighlighterOpacity+.1);studyNotebookDraw()">+</button><span class="opacityLabel">Tamanho</span><button aria-label="Diminuir tamanho do grifo" onclick="studyNotebookSetWidth(studyNotebookWidth-.5)">−</button><span class="opacityLabel">Traço</span><button aria-label="Aumentar tamanho do grifo" onclick="studyNotebookSetWidth(studyNotebookWidth+.5)">+</button></div><button type="button" data-study-tool="eraser" onclick="studyNotebookToggleOptions(&quot;eraser&quot;)" title="Borracha"><span class="toolIcon">⌫</span></button><div id="studyNotebookEraserOptions" class="studyToolOptions" style="display:none"><button title="Pequena" onclick="studyNotebookSetWidth(2)">P</button><button title="Média" onclick="studyNotebookSetWidth(5)">M</button><button title="Grande" onclick="studyNotebookSetWidth(10)">G</button></div><button type="button" data-study-tool="arrow" class="'+(studyNotebookActiveTool==='arrow'?'active':'')+'" onclick="studyNotebookToggleOptions(&quot;arrow&quot;)" title="Desenhar seta"><span class="toolIcon">↗</span></button><div id="studyNotebookArrowOptions" class="studyToolOptions" style="display:none"><button aria-label="Seta menor" title="Seta menor" onclick="studyNotebookArrowScale=Math.max(.5,studyNotebookArrowScale-.25)">−</button><span class="opacityLabel">Seta</span><button aria-label="Seta maior" title="Seta maior" onclick="studyNotebookArrowScale=Math.min(2,studyNotebookArrowScale+.25)">+</button></div><button type="button" data-study-tool="none" class="'+(studyNotebookActiveTool==='none'?'active':'')+'" onclick="studyNotebookSetTool(this.dataset.studyTool)" title="Selecionar / rolar"><span class="toolIcon">↖</span>Selecionar</button><button type="button" data-study-tool="moveImage" class="'+(studyNotebookActiveTool==='moveImage'?'active':'')+'" onclick="studyNotebookSetTool(this.dataset.studyTool)" title="Mover imagens"><span class="toolIcon">▧</span>Imagem</button><div class="studyToolDivider"></div><label>Cor<input aria-label="Cor da caneta" type="color" value="'+studyNotebookColor+'" onchange="studyNotebookSetColor(this.value)"></label><label>Tamanho<input aria-label="Tamanho do traço" type="range" min="1" max="12" step=".5" value="'+studyNotebookWidth+'" oninput="studyNotebookSetWidth(this.value)"></label><button type="button" onclick="studyNotebookUndo()" title="Desfazer último traço"><span class="toolIcon">↶</span>Desfazer</button><button type="button" onclick="studyNotebookClear()" title="Limpar página"><span class="toolIcon">⌧</span>Limpar</button><button type="button" onclick="studyNotebookCropHint()" title="Recortar imagem"><span class="toolIcon">✂</span>Recorte</button></aside><div class="studyNotebookWorkArea"><p class="studyNotebookHint">Use a ponta da caneta para escrever. O botão de borracha da stylus também ativa a borracha quando o aparelho o reconhece.</p><div class="studyNotebookImageTools"><button class="btn" type="button" onclick="document.getElementById(&quot;studyNotebookImageInput&quot;).click()">▧ Adicionar imagem</button><button class="btn ghost" type="button" onclick="studyNotebookPasteHint()">▣ Colar imagem</button><input id="studyNotebookImageInput" type="file" accept="image/*" multiple hidden onchange="studyNotebookHandleFiles(this.files);this.value=&quot;&quot;"></div><p class="studyNotebookImageHint">Escolha imagens do celular/computador ou copie uma imagem e cole aqui (Ctrl+V no computador). Para mover ou redimensionar, escolha “Mover imagem”; para excluir, use os controles da imagem ou a lista abaixo.</p><div id="studyNotebookImageList" class="studyNotebookImageList"></div><section class="studyNotebookPage"><input class="studyNotebookPageTitle" aria-label="Título da página" value="'+esc(p.title||'Anotações')+'" onchange="studyNotebookSetPageTitle(this.value)" maxlength="100" placeholder="Título da aula ou assunto"><textarea id="studyNotebookTyping" class="studyNotebookTyping" aria-label="Anotações digitadas" placeholder="Digite suas anotações da aula aqui..." oninput="studyNotebookSetText(this.value)"></textarea><canvas id="studyNotebookCanvas" class="studyNotebookCanvas" aria-label="Página pautada para escrita manual"></canvas><div id="studyNotebookImageLayer" class="studyNotebookImageLayer" aria-label="Imagens da página"></div></section><div class="studyNotebookPageNav"><button type="button" onclick="studyNotebookPreviousPage()" '+(studyNotebookPageIndex===0?'disabled':'')+'>←</button><span class="muted">Página '+(studyNotebookPageIndex+1)+' de '+b.pages.length+'</span><button type="button" onclick="studyNotebookNextPage()">Próxima →</button></div></div></div>';
+}
+function studyNotebookCropHint(){toast('O recorte direto ainda não está disponível nesta versão. Posso adicionar o recorte de imagens em uma próxima atualização.')}
+function studyNotebookPasteHint(){toast('Copie uma imagem e use Colar ou Ctrl+V enquanto o caderno estiver aberto. No celular, mantenha pressionada a área de escrita e escolha Colar, se o navegador oferecer essa opção.')}
+function studyNotebookHandleFiles(files){Array.from(files||[]).filter(f=>f.type&&f.type.startsWith('image/')).forEach(studyNotebookReadImageFile)}
+function studyNotebookReadImageFile(file){const reader=new FileReader();reader.onload=()=>studyNotebookCompressImage(reader.result).then(data=>studyNotebookAddImageData(data)).catch(()=>toast('Não consegui abrir essa imagem. Tente outra.'));reader.onerror=()=>toast('Não consegui ler o arquivo de imagem.');reader.readAsDataURL(file)}
+function studyNotebookCompressImage(source){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>{const max=1200,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight)),w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale)),c=document.createElement('canvas');c.width=w;c.height=h;const ctx=c.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);try{resolve(c.toDataURL('image/jpeg',.78))}catch(e){reject(e)}};img.onerror=reject;img.src=source})}
+function studyNotebookAddImageData(data){const x=studyNotebookCurrent();if(!x)return toast('Abra um caderno antes de adicionar imagens.');x.page.images=Array.isArray(x.page.images)?x.page.images:[];if(x.page.images.length>=12)return toast('Esta página já tem 12 imagens. Crie outra página para continuar.');const n=x.page.images.length;x.page.images.push({id:'img_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),data:data,x:.08+(n%3)*.05,y:.06+(n%5)*.035,w:.62,createdAt:Date.now()});x.book.updatedAt=Date.now();save();studyNotebookDraw();studyNotebookRenderImages();toast('Imagem adicionada à página ✨')}
+function studyNotebookPasteEvent(e){if(!studyNotebookCurrentId||!document.getElementById('studyNotebookCanvas'))return;const items=Array.from(e.clipboardData?.items||[]),item=items.find(i=>i.type&&i.type.startsWith('image/'));if(!item)return;const file=item.getAsFile();if(file){e.preventDefault();studyNotebookReadImageFile(file)}}
+if(!window._studyNotebookPasteBound){document.addEventListener('paste',studyNotebookPasteEvent);window._studyNotebookPasteBound=true}
+function studyNotebookDrawImages(ctx,rect){const x=studyNotebookCurrent();if(!x)return;(x.page.images||[]).forEach(im=>{if(!im.data)return;let img=studyNotebookImageCache.get(im.id);if(!img){img=new Image();studyNotebookImageCache.set(im.id,img);img.onload=()=>studyNotebookDraw();img.src=im.data}if(img.complete&&img.naturalWidth){const w=im.w*rect.width,h=w*img.naturalHeight/img.naturalWidth;ctx.save();ctx.drawImage(img,im.x*rect.width,im.y*rect.height,w,h);ctx.restore()}})}
+const studyNotebookImageCache=new Map();
+
+
+
+function studyNotebookDeleteImage(id){const x=studyNotebookCurrent();if(!x)return;x.page.images=(x.page.images||[]).filter(im=>String(im.id)!==String(id));studyNotebookImageCache.delete(id);x.book.updatedAt=Date.now();save();studyNotebookRenderImages();studyNotebookDraw();toast('Imagem excluída do caderno.')}
+function studyNotebookRenderImages(){
+ const x=studyNotebookCurrent(),layer=document.getElementById('studyNotebookImageLayer'),list=document.getElementById('studyNotebookImageList');if(!x)return;
+ const movable=studyNotebookActiveTool==='moveImage'&&x.page.mode!=='type';
+ if(layer){layer.innerHTML='';layer.classList.toggle('enabled',movable);}
+ if(list){list.innerHTML='';const imgs=x.page.images||[];if(!imgs.length){list.innerHTML='<span class="muted" style="font-size:12px">Nenhuma imagem nesta página.</span>'}else imgs.forEach((im,i)=>{const row=document.createElement('span');const name=document.createElement('button');name.type='button';name.textContent='Imagem '+(i+1);name.onclick=()=>{studyNotebookSetTool('moveImage');toast('Arraste a imagem na página. Use a alça ↘ para redimensionar.')};row.appendChild(name);const del=document.createElement('button');del.type='button';del.className='danger';del.textContent='Excluir';del.onclick=()=>studyNotebookDeleteImage(im.id);row.appendChild(del);list.appendChild(row)})}
+ (x.page.images||[]).forEach((im,i)=>{if(!im.data||!layer)return;
+  const item=document.createElement('div');item.className='studyNotebookImageItem';item.dataset.imageId=im.id;
+  item.style.left=(Math.max(0,Math.min(.98,Number(im.x)||0))*100)+'%';item.style.top=(Math.max(0,Math.min(.98,Number(im.y)||0))*100)+'%';item.style.width=(Math.max(.12,Math.min(.95,Number(im.w)||.62))*100)+'%';
+  const pic=document.createElement('img');pic.alt='Imagem adicionada ao caderno';pic.draggable=false;pic.src=im.data;item.appendChild(pic);
+  const actions=document.createElement('div');actions.className='studyNotebookImageActions';
+  const del=document.createElement('button');del.type='button';del.textContent='✕ Excluir';del.onclick=ev=>{ev.preventDefault();ev.stopPropagation();studyNotebookDeleteImage(im.id)};actions.appendChild(del);item.appendChild(actions);
+  const handle=document.createElement('button');handle.type='button';handle.className='studyNotebookResizeHandle';handle.setAttribute('aria-label','Redimensionar imagem');handle.textContent='↘';item.appendChild(handle);
+  const begin=(ev,resize)=>{if(!movable)return;ev.preventDefault();ev.stopPropagation();const lr=layer.getBoundingClientRect();studyNotebookDraggingImage=im;studyNotebookDragOffset={startX:ev.clientX,startY:ev.clientY,x:Number(im.x)||0,y:Number(im.y)||0,w:Number(im.w)||.62,layerW:lr.width,layerH:lr.height,resize};try{item.setPointerCapture(ev.pointerId)}catch(_){}};
+  item.addEventListener('pointerdown',ev=>{if(ev.target.closest('.studyNotebookImageActions')||ev.target.closest('.studyNotebookResizeHandle'))return;begin(ev,false)});
+  handle.addEventListener('pointerdown',ev=>begin(ev,true));
+  const move=ev=>{if(studyNotebookDraggingImage!==im||!studyNotebookDragOffset)return;ev.preventDefault();const d=studyNotebookDragOffset,dx=(ev.clientX-d.startX)/(d.layerW||1),dy=(ev.clientY-d.startY)/(d.layerH||1);if(d.resize)im.w=Math.max(.12,Math.min(.95,d.w+dx));else{im.x=Math.max(0,Math.min(.98-im.w,d.x+dx));im.y=Math.max(0,Math.min(.98,d.y+dy))}item.style.left=(im.x*100)+'%';item.style.top=(im.y*100)+'%';item.style.width=(im.w*100)+'%';};
+  const finish=ev=>{if(studyNotebookDraggingImage!==im)return;studyNotebookDraggingImage=null;studyNotebookDragOffset=null;x.book.updatedAt=Date.now();save();studyNotebookRenderImages()};
+  item.addEventListener('pointermove',move);handle.addEventListener('pointermove',move);item.addEventListener('pointerup',finish);handle.addEventListener('pointerup',finish);item.addEventListener('pointercancel',finish);handle.addEventListener('pointercancel',finish);
+  layer.appendChild(item);
+ });
+}
+let studyNotebookPageLocked=false;let studyNotebookLockedScrollY=0;
+function studyNotebookToggleLock(){studyNotebookPageLocked=!studyNotebookPageLocked;studyNotebookScrollLocked=studyNotebookPageLocked;const btn=document.getElementById('studyNotebookLockButton'),icon=document.getElementById('studyNotebookLockIcon'),label=document.getElementById('studyNotebookLockText'),hint=document.getElementById('studyNotebookLockHint');if(studyNotebookPageLocked){studyNotebookLockedScrollY=window.scrollY||window.pageYOffset||0;document.documentElement.classList.add('study-notebook-page-locked');document.body.style.position='fixed';document.body.style.top=(-studyNotebookLockedScrollY)+'px';document.body.style.left='0';document.body.style.right='0';document.body.style.width='100%';}else{document.documentElement.classList.remove('study-notebook-page-locked');document.body.style.position='';document.body.style.top='';document.body.style.left='';document.body.style.right='';document.body.style.width='';window.scrollTo(0,studyNotebookLockedScrollY);}if(btn)btn.setAttribute('aria-pressed',String(studyNotebookPageLocked));if(icon)icon.textContent=studyNotebookPageLocked?'🔒':'🔓';if(label)label.textContent=studyNotebookPageLocked?'Destravar':'Travar';if(hint)hint.textContent=studyNotebookPageLocked?'Tela travada para escrever':'Rolagem livre';studyNotebookApplyMode();}
+function studyNotebookSetMode(mode){const x=studyNotebookCurrent();if(!x)return;x.page.mode=mode==='type'?'type':'hand';studyNotebookActiveTool='none';save();studyNotebookApplyMode();studyNotebookDraw()}
+function studyNotebookApplyMode(){const x=studyNotebookCurrent(),page=document.querySelector('.studyNotebookPage'),canvas=studyNotebookCanvas(),ta=document.getElementById('studyNotebookTyping');if(!x||!page||!canvas||!ta)return;const typing=x.page.mode==='type',drawing=['pen','highlighter','eraser'].includes(studyNotebookActiveTool)&&!typing;page.classList.toggle('mode-typing',typing);page.classList.toggle('mode-drawing',drawing);page.classList.toggle('is-scroll-locked',studyNotebookScrollLocked);const lockButton=document.getElementById('studyNotebookLockButton');if(lockButton){lockButton.classList.toggle('locked',studyNotebookScrollLocked);lockButton.title=studyNotebookScrollLocked?'Destravar rolagem':'Travar rolagem para escrever';lockButton.setAttribute('aria-label',lockButton.title);lockButton.innerHTML='<span class="toolIcon">'+(studyNotebookScrollLocked?'🔒':'🔓')+'</span>'}ta.style.display=typing?'block':'none';canvas.style.display=typing?'none':'block';ta.value=x.page.text||'';document.querySelectorAll('[data-study-mode]').forEach(b=>b.classList.toggle('active',b.dataset.studyMode===(typing?'type':'hand')));document.querySelectorAll('[data-study-tool]').forEach(b=>b.classList.toggle('active',b.dataset.studyTool===studyNotebookActiveTool));canvas.classList.toggle('is-inactive',!drawing&&studyNotebookActiveTool!=='moveImage');canvas.style.pointerEvents=studyNotebookActiveTool==='moveImage'&&!typing?'none':'auto';canvas.style.touchAction='none';studyNotebookRenderImages();}
+function studyNotebookSetText(value){const x=studyNotebookCurrent();if(!x)return;x.page.text=value;x.book.updatedAt=Date.now();save()}
+
+let studyNotebookPenStyle='pen',studyNotebookHighlighterOpacity=.55,studyNotebookArrowScale=.7;
+function studyNotebookToggleOptions(tool){const id=tool==='pen'?'studyNotebookPenOptions':tool==='highlighter'?'studyNotebookHighlighterOptions':tool==='eraser'?'studyNotebookEraserOptions':'studyNotebookArrowOptions',panel=document.getElementById(id),opening=panel?.style.display!=='grid';document.querySelectorAll('.studyToolOptions').forEach(p=>p.style.display='none');if(panel&&opening)panel.style.display='grid';studyNotebookSetTool(tool);if(panel&&!opening){studyNotebookActiveTool='none';document.querySelectorAll('[data-study-tool]').forEach(b=>b.classList.remove('active'));studyNotebookApplyMode()}}
+function studyNotebookSetPenStyle(style){studyNotebookPenStyle=style;studyNotebookSetTool('pen')}
+let studyNotebookScrollLocked=false;function studyNotebookToggleScrollLock(){studyNotebookToggleLock();toast(studyNotebookScrollLocked?'Tela travada para escrever.':'Rolagem liberada.');}function studyNotebookSetTool(tool){studyNotebookActiveTool=tool;document.querySelectorAll('[data-study-tool]').forEach(b=>b.classList.toggle('active',b.dataset.studyTool===tool));studyNotebookApplyMode();studyNotebookDraw();studyNotebookRenderImages()}
+function studyNotebookSetColor(color){studyNotebookColor=color}
+function studyNotebookSetWidth(width){studyNotebookWidth=Math.max(1,Math.min(30,Number(width)||2.4));document.querySelectorAll('.studyToolOptions input[type=range][aria-label="Espessura"]').forEach(el=>el.value=studyNotebookWidth)}
+function studyNotebookSetPageTitle(title){const x=studyNotebookCurrent();if(!x)return;x.page.title=String(title||'').slice(0,100);x.book.updatedAt=Date.now();save()}
+function studyNotebookSelectPage(index){studyNotebookPageIndex=index;render();studyNotebookDraw()}
+function studyNotebookAddPage(){const x=studyNotebookCurrent();if(!x)return;x.book.pages.push({id:'pg_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),title:'Anotações da aula',strokes:[],createdAt:Date.now()});studyNotebookPageIndex=x.book.pages.length-1;x.book.updatedAt=Date.now();save();render();studyNotebookDraw()}
+function studyNotebookDeletePage(index){const x=studyNotebookCurrent();if(!x)return;if(x.book.pages.length<=1)return toast('O caderno precisa ter pelo menos uma página.');const pageNum=index+1;if(!confirm('Excluir definitivamente a página '+pageNum+' e todas as anotações dela?'))return;x.book.pages.splice(index,1);if(studyNotebookPageIndex>index)studyNotebookPageIndex--;else if(studyNotebookPageIndex>=x.book.pages.length)studyNotebookPageIndex=x.book.pages.length-1;x.book.updatedAt=Date.now();save();render();studyNotebookDraw()}
+function studyNotebookNextPage(){const x=studyNotebookCurrent();if(!x)return;if(studyNotebookPageIndex<x.book.pages.length-1)studyNotebookSelectPage(studyNotebookPageIndex+1);else studyNotebookAddPage();setTimeout(()=>window.scrollTo({top:document.querySelector('.studyNotebookWorkspace')?.offsetTop||0,behavior:'smooth'}),80)}
+function studyNotebookHandlePageKeys(e){if(e.target?.matches('input,textarea,select,[contenteditable=true]'))return;if(e.key==='ArrowRight'){e.preventDefault();studyNotebookNextPage()}else if(e.key==='ArrowLeft'){e.preventDefault();studyNotebookPreviousPage()}}if(!window.studyNotebookPageKeysBound){document.addEventListener('keydown',studyNotebookHandlePageKeys);window.studyNotebookPageKeysBound=true}
+function studyNotebookPreviousPage(){if(studyNotebookPageIndex>0)studyNotebookSelectPage(studyNotebookPageIndex-1)}
+function studyNotebookCanvas(){return document.getElementById('studyNotebookCanvas')}
+function studyNotebookResizeCanvas(){
+ const canvas=studyNotebookCanvas();if(!canvas)return;
+ const rect=canvas.getBoundingClientRect(),dpr=Math.max(1,Math.min(3,window.devicePixelRatio||1));
+ if(!rect.width||!rect.height)return;
+ canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);
+ const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);studyNotebookDraw();
+}
+function studyNotebookDraw(){
+ const canvas=studyNotebookCanvas(),x=studyNotebookCurrent();if(!canvas||!x)return;
+ const ctx=canvas.getContext('2d'),rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;
+ const dpr=canvas.width/rect.width||1;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);
+ for(const st of (x.page.strokes||[])){
+  if(!st.points||!st.points.length)continue;
+  ctx.save();ctx.globalCompositeOperation=st.tool==='eraser'?'destination-out':'source-over';
+  ctx.strokeStyle=st.tool==='highlighter'?(st.color||'#f6d84a'):st.tool==='pencil'?'#55504c':(st.color||'#35243b');ctx.globalAlpha=st.tool==='highlighter'?studyNotebookHighlighterOpacity:1;
+  ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=st.width*(st.tool==='highlighter'?3.5:1);ctx.lineCap='round';ctx.lineJoin='round';
+  if(st.tool==='arrow'&&st.points.length>1){const a=st.points[0],z=st.points[st.points.length-1],x1=a.x*rect.width,y1=a.y*rect.height,x2=z.x*rect.width,y2=z.y*rect.height,ang=Math.atan2(y2-y1,x2-x1),head=Math.max(5,ctx.lineWidth*4*studyNotebookArrowScale);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.moveTo(x2,y2);ctx.lineTo(x2-head*Math.cos(ang-Math.PI/6),y2-head*Math.sin(ang-Math.PI/6));ctx.moveTo(x2,y2);ctx.lineTo(x2-head*Math.cos(ang+Math.PI/6),y2-head*Math.sin(ang+Math.PI/6));ctx.stroke();ctx.restore();continue}
+  if(st.points.length===1){ctx.beginPath();ctx.arc(st.points[0].x*rect.width,st.points[0].y*rect.height,ctx.lineWidth/2,0,Math.PI*2);ctx.fill()}
+  else{ctx.beginPath();ctx.moveTo(st.points[0].x*rect.width,st.points[0].y*rect.height);if(st.points.length===2){ctx.lineTo(st.points[1].x*rect.width,st.points[1].y*rect.height)}else{for(let i=1;i<st.points.length-1;i++){const mx=(st.points[i].x+st.points[i+1].x)*.5*rect.width,my=(st.points[i].y+st.points[i+1].y)*.5*rect.height;ctx.quadraticCurveTo(st.points[i].x*rect.width,st.points[i].y*rect.height,mx,my)}const last=st.points[st.points.length-1];ctx.lineTo(last.x*rect.width,last.y*rect.height)}ctx.stroke()}
+  ctx.restore();
+ }
+}
+
+function studyNotebookPointerDown(e){if(e.pointerType!=='pen')return;const canvas=studyNotebookCanvas(),x=studyNotebookCurrent();if(!canvas||!x||x.page.mode==='type'||studyNotebookActiveTool==='none')return;if(!studyNotebookPageLocked&&['pen','pencil','highlighter','eraser','arrow'].includes(studyNotebookActiveTool))return;e.preventDefault();e.stopPropagation();try{canvas.setPointerCapture(e.pointerId)}catch(_){}const r=canvas.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+ if(studyNotebookActiveTool==='moveImage'){const imgs=x.page.images||[];for(let i=imgs.length-1;i>=0;i--){const im=imgs[i],img=studyNotebookImageCache.get(im.id);if(!img||!img.naturalWidth)continue;const w=im.w,h=w*img.naturalHeight/img.naturalWidth;if(px>=im.x&&px<=im.x+w&&py>=im.y&&py<=im.y+h){studyNotebookDraggingImage=im;studyNotebookDragOffset={x:px-im.x,y:py-im.y};canvas.setPointerCapture?.(e.pointerId);return}}toast('Toque em uma imagem para selecioná-la e arraste para reposicionar.');return}
+ const stylusEraserPressed=(e.button===2||e.button===5||(e.buttons&2)!==0||(e.buttons&32)!==0);if(stylusEraserPressed){studyNotebookToolBeforeStylusErase=studyNotebookActiveTool;studyNotebookActiveTool='eraser';studyNotebookApplyMode()}if(!['pen','highlighter','eraser','arrow'].includes(studyNotebookActiveTool)){if(stylusEraserPressed&&studyNotebookToolBeforeStylusErase){studyNotebookActiveTool=studyNotebookToolBeforeStylusErase;studyNotebookToolBeforeStylusErase=null;studyNotebookApplyMode()}return}studyNotebookStroke={tool:studyNotebookActiveTool==='pen'&&studyNotebookPenStyle==='pencil'?'pencil':studyNotebookActiveTool,color:studyNotebookColor,width:studyNotebookWidth,points:[{x:Math.max(0,Math.min(1,px)),y:Math.max(0,Math.min(1,py))}]};studyNotebookDrawStrokePreview()}
+function studyNotebookPointerMove(e){if(e.pointerType!=='pen')return;const canvas=studyNotebookCanvas();if(!studyNotebookPageLocked&&['pen','pencil','highlighter','eraser','arrow'].includes(studyNotebookActiveTool))return;if(studyNotebookStroke||studyNotebookDraggingImage){e.preventDefault();e.stopPropagation()}if(studyNotebookDraggingImage&&canvas){const x=studyNotebookCurrent(),r=canvas.getBoundingClientRect();studyNotebookDraggingImage.x=Math.max(0,Math.min(.98-studyNotebookDraggingImage.w,(e.clientX-r.left)/r.width-studyNotebookDragOffset.x));studyNotebookDraggingImage.y=Math.max(0,Math.min(.98,(e.clientY-r.top)/r.height-studyNotebookDragOffset.y));studyNotebookDraw();return}if(!studyNotebookStroke||!canvas)return;const r=canvas.getBoundingClientRect();const p=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of p){studyNotebookStroke.points.push({x:Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(ev.clientY-r.top)/r.height))})}studyNotebookDrawStrokePreview()}
+function studyNotebookDrawStrokePreview(){const x=studyNotebookCurrent(),canvas=studyNotebookCanvas();if(!x||!canvas||!studyNotebookStroke)return;const ctx=canvas.getContext('2d'),r=canvas.getBoundingClientRect(),dpr=canvas.width/r.width||1,st=studyNotebookStroke,pts=st.points||[];if(!pts.length)return;ctx.save();ctx.setTransform(dpr,0,0,dpr,0,0);ctx.globalCompositeOperation=st.tool==='eraser'?'destination-out':'source-over';ctx.strokeStyle=st.tool==='highlighter'?(st.color||'#f6d84a'):st.tool==='pencil'?'#55504c':(st.color||'#35243b');ctx.globalAlpha=st.tool==='highlighter'?studyNotebookHighlighterOpacity:1;ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=st.width*(st.tool==='highlighter'?3.5:1);ctx.lineCap='round';ctx.lineJoin='round';if(pts.length===1){ctx.beginPath();ctx.arc(pts[0].x*r.width,pts[0].y*r.height,Math.max(1,ctx.lineWidth/2),0,Math.PI*2);ctx.fill()}else{const a=pts[pts.length-2],b=pts[pts.length-1];ctx.beginPath();ctx.moveTo(a.x*r.width,a.y*r.height);const mx=(a.x+b.x)*r.width/2,my=(a.y+b.y)*r.height/2;ctx.quadraticCurveTo(a.x*r.width,a.y*r.height,mx,my);ctx.stroke()}ctx.restore()}
+function studyNotebookPointerUp(e){if(e&&e.pointerType!=='pen')return;if(e){e.preventDefault();e.stopPropagation()}if(studyNotebookDraggingImage){const x=studyNotebookCurrent();if(x){x.book.updatedAt=Date.now();save()}studyNotebookDraggingImage=null;studyNotebookDragOffset=null;studyNotebookDraw();return}if(studyNotebookStroke){const x=studyNotebookCurrent();if(x){x.page.strokes=x.page.strokes||[];x.page.strokes.push(studyNotebookStroke);x.book.updatedAt=Date.now();save()}studyNotebookStroke=null;studyNotebookDraw()}if(studyNotebookToolBeforeStylusErase){studyNotebookActiveTool=studyNotebookToolBeforeStylusErase;studyNotebookToolBeforeStylusErase=null;studyNotebookApplyMode()}}
+function studyNotebookUndo(){const x=studyNotebookCurrent();if(!x||!x.page.strokes?.length)return toast('Nada para desfazer nesta página');x.page.strokes.pop();x.book.updatedAt=Date.now();save();studyNotebookDraw()}
+function studyNotebookClear(){const x=studyNotebookCurrent();if(!x||!x.page.strokes?.length)return;if(!confirm('Apagar todos os traços desta página?'))return;x.page.strokes=[];x.book.updatedAt=Date.now();save();studyNotebookDraw()}
+function studyNotebookCreateCanvas(){
+ const canvas=studyNotebookCanvas();if(!canvas)return;
+ canvas.onpointerdown=studyNotebookPointerDown;canvas.onpointermove=studyNotebookPointerMove;canvas.onpointerup=studyNotebookPointerUp;canvas.onpointercancel=studyNotebookPointerUp;canvas.onlostpointercapture=studyNotebookPointerUp;
+ canvas.style.touchAction='none';
+ if(studyNotebookCanvasResize)window.removeEventListener('resize',studyNotebookCanvasResize);
+ studyNotebookCanvasResize=()=>{if(studyNotebookCanvas())studyNotebookResizeCanvas()};
+ window.addEventListener('resize',studyNotebookCanvasResize,{passive:true});studyNotebookResizeCanvas();studyNotebookApplyMode();studyNotebookRenderImages();
+}
+
+function addCardView(){return `<div class=panel><h2>Novo flashcard</h2><select id=cs class=field>${db.subjects.map(s=>`<option>${esc(s)}</option>`).join('')}</select><label>Frente / pergunta</label>${editor('cf','Pergunta, caso clínico, imagem…')}<label>Verso / resposta</label>${editor('cb','Resposta, explicação, imagem…')}<label>Mídia incorporada</label><input id=cm class=field placeholder='URL direta de imagem/áudio/vídeo ou YouTube'><label>Tags</label><input id=ct class=field placeholder='ex.: gravidade, decoreba'><button class=btn onclick=addCard()>Salvar flashcard</button><p class=muted>Você pode colar imagens diretamente no editor, enviar um arquivo ou usar URL. YouTube, áudio e vídeo rodam dentro do FlashMed.</p></div>`}
+function addCard(){let f=cf.innerHTML.trim(),b=cb.innerHTML.trim();if(!f||!b)return toast('Preencha frente e verso');db.cards.push({id:Date.now(),subject:cs.value,front:f,back:b,media:cm.value,tags:ct.value,ok:0,bad:0,interval:0,due:day(),history:[]});save();toast('Flashcard salvo ♡');render()}
+function toggleDraw(){drawWrap.classList.toggle('hidden');if(!drawWrap.classList.contains('hidden'))setupCanvas()}function setupCanvas(){let c=document.getElementById('draw');if(!c)return;let r=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=r.width*ratio;c.height=220*ratio;let x=c.getContext('2d');x.scale(ratio,ratio);x.lineWidth=2;x.lineCap='round';x.strokeStyle='#7b3157';let on=false,last=null;function p(e){let z=c.getBoundingClientRect(),t=e.touches?.[0]||e;return [t.clientX-z.left,t.clientY-z.top]}c.onpointerdown=e=>{on=true;last=p(e)};c.onpointermove=e=>{if(!on)return;let q=p(e);x.beginPath();x.moveTo(...last);x.lineTo(...q);x.stroke();last=q};c.onpointerup=()=>on=false;c.onpointerleave=()=>on=false}function clearDraw(){let c=draw,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height)}
+function media(u){if(!u)return'';let y=(u.match(/(?:v=|youtu\.be\/|shorts\/)([^&?/]+)/)||[])[1];if(/youtu/.test(u)&&y)return `<iframe width=560 height=315 src='https://www.youtube.com/embed/${y}' allow='accelerometer; autoplay; encrypted-media; picture-in-picture' allowfullscreen></iframe>`;if(/\.(mp3|wav|ogg)(\?|$)/i.test(u))return `<audio controls src='${esc(u)}'></audio>`;if(/\.(mp4|webm|mov)(\?|$)/i.test(u))return `<video controls src='${esc(u)}'></video>`;return `<img src='${esc(u)}' onerror="this.outerHTML='<small class=muted>Esta origem bloqueou a incorporação da imagem.</small>'">`}
+let scratchData='',scratchOpen=false;
+function startStudy(mode){let base=mode==='random'?[...db.cards]:db.cards.filter(due);if(reviewSubjectFilter!=='Todas')base=base.filter(c=>c.subject===reviewSubjectFilter);study=(mode==='random'?base.sort(()=>Math.random()-.5):base.sort((a,b)=>(b.bad||0)-(a.bad||0)));idx=0;reveal=false;scratchData='';scratchOpen=false;renderStudy(mode)}
+function scratchPad(){return `<div class='panel' style='margin-top:14px'><div class=row style='justify-content:space-between'><div><b>✍️ Minha resposta / rascunho</b><div class=muted>Escreva ou desenhe antes de revelar a resposta.</div></div><button class='btn ghost' onclick='scratchOpen=!scratchOpen;renderStudy(currentMode)'>${scratchOpen?'Fechar':'Abrir quadro'}</button></div>${scratchOpen?`<div class=row style='margin:10px 0'><button class='btn ghost' onclick="penColor='#7b3157'">Caneta</button><button class='btn ghost' onclick="penColor='#e85b9e'">Rosa</button><button class='btn ghost' onclick="penColor='#f1c84b';penWidth=10">Marca-texto</button><button class='btn ghost' onclick="penColor='#fff';penWidth=18">Borracha</button><button class='btn ghost' onclick='undoScratch()'>↶ Desfazer</button><button class='btn ghost' onclick='clearScratch()'>Limpar</button><button class='btn ghost' onclick='fullScratch()'>⛶ Tela cheia</button></div><canvas id=scratch class=draw style='height:320px'></canvas>`:''}</div>`}
+let currentMode='due',penColor='#7b3157',penWidth=2,scratchUndo=[],reviewSubjectFilter='Todas',reviewFontSize=20;
+function changeReviewFont(delta){reviewFontSize=Math.max(16,Math.min(34,reviewFontSize+delta));const el=document.querySelector('.flash');if(el)el.style.setProperty('--review-font-size',reviewFontSize+'px');const z=document.getElementById('reviewFontValue');if(z)z.textContent=reviewFontSize+' px'}
+function resetReviewFont(){reviewFontSize=20;changeReviewFont(0)}
+function setupScratch(){let c=document.getElementById('scratch');if(!c)return;let r=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=r.width*ratio;c.height=320*ratio;let x=c.getContext('2d');x.scale(ratio,ratio);x.lineCap='round';if(scratchData){let im=new Image;im.onload=()=>x.drawImage(im,0,0,r.width,320);im.src=scratchData}let on=false,last=null;function p(e){let z=c.getBoundingClientRect();return[e.clientX-z.left,e.clientY-z.top]}c.onpointerdown=e=>{scratchUndo.push(c.toDataURL());on=true;last=p(e);c.setPointerCapture?.(e.pointerId)};c.onpointermove=e=>{if(!on)return;let q=p(e);x.strokeStyle=penColor;x.lineWidth=penWidth;x.beginPath();x.moveTo(...last);x.lineTo(...q);x.stroke();last=q;scratchData=c.toDataURL()};c.onpointerup=()=>{on=false;scratchData=c.toDataURL()};c.onpointercancel=()=>on=false}
+function clearScratch(){scratchData='';scratchUndo=[];setupScratch()}function undoScratch(){if(!scratchUndo.length)return;scratchData=scratchUndo.pop();setupScratch()}function fullScratch(){let c=document.getElementById('scratch');c?.requestFullscreen?.()}
+function revealAnswer(mode){let c=document.getElementById('scratch');if(c)scratchData=c.toDataURL();reveal=true;renderStudy(mode)}
+function renderStudy(mode){currentMode=mode;if(!study.length)return view.innerHTML=`<div class=panel><h2>Nada pendente 🎀</h2><p>Adicione flashcards ou aguarde a próxima revisão.</p></div>`;let c=study[idx];view.innerHTML=`<div class=row><span class=pill>${esc(c.subject)}</span><span class=muted>${idx+1}/${study.length}</span><span class=tag>${esc(c.tags||'')}</span></div><div class='panel reviewReadTools' style='margin:10px 0;padding:10px 12px'><div class=row style='align-items:center;justify-content:space-between;gap:8px'><b>🔎 Leitura</b><div class=row style='align-items:center;gap:7px'><button class='btn ghost' style='min-width:42px;font-size:20px;padding:7px 12px' onclick='changeReviewFont(-2)' aria-label='Diminuir letras'>A−</button><span id='reviewFontValue' style='min-width:48px;text-align:center;font-weight:800'>${reviewFontSize} px</span><button class='btn ghost' style='min-width:42px;font-size:20px;padding:7px 12px' onclick='changeReviewFont(2)' aria-label='Aumentar letras'>A+</button><button class='btn ghost' style='padding:7px 10px' onclick='resetReviewFont()'>Padrão</button></div></div><small style='display:block;margin-top:5px;color:#55414d'>Ajuste o tamanho das letras durante a revisão.</small></div><div class=flash style='--review-font-size:${reviewFontSize}px'><div class=rich><div class=media>${reveal?media(c.media):''}</div>${reveal?cardBackHtml(c):cardFrontHtml(c)}<p class=muted>${reveal?'Compare sua resposta antes de avaliar.':'Responda mentalmente ou use o quadro abaixo.'}</p></div></div>${scratchPad()}${!reveal?`<div class=row style='justify-content:center;margin-top:14px'><button class=btn onclick='revealAnswer("${mode}")'>Revelar resposta</button></div>`:`${scratchData?`<div class=panel style='margin-top:14px'><b>✍️ O que você escreveu</b><p><img src='${scratchData}' style='max-width:100%;border-radius:14px;border:1px solid var(--line)'></p></div>`:''}<div class='row answerBtns'><button class='btn bad' onclick="rate(${c.id},'forgot','${mode}')">Esqueci</button><button class='btn bad' onclick="rate(${c.id},'bad','${mode}')">Errei</button><button class='btn warn' onclick="rate(${c.id},'guess','${mode}')">Chutei</button><button class='btn blue' onclick="rate(${c.id},'hard','${mode}')">Difícil</button><button class='btn ok' onclick="rate(${c.id},'ok','${mode}')">Acertei</button><button class='btn ok' onclick="rate(${c.id},'easy','${mode}')">Muito fácil</button></div>`}`;if(scratchOpen)setTimeout(setupScratch,0)}
+function flashcardKeyboardNavigate(delta){if(!study.length||!['Revisão','Aleatório','Matérias'].includes(route)&&!['due','random','subject'].includes(currentMode))return;const next=idx+delta;if(next<0||next>=study.length)return;idx=next;reveal=false;scratchData='';scratchOpen=false;scratchUndo=[];renderStudy(currentMode)}
+document.addEventListener('keydown',function(e){if(!['Revisão','Aleatório','Matérias'].includes(route)&&!['due','random','subject'].includes(currentMode))return;const target=e.target;if(target&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName)))return;if(e.altKey||e.ctrlKey||e.metaKey)return;if(e.key==='ArrowRight'){e.preventDefault();flashcardKeyboardNavigate(1)}else if(e.key==='ArrowLeft'){e.preventDefault();flashcardKeyboardNavigate(-1)}else if(e.key==='Enter'&&study.length&&!reveal){e.preventDefault();revealAnswer(currentMode)}});
+function rate(id,r,mode){let c=db.cards.find(x=>x.id==id),map={forgot:.25,bad:.5,guess:1,hard:1.7,ok:2.5,easy:4},base=Math.max(1,c.interval||1),days=Math.max(1,Math.round(base*map[r]));if(r==='ok'&&base===1)days=3;if(r==='easy'&&base===1)days=5;c.interval=days;c.due=new Date(Date.now()+days*864e5).toISOString().slice(0,10);let success=['ok','easy'].includes(r);c[success?'ok':'bad']=(c[success?'ok':'bad']||0)+1;c.history.push({date:day(),rating:r});save();idx++;reveal=false;scratchData='';scratchOpen=false;scratchUndo=[];penColor='#7b3157';penWidth=2;if(idx>=study.length)view.innerHTML=`<div class=panel><h2>Sessão concluída ✨</h2><p>Suas respostas já entraram nas métricas e na próxima revisão.</p><div class=row><button class=btn onclick="go('Dashboard')">Dashboard</button>${mode==='subject'?'<button class="btn ghost" onclick="renderSubject()">Voltar à matéria</button>':''}</div></div>`;else renderStudy(mode)}function reviewSelector(){let subjects=['Todas',...db.subjects.filter(s=>db.cards.some(c=>c.subject===s))],counts=Object.fromEntries(subjects.map(s=>[s,s==='Todas'?db.cards.filter(due).length:db.cards.filter(c=>c.subject===s&&due(c)).length]));return `<div class='panel hero'><h2>↻ Revisões</h2><p>Escolha de qual material você quer revisar os flashcards pendentes.</p></div><div class=panel style='margin-top:14px'><h3>Selecionar material</h3><div class=row><select id=reviewSubjectSelect class=field style='max-width:360px' onchange="reviewSubjectFilter=this.value;render()">${subjects.map(s=>`<option ${s===reviewSubjectFilter?'selected':''}>${esc(s)}</option>`).join('')}</select><span class=pill>📚 ${counts[reviewSubjectFilter]||0} pendentes</span><button class=btn onclick="startStudy('due')">Começar revisão →</button></div><div class=row style='margin-top:6px'>${subjects.filter(s=>s!=='Todas').map(s=>`<span class=tag>${esc(s)} • ${counts[s]} pendentes</span>`).join('')}</div></div>`}
+function review(mode){if(mode==='due')return reviewSelector();setTimeout(()=>startStudy(mode),0);return `<div class=panel><h2>Preparando revisão…</h2></div>`}
+let bankFilter={exam:'SUS-BA 2026.1',exams:['SUS-BA 2026.1'],area:'Todas',areas:[],status:'Todas',statuses:[],type:'Todas',types:[],limit:'Todas'},bankCurrent=null,bankSelected=null,bankCuts=new Set(),bankMode='practice',bankExamStart=0,bankExamAnswers={},bankQuestionStart=0,bankTopicSearch='',bankTopicIds=null,bankSelectionIds=null;
+const BANK_REVIEW_WRONG=[1,5,15,30,60],BANK_REVIEW_RIGHT=[7,15,30,60,90];
+let bankReviewCurrent=null,bankReviewRevealed=false;
+function bankReviewDate(offset,base){let d=base?new Date(base+'T12:00:00'):new Date();if(isNaN(d.getTime()))d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function bankReviewStore(){return db.bankReview||(db.bankReview={})}
+function bankReviewSchedule(qid,correct,source,attempt){let q=(db.bankQuestions||[]).find(x=>x.id===qid);if(!q||q.annulled)return;let store=bankReviewStore(),old=store[qid],sameAttempt=attempt&&old?.lastAttemptId===attempt.id;if(sameAttempt)return;let series=correct?BANK_REVIEW_RIGHT:BANK_REVIEW_WRONG,stage=old&&old.track===(correct?'right':'wrong')?Math.min((old.stage||0)+1,series.length-1):0;store[qid]={track:correct?'right':'wrong',stage,due:bankReviewDate(series[stage]),lastResult:correct?'acerto':'erro',lastSource:source,lastAttemptId:attempt?.id||null,updated:day()}}
+function bankReviewBootstrap(){let store=bankReviewStore(),group={};for(const a of db.bankAttempts||[]){if(!group[a.questionId])group[a.questionId]=[];group[a.questionId].push(a)}for(const [id,arr] of Object.entries(group)){if(store[id]||!(db.bankQuestions||[]).some(q=>q.id===id&&!q.annulled))continue;let last=arr[arr.length-1],series=last.correct?BANK_REVIEW_RIGHT:BANK_REVIEW_WRONG;store[id]={track:last.correct?'right':'wrong',stage:0,due:bankReviewDate(series[0],last.date||day()),lastResult:last.correct?'acerto':'erro',lastSource:'histórico',lastAttemptId:last.id,updated:last.date||day()}}}
+function bankReviewStats(){bankReviewBootstrap();let valid=new Set((db.bankQuestions||[]).filter(q=>!q.annulled).map(q=>q.id)),items=Object.entries(bankReviewStore()).filter(([id])=>valid.has(id));return{items,due:items.filter(([,r])=>r.due<=day()),wrong:items.filter(([,r])=>r.track==='wrong').length,right:items.filter(([,r])=>r.track==='right').length}}
+function openBankReview(){bankReviewBootstrap();let s=bankReviewStats();bankReviewCurrent=null;bankReviewRevealed=false;title.textContent='Revisão do Banco';view.innerHTML=`<div class='panel hero'><div class=row><button class='btn ghost' onclick="go('Banco de Questões')">← Banco</button><h2>🃏 Revisão inteligente do banco</h2></div><p>Questões que você resolveu entram automaticamente na revisão espaçada. Erros retornam mais cedo; acertos, em intervalos maiores.</p><div class=bankMeta><span class=pill>📅 ${s.due.length} para revisar hoje</span><span class=pill>🔴 ${s.wrong} em reforço</span><span class=pill>🟢 ${s.right} em consolidação</span></div></div><div class=panel style='margin-top:14px'><h3>Seu calendário</h3><p><b>Erros:</b> 1, 5, 15, 30 e 60 dias. <b>Acertos:</b> 7, 15, 30, 60 e 90 dias.</p><p class=muted>Os intervalos avançam conforme você acerta nas revisões; um erro reinicia o ciclo de reforço. As questões já respondidas antes desta atualização também entram na agenda.</p><button class=btn onclick='startBankReview()' ${s.due.length?'':'disabled'}>Revisar ${s.due.length} pendente(s)</button></div>${s.due.length?`<div class=panel style='margin-top:14px'><h3>Vencidas e de hoje</h3>${s.due.sort((a,b)=>a[1].due.localeCompare(b[1].due)).slice(0,30).map(([id,r])=>{let q=db.bankQuestions.find(x=>x.id===id);return `<div class=qbox><b>${esc(q?.topic||q?.area||'Questão')}</b> • ${esc(q?.exam||'')} Q${q?.number||''}<div class=muted>${r.track==='wrong'?'🔴 Reforço':'🟢 Consolidação'} • prevista: ${r.due}</div></div>`}).join('')}</div>`:''}`}
+function startBankReview(){let s=bankReviewStats();if(!s.due.length)return toast('Nenhuma revisão pendente hoje ♡');let id=s.due.sort((a,b)=>a[1].due.localeCompare(b[1].due))[0][0];bankReviewCurrent=id;bankReviewRevealed=false;renderBankReviewCard()}
+function renderBankReviewCard(){let q=db.bankQuestions.find(x=>x.id===bankReviewCurrent);if(!q)return openBankReview();title.textContent='Revisão do Banco';view.innerHTML=`<div class=panel><div class=row><button class='btn ghost' onclick='openBankReview()'>← Revisões</button><span class=tag>${esc(q.exam)}</span><span class=tag>Q${q.number}</span><span class=tag>${esc(q.topic||q.area||'')}</span></div><h2 style='margin-top:16px'>🃏 Recordação ativa</h2><p class=muted>Antes de revelar, tente lembrar a resposta e o raciocínio.</p>${q.caseText?`<div class=qbox><b>Situação-problema</b><p>${esc(q.caseText)}</p></div>`:''}<div class=qbox><b>${esc(q.prompt)}</b></div>${!bankReviewRevealed?`<div class=row><button class=btn onclick='bankReviewRevealed=true;renderBankReviewCard()'>Revelar resposta</button></div>`:`<div class=qbox><h3>Resposta e explicação</h3><p><b>${q.type==='short'?'Resposta esperada:':'Alternativa correta:'}</b> ${esc(q.type==='short'?(q.expected||'Confira a resolução'):(q.alternatives?.[q.correctIndex]||'Confira a resolução'))}</p><div class=rich>${renderBankResolution(q)}</div></div><p><b>Você lembrou corretamente?</b></p><div class=row><button class=btn onclick='gradeBankReview(true)'>✅ Lembrei</button><button class='btn ghost' onclick='gradeBankReview(false)'>❌ Não lembrei</button></div>`}</div>`}
+function gradeBankReview(correct){let id=bankReviewCurrent;if(!id||!bankReviewRevealed)return;bankReviewSchedule(id,correct,'flashcard');save();let s=bankReviewStats();toast(correct?'Boa! Próxima revisão agendada ♡':'Reforço agendado para amanhã');if(s.due.length)startBankReview();else openBankReview()}
+function bankSelectedExams(){let all=[...new Set((db.bankQuestions||[]).map(q=>q.exam).filter(Boolean))];let s=Array.isArray(bankFilter.exams)?bankFilter.exams.filter(x=>all.includes(x)):[];if(!s.length){if(bankFilter.exam==='Todas')return all;if(all.includes(bankFilter.exam))s=[bankFilter.exam];else s=all}return s}
+function bankExamLabel(){let s=bankSelectedExams(),total=[...new Set((db.bankQuestions||[]).map(q=>q.exam).filter(Boolean))].length;return s.length===total?'Todas as provas':s.length===1?s[0]:s.length+' provas selecionadas'}
+function toggleBankExamChoice(ex,checked){let all=[...new Set((db.bankQuestions||[]).map(q=>q.exam).filter(Boolean))];if(ex==='__ALL__'){bankFilter.exams=checked?[...all]:[]}else{let s=new Set(bankSelectedExams());checked?s.add(ex):s.delete(ex);bankFilter.exams=[...s]}if(!bankFilter.exams.length)bankFilter.exams=[...all];bankFilter.exam=bankFilter.exams.length===all.length?'Todas':bankFilter.exams[0];bankFilter.area='Todas';render()}
+function bankExamQuestions(){let a=db.bankQuestions||[];if(bankTopicIds)return a.filter(q=>bankTopicIds.includes(q.id));let s=new Set(bankSelectedExams());return a.filter(q=>s.has(q.exam))}
+function normBankSearch(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
+function findBankTopics(term){let t=normBankSearch(term);if(!t)return[];return (db.bankQuestions||[]).filter(q=>normBankSearch(q.topic).includes(t))}
+function runBankTopicSearch(){let el=document.getElementById('bankTopicSearch'),term=(el?.value||'').trim();if(!term){bankTopicSearch='';bankTopicIds=null;render();return}let found=findBankTopics(term);bankTopicSearch=term;bankTopicIds=found.map(q=>q.id);bankFilter.area='Todas';bankFilter.areas=[];bankFilter.status='Todas';bankFilter.statuses=[];bankFilter.type='Todas';bankFilter.types=[];render()}
+function chooseBankTopic(topic){bankTopicSearch=topic;bankTopicIds=(db.bankQuestions||[]).filter(q=>q.topic===topic).map(q=>q.id);bankFilter.area='Todas';bankFilter.areas=[];bankFilter.status='Todas';bankFilter.statuses=[];bankFilter.type='Todas';bankFilter.types=[];render()}
+function clearBankTopicSearch(){bankTopicSearch='';bankTopicIds=null;render()}
+function bankMultiValues(key,legacy,available){
+ let v=Array.isArray(bankFilter[key])?bankFilter[key].filter(x=>available.includes(x)):[];
+ if(!v.length&&bankFilter[legacy]&&bankFilter[legacy]!=='Todas'&&available.includes(bankFilter[legacy]))v=[bankFilter[legacy]];
+ return v;
+}
+function bankMultiLabel(values,all,label){return !values.length||values.length===all.length?'Todas '+label:values.length===1?values[0]:values.length+' '+label}
+function toggleBankMultiFilter(key,legacy,value,checked,available){
+ let s=new Set(bankMultiValues(key,legacy,available));
+ if(value==='__ALL__'){s=checked?new Set():new Set()}else{checked?s.add(value):s.delete(value)}
+ bankFilter[key]=[...s];bankFilter[legacy]=bankFilter[key].length===1?bankFilter[key][0]:'Todas';render();
+}
+function bankFilteredQuestions(){let qs=bankExamQuestions(),ids=new Set(qs.map(q=>q.id)),ats=(db.bankAttempts||[]).filter(a=>ids.has(a.questionId)),done=new Set(ats.map(a=>a.questionId)),wrong=new Set(ats.filter(a=>!a.correct).map(a=>a.questionId)),availableAreas=[...new Set(qs.map(q=>q.area).filter(Boolean))],selAreas=bankMultiValues('areas','area',availableAreas),selTypes=bankMultiValues('types','type',['Objetivas','Abertas']),selStatuses=bankMultiValues('statuses','status',['Não respondidas','Errei']);return qs.filter(q=>(!selAreas.length||selAreas.includes(q.area))&&(!selTypes.length||selTypes.includes(q.type==='short'?'Abertas':'Objetivas'))&&(!selStatuses.length||(selStatuses.includes('Não respondidas')&&!done.has(q.id))||(selStatuses.includes('Errei')&&wrong.has(q.id))))}
+function bankTodayBlock(){let b=db.bankTodayBlock;if(!b)return null;if(b.date!==day()){delete db.bankTodayBlock;bankSelectionIds=null;return null}return b}
+function saveBankTodayBlock(ids,currentId){if(!ids?.length)return;db.bankTodayBlock={date:day(),ids:[...ids],currentId:currentId||ids[0],createdAt:db.bankTodayBlock?.date===day()?db.bankTodayBlock.createdAt:new Date().toISOString()};save()}
+function continueBankTodayBlock(){let b=bankTodayBlock();if(!b?.ids?.length)return toast('Nenhum bloco salvo para hoje');let valid=b.ids.filter(id=>(db.bankQuestions||[]).some(q=>q.id===id));if(!valid.length){delete db.bankTodayBlock;save();return toast('O bloco de hoje não está mais disponível')}bankMode='practice';bankSelectionIds=valid;let current=valid.includes(b.currentId)?b.currentId:valid[0];openBankQuestion(current)}
+function discardBankTodayBlock(){if(!db.bankTodayBlock)return;delete db.bankTodayBlock;bankSelectionIds=null;save();render();toast('Bloco de hoje descartado')}
+function bankTodayBlockBox(){let b=bankTodayBlock();if(!b?.ids?.length)return '';let valid=b.ids.filter(id=>(db.bankQuestions||[]).some(q=>q.id===id)),current=valid.indexOf(b.currentId),answered=new Set((db.bankAttempts||[]).filter(a=>a.date===day()&&valid.includes(a.questionId)).map(a=>a.questionId)).size;return `<div class='panel' style='margin-top:14px;border-color:#efb6d0'><div class=row style='justify-content:space-between'><div><h3 style='margin:0'>📌 Bloco de hoje</h3><p class=muted style='margin:5px 0 0'>${answered}/${valid.length} respondidas hoje • retomar ${current>=0?'da questão '+(current+1):'do início'} do bloco</p></div><div class=row><button class=btn onclick='continueBankTodayBlock()'>Continuar bloco →</button><button class='btn ghost mini' onclick='discardBankTodayBlock()'>Descartar</button></div></div></div>`}
+function shuffleBankQuestions(a){a=a.slice();for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function balancedBankSample(pool,n){
+ let groups={};for(const q of pool)(groups[q.exam]||(groups[q.exam]=[])).push(q);
+ let exams=shuffleBankQuestions(Object.keys(groups));for(const e of exams)groups[e]=shuffleBankQuestions(groups[e]);
+ let out=[],used=new Set();
+ while(out.length<n){
+  let added=false;
+  for(const e of shuffleBankQuestions(exams)){
+   let q=groups[e].find(x=>!used.has(x.id));if(!q)continue;
+   out.push(q);used.add(q.id);added=true;if(out.length>=n)break;
+  }
+  if(!added)break;
+ }
+ return shuffleBankQuestions(out);
+}
+function openBankSelection(){let pool=bankFilteredQuestions().slice();if(!pool.length)return toast('Nenhuma questão corresponde a esses filtros');let limited=bankFilter.limit!=='Todas',a;if(limited){let n=Math.min(pool.length,Math.max(1,parseInt(bankFilter.limit)||1));a=balancedBankSample(pool,n)}else a=shuffleBankQuestions(pool);bankMode='practice';bankSelectionIds=a.map(q=>q.id);saveBankTodayBlock(bankSelectionIds,a[0].id);openBankQuestion(a[0].id)}
+function bankView(){
+ let all=db.bankQuestions||[],examNames=[...new Set(all.map(q=>q.exam).filter(Boolean))].sort((a,b)=>b.localeCompare(a,'pt-BR',{numeric:true}));if(!Array.isArray(bankFilter.exams))bankFilter.exams=bankFilter.exam==='Todas'?[...examNames]:(examNames.includes(bankFilter.exam)?[bankFilter.exam]:[...examNames]);bankFilter.exams=bankFilter.exams.filter(e=>examNames.includes(e));if(!bankFilter.exams.length)bankFilter.exams=[...examNames];
+ let qs=bankExamQuestions(),ats=(db.bankAttempts||[]).filter(a=>qs.some(q=>q.id===a.questionId)),done=new Set(ats.map(a=>a.questionId)),wrong=new Set(ats.filter(a=>!a.correct).map(a=>a.questionId)),areas=['Todas',...new Set(qs.map(q=>q.area).filter(Boolean))];
+ let themes=[...new Set(all.map(q=>q.topic).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));let topicBox=`<div class='panel' style='margin-top:14px'><h3>🔎 Estudar por tema</h3><p class=muted>Pesquise pelo nome do assunto ou escolha diretamente um dos temas disponíveis no banco.</p><div class=row><input id=bankTopicSearch class=field style='max-width:460px' value="${esc(bankTopicSearch)}" placeholder='Ex.: cetoacidose diabética, pré-eclâmpsia…' onkeydown="if(event.key==='Enter')runBankTopicSearch()"><button class=btn onclick='runBankTopicSearch()'>Pesquisar</button>${bankTopicIds?`<button class='btn ghost' onclick='clearBankTopicSearch()'>Limpar pesquisa</button>`:''}</div><details style='margin-top:12px'><summary style='cursor:pointer;font-weight:800'>📚 Temas disponíveis (${themes.length})</summary><div class=row style='margin-top:10px;align-items:stretch'>${themes.map(t=>`<button class='btn ghost mini' onclick="chooseBankTopic(decodeURIComponent('${encodeURIComponent(t)}'))">${esc(t)}</button>`).join('')}</div></details>${bankTopicIds?`<p style='margin-bottom:0'><b>${bankTopicIds.length}</b> questões encontradas para <b>“${esc(bankTopicSearch)}”</b> em ${new Set((db.bankQuestions||[]).filter(q=>bankTopicIds.includes(q.id)).map(q=>q.exam)).size} prova(s).</p>`:''}</div>`;
+ let reviewStats=bankReviewStats(),reviewBox=`<div class='panel' style='margin-top:14px'><h3>🃏 Flashcards do Banco de Questões</h3><p class=muted>Revisão inteligente das questões que você já resolveu: erros voltam antes, acertos em intervalos maiores.</p><div class=row><span class=pill>📅 ${reviewStats.due.length} para revisar hoje</span><span class=pill>🔴 ${reviewStats.wrong} em reforço</span><span class=pill>🟢 ${reviewStats.right} em consolidação</span><button class=btn onclick='openBankReview()'>Abrir revisões →</button></div></div>`;
+ let bankAll=bankAnalytics(),bankProgress=all.length?Math.round(bankAll.answered/all.length*100):0,evolutionBox=`<div class='panel' style='margin-top:14px'><h3>📊 Minha evolução no banco</h3><div class=grid><div class=kpi><span class=muted>Banco percorrido</span><b>${bankProgress}%</b><small class=muted>${bankAll.answered}/${all.length} questões</small></div><div class=kpi><span class=muted>Domínio atual</span><b>${bankAll.latest.length?bankAll.currentAcc+'%':'—'}</b><small class=muted>última tentativa</small></div><div class=kpi><span class=muted>Erros recuperados</span><b>${bankAll.recovered}</b><small class=muted>errou e depois acertou</small></div><div class=kpi><span class=muted>Revisões hoje</span><b>${reviewStats.due.length}</b><small class=muted>revisão inteligente</small></div></div><button class='btn ghost' onclick="go('Métricas')">Ver análise detalhada →</button></div>`;
+ let modeBox=`<div class='panel' style='margin-top:14px'><h3>Como você quer estudar?</h3><div class=row><button class=btn onclick="startBankPractice()">🎲 ${bankTopicIds?'Resolver este tema':'Questões aleatórias'}</button><button class='btn ghost' onclick="startBankExam()">⏱️ ${bankTopicIds?'Simulado deste tema':'Modo prova (simulado)'}</button></div><p class=muted style='margin-bottom:0'>${bankTopicIds?'Os modos usam somente as questões encontradas nesta pesquisa, mesmo que estejam em provas diferentes.':'Os modos usam somente a prova selecionada acima.'} Aleatório: correção após responder. • Simulado: respostas guardadas até finalizar.</p></div>`;
+ let filtered=bankFilteredQuestions();
+ return `<div class='panel hero'><h2>📝 Banco de Questões</h2><p>SUS-BA Oficial • organizado por prova/edição • texto oficial preservado e resolução comentada separada.</p><div class=bankMeta><span class=pill>${esc(bankExamLabel())}</span><span class=pill>${qs.length} questões na seleção</span><span class=pill>${done.size} respondidas</span></div></div>${bankTodayBlockBox()}<div class=panel style='margin-top:14px'><div class=row><details class=bankExamMulti><summary>🗂️ ${esc(bankExamLabel())}</summary><div class=bankExamMultiBox><label><input type=checkbox ${bankSelectedExams().length===examNames.length?'checked':''} onchange="toggleBankExamChoice('__ALL__',this.checked)"> <b>Todas as provas</b></label>${examNames.map(e=>`<label><input type=checkbox ${bankSelectedExams().includes(e)?'checked':''} onchange="toggleBankExamChoice(decodeURIComponent('${encodeURIComponent(e)}'),this.checked)"> ${esc(e)}</label>`).join('')}</div></details><details class=bankExamMulti><summary>🩺 ${esc(bankMultiLabel(bankMultiValues('areas','area',areas.filter(x=>x!=='Todas')),areas.filter(x=>x!=='Todas'),'áreas'))}</summary><div class=bankExamMultiBox><label><input type=checkbox ${!bankMultiValues('areas','area',areas.filter(x=>x!=='Todas')).length?'checked':''} onchange="toggleBankMultiFilter('areas','area','__ALL__',this.checked,${encodeURIComponent(JSON.stringify(areas.filter(x=>x!=='Todas'))) ? "JSON.parse(decodeURIComponent('"+encodeURIComponent(JSON.stringify([]))+"'))" : "[]"})"> <b>Todas as áreas</b></label>${areas.filter(x=>x!=='Todas').map(x=>`<label><input type=checkbox ${bankMultiValues('areas','area',areas.filter(z=>z!=='Todas')).includes(x)?'checked':''} onchange="toggleBankMultiFilter('areas','area',decodeURIComponent('${encodeURIComponent(x)}'),this.checked,JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(areas.filter(z=>z!=='Todas')))}')))"> ${esc(x)}</label>`).join('')}</div></details><details class=bankExamMulti><summary>📝 ${esc(bankMultiLabel(bankMultiValues('types','type',['Objetivas','Abertas']),['Objetivas','Abertas'],'tipos'))}</summary><div class=bankExamMultiBox><label><input type=checkbox ${!bankMultiValues('types','type',['Objetivas','Abertas']).length?'checked':''} onchange="toggleBankMultiFilter('types','type','__ALL__',this.checked,['Objetivas','Abertas'])"> <b>Todos os tipos</b></label>${['Objetivas','Abertas'].map(x=>`<label><input type=checkbox ${bankMultiValues('types','type',['Objetivas','Abertas']).includes(x)?'checked':''} onchange="toggleBankMultiFilter('types','type','${x}',this.checked,['Objetivas','Abertas'])"> ${x}</label>`).join('')}</div></details><details class=bankExamMulti><summary>🎯 ${esc(bankMultiLabel(bankMultiValues('statuses','status',['Não respondidas','Errei']),['Não respondidas','Errei'],'status'))}</summary><div class=bankExamMultiBox><label><input type=checkbox ${!bankMultiValues('statuses','status',['Não respondidas','Errei']).length?'checked':''} onchange="toggleBankMultiFilter('statuses','status','__ALL__',this.checked,['Não respondidas','Errei'])"> <b>Todos os status</b></label>${['Não respondidas','Errei'].map(x=>`<label><input type=checkbox ${bankMultiValues('statuses','status',['Não respondidas','Errei']).includes(x)?'checked':''} onchange="toggleBankMultiFilter('statuses','status','${x}',this.checked,['Não respondidas','Errei'])"> ${x}</label>`).join('')}</div></details><details class=bankExamMulti><summary>🔢 ${bankFilter.limit==='Todas'?'Todas':bankFilter.limit+' questões'}</summary><div class=bankExamMultiBox><label><input type=radio name=bankLimit ${bankFilter.limit==='Todas'?'checked':''} onchange="bankFilter.limit='Todas';render()"> Todas</label>${[5,10,15,20,30,45,75].map(n=>`<label><input type=radio name=bankLimit ${String(n)===String(bankFilter.limit)?'checked':''} onchange="bankFilter.limit='${n}';render()"> ${n} questões</label>`).join('')}</div></details><button class=btn onclick='openBankSelection()'>Abrir questões →</button></div><p class=muted style='margin:4px 0 0'>A quantidade é aplicada depois dos filtros. As questões são sorteadas e distribuídas entre as provas selecionadas; se uma prova tiver poucas disponíveis, as demais completam o bloco.</p></div>${topicBox}${reviewBox}${evolutionBox}${modeBox}`
+}
+function openBankQuestion(id){let q=db.bankQuestions.find(x=>x.id==id);if(!q)return;bankCurrent=id;let tb=bankTodayBlock();if(tb?.ids?.includes(id)){tb.currentId=id;db.updatedAt=Date.now();try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)))}catch(e){}if(cloud&&currentUser){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,500)}}bankQuestionStart=Date.now();bankSelected=bankMode==='exam'&&bankExamAnswers[id]!=null?bankExamAnswers[id]:null;bankCuts=new Set();title.textContent='Banco de Questões';let ann=db.bankAnnotations[id]||{html:q.prompt,caseHtml:q.caseText||'',notes:[]};let nav=bankNav(q),isShort=q.type==='short';view.innerHTML=`<div class='panel bankQuestionPanel' style="--bank-q-size:${bankLocalFontSize}px"><div class=row><button class='btn ghost' onclick="go('Banco de Questões')">← Banco</button><span class=tag>${esc(q.exam)}</span><span class=tag>Questão ${q.number}</span>${q.annulled?'<span class=tag style="background:#f2f2f2;color:#555;border:1px solid #bbb">⚪ ANULADA — sem alternativa correta</span>':''}<span class=tag>${esc(q.area||'')}</span></div>${bankQuestionMap(q)}${bankQuestionFontBar()}${bankMode==='exam'?`<div class=bankMeta><span class=pill>⏱️ Simulado</span><span id=bankExamClock class=pill>00:00</span><button class='btn ghost mini' onclick='finishBankExam()'>Finalizar simulado</button></div>`:''}<div class=bankToolDock><button type='button' class=bankToolDockHead onclick='toggleBankToolDock(this)'><span>🛠️ Tamanho e ferramentas</span><span class=dockArrow>›</span></button><div class=bankToolDockBody><div class=bankToolGroups><div class=bankToolGroup><span class=bankToolLabel>Texto</span><button class='btn ghost mini' onclick="changeBankQuestionFont(-2)" title="Diminuir texto">A−</button><button class='btn ghost mini' onclick="resetBankQuestionFont()" title="Tamanho padrão">A</button><button class='btn ghost mini' onclick="changeBankQuestionFont(2)" title="Aumentar texto">A＋</button><span id=bankFontValue class=tag>${bankLocalFontSize} px</span></div><div class=bankToolGroup><span class=bankToolLabel>Grifo</span><button class=hl style='background:#fff19c' onclick="highlightBank('#fff19c')"></button><button class=hl style='background:#ffc9df' onclick="highlightBank('#ffc9df')"></button><button class=hl style='background:#c9f3d9' onclick="highlightBank('#c9f3d9')"></button><button class=hl style='background:#cfe2ff' onclick="highlightBank('#cfe2ff')"></button><button class='btn ghost mini' onclick='clearBankHighlight()'>Remover</button><button class='btn ghost mini' onclick='addBankNote()'>📝 Observação</button></div><div class=bankToolGroup><span class=bankToolLabel>Caneta</span><button id=bankInkPen data-ink-mode='pen' class='btn ghost mini inkBtn' onclick="setBankCaseInkMode('pen')">✏️ Escrever</button><button data-ink-mode='highlighter' class='btn ghost mini inkBtn' style='background:#ffe66d' title='Marca-texto amarelo 5%' onclick="setBankInkHighlighterColor('#ffe66d')">🖍️ Amarelo</button><button data-ink-mode='highlighter' class='btn ghost mini inkBtn' style='background:#ff8fbd' title='Marca-texto rosa 5%' onclick="setBankInkHighlighterColor('#ff8fbd')">🖍️ Rosa</button><button id=bankInkEraser data-ink-mode='eraser' class='btn ghost mini inkBtn' onclick="setBankCaseInkMode('eraser')">🧽 Borracha</button><button class='btn ghost mini' onclick='undoBankCaseInk()'>↶ Desfazer</button><button class='btn ghost mini' onclick='redoBankCaseInk()'>↷ Refazer</button><button class='btn ghost mini' onclick='clearBankCaseInk()'>🧹 Limpar</button><button class='btn ghost mini' onclick='saveBankCaseInk()'>💾 Salvar anotação</button><button class='btn ghost mini' onclick='deleteSavedBankCaseInk()'>🗑️ Excluir salva</button><button class='btn ghost mini' onclick='toggleBankScratch()'>✍️ Rascunho</button></div></div><div class='muted bankToolHint'>← → navegar • Grifo e observações ficam salvos; a tinta continua temporária por padrão e só é guardada quando você tocar em 💾 Salvar anotação.</div></div></div>${q.caseText?`<div class='bankInkFloat' aria-label='Ferramentas rápidas da caneta'><button type='button' class='bankInkDrag' title='Arrastar barra' aria-label='Arrastar barra'>⋮⋮</button><button type='button' class='bankInkToggle' title='Mostrar ferramentas' aria-label='Mostrar ferramentas'>›</button><div class='bankInkTools'><button data-ink-mode='pen' class='btn ghost inkBtn' title='Escrever' onclick="setBankCaseInkMode('pen')">✏️</button><button data-ink-mode='highlighter' class='btn ghost inkBtn' style='background:#ffe66d' title='Marca-texto amarelo 5%' onclick="setBankInkHighlighterColor('#ffe66d')">🖍️</button><button data-ink-mode='highlighter' class='btn ghost inkBtn' style='background:#ff8fbd' title='Marca-texto rosa 5%' onclick="setBankInkHighlighterColor('#ff8fbd')">🖍️</button><button data-ink-mode='eraser' class='btn ghost inkBtn' title='Borracha' onclick="setBankCaseInkMode('eraser')">🧽</button><button class='btn ghost' title='Desfazer último traço' onclick='undoBankCaseInk()'>↶</button><button class='btn ghost' title='Refazer último traço' onclick='redoBankCaseInk()'>↷</button><button class='btn ghost' title='Limpar tinta' onclick='clearBankCaseInk()'>🧹</button><button class='btn ghost' title='Salvar anotação nesta questão' onclick='saveBankCaseInk()'>💾</button><button class='btn ghost' title='Voltar para 100% de qualquer zoom' onclick='resetPageZoom()' style='font-size:11px;font-weight:900'>100%</button></div></div>`:''}<div id=bankCaseInkWrap class='bankCaseInkWrap' style='margin-top:18px'>${q.caseText?`<div class=qbox><b>Situação-problema</b><div id=bankCase class=bankQuestion>${ann.caseHtml||esc(q.caseText)}</div>${['sus231-13','sus231-14','sus231-15'].includes(q.id)?`<img src='assets/sus231-radiografia-original.jpg' width='388' height='442' alt='Radiografia abdominal original da prova SUS-BA 2023.1' style='display:block;max-width:min(100%,388px);height:auto;margin:14px auto 0;border-radius:10px'>`:''}${['sus241-16','sus241-17','sus241-18'].includes(q.id)?`<img src='assets/sus241-endoscopia-original.jpg' width='427' height='425' alt='Endoscopia original da prova SUS-BA 2024.1' style='display:block;max-width:min(100%,427px);height:auto;margin:14px auto 0;border-radius:10px'>`:''}</div>`:''}<div id=bankPrompt class='bankQuestion' style='margin-top:18px'><b>${ann.html||esc(q.prompt)}</b></div><div id=bankNotes>${(ann.notes||[]).map(n=>`<div class=noteBox>📝 ${esc(n)}</div>`).join('')}</div>${isShort?`<div style='margin-top:18px'><label><b>Sua resposta</b></label><textarea id=bankShortAnswer class=field rows=7 style='min-height:170px;resize:vertical' placeholder='Digite sua resposta de forma objetiva, como faria na prova…'>${bankMode==='exam'?esc(bankExamAnswers[id]||''):''}</textarea><p class=muted>Não precisa copiar o padrão literalmente: a correção considera conceitos e termos equivalentes.</p></div>`:`<div style='margin-top:18px'>${q.alternatives.map((a,i)=>`<div id='bankChoice${i}' class=bankChoice onclick='selectBankChoice(${i})'><input type=radio name=bankAns ${bankSelected===i?'checked':''}><div style='flex:1'><b>${'ABCDE'[i]}</b> ${esc(a)}</div><button class=strikeBtn title='Eliminar alternativa' onclick='event.stopPropagation();cutBankChoice(${i})'>✂️</button></div>`).join('')}</div>`}<canvas id=bankCaseInk class=bankCaseInk aria-label='Rascunho temporário sobre toda a questão'></canvas></div><div id=bankScratchWrap class=hidden><div class=panel style='margin-top:12px'><b>✍️ Rascunho</b><canvas id=bankScratch class=draw style='height:260px;margin-top:10px'></canvas><button class='btn ghost' onclick='clearBankScratch()'>Limpar</button></div></div><div class=row style='justify-content:center;margin-top:18px'><button class=btn onclick='answerBankQuestion()'>${bankMode==='exam'?'Salvar resposta':'Responder'}</button></div><div class=row style='margin-top:14px'><button class='btn ghost' onclick='openBankFlashcardMaker()'>🃏 Criar flashcard a partir de uma frase</button></div><div id=bankFlashcardMaker class=panel style='display:none;margin-top:12px;background:var(--rose2)'></div><div id=bankResult></div><div class=row style='justify-content:space-between;margin-top:18px'>${nav.prev?`<button class='btn ghost' onclick="openBankQuestion('${nav.prev.id}')">← Questão ${nav.prev.number}</button>`:'<span></span>'}${nav.next?`<button class=btn onclick="openBankQuestion('${nav.next.id}')">Questão ${nav.next.number} →</button>`:''}</div></div>`;if(bankMode==='exam')updateBankExamClock();bankCaseInkMode='off';requestAnimationFrame(()=>{setupBankCaseInk();positionBankInkFloat();setupBankInkFloatDrag();setupBankInkFloatControls()})}
+
+function bankFlashcardPlain(text){return String(text||'').replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim()}
+function bankFlashcardSuggest(phrase){
+ let t=bankFlashcardPlain(phrase).replace(/[.!?]+$/,'').trim();if(!t)return{front:'',back:''};
+ let marked=t.match(/^(.*?)\[([^\[\]]{1,220})\](.*)$/);if(marked)return{front:'Complete a frase: '+marked[1]+'[...]'+marked[3],back:marked[2]};
+ let m=t.match(/^(.{4,110}?)\s+(é|são|corresponde a|caracteriza-se por|é caracterizado por|tem como causa|é causado por|é causada por|deve ser tratado com|deve ser tratada com)\s+(.{3,})$/i);
+ if(m){let subject=m[1].trim(),verb=m[2].toLowerCase(),answer=m[3].trim();let question=/causad|causa/.test(verb)?'Qual é a causa de '+subject+'?':/tratad/.test(verb)?'Qual é o tratamento de '+subject+'?':/caracteriz/.test(verb)?'Como se caracteriza '+subject+'?':'O que é / qual a característica de '+subject+'?';return{front:question,back:answer}}
+ let colon=t.match(/^([^:]{4,110}):\s*(.{3,})$/);if(colon)return{front:'O que você deve lembrar sobre '+colon[1].trim()+'?',back:colon[2].trim()};
+ return{front:'Qual é a informação-chave desta frase?',back:t};
+}
+function openBankFlashcardMaker(){let q=db.bankQuestions.find(x=>x.id===bankCurrent),box=document.getElementById('bankFlashcardMaker');if(!box||!q)return;box.style.display=box.style.display==='none'?'block':'none';if(box.style.display==='none')return;box.innerHTML='<h3>🃏 Criar flashcard • '+esc(q.exam)+' • Q'+esc(q.number)+'</h3><p class=muted>Digite uma frase do comentário ou uma decoreba. Para escolher exatamente o trecho que será a resposta, coloque-o entre colchetes: <b>A primeira escolha é [fenobarbital].</b></p><label>Frase</label><textarea id=bankFlashcardPhrase class=field rows=3 placeholder="Ex.: A primeira escolha na convulsão neonatal é [fenobarbital]." oninput="previewBankFlashcard()" style="width:100%;resize:vertical"></textarea><div class=row><button class="btn ghost mini" onclick="useBankSelectedText()">Usar texto selecionado da questão</button><span class=muted>Edite a pergunta e a resposta antes de salvar.</span></div><label>Frente / pergunta</label><textarea id=bankFlashcardFront class=field rows=3 style="width:100%;resize:vertical"></textarea><label>Verso / resposta</label><textarea id=bankFlashcardBack class=field rows=3 style="width:100%;resize:vertical"></textarea><label>Matéria</label><select id=bankFlashcardSubject class=field>'+db.subjects.map(x=>'<option>'+esc(x)+'</option>').join('')+'</select><div class=row><button class=btn onclick="saveBankFlashcard()">Salvar flashcard</button><button class="btn ghost" onclick="document.getElementById(\'bankFlashcardMaker\').style.display=\'none\'">Cancelar</button></div>';let subject=db.subjects.find(x=>String(q.area||'').toLowerCase().includes(x.toLowerCase())||x.toLowerCase().includes(String(q.area||'').toLowerCase()));if(subject)document.getElementById('bankFlashcardSubject').value=subject;let selected=window.getSelection()?.toString().trim();if(selected&&selected.length<1200){document.getElementById('bankFlashcardPhrase').value=selected;previewBankFlashcard()}}
+function previewBankFlashcard(){let p=document.getElementById('bankFlashcardPhrase'),front=document.getElementById('bankFlashcardFront'),back=document.getElementById('bankFlashcardBack');if(!p||!front||!back)return;let x=bankFlashcardSuggest(p.value);front.value=x.front;back.value=x.back}
+function useBankSelectedText(){let t=window.getSelection()?.toString().trim();if(!t)return toast('Selecione primeiro uma frase da questão');document.getElementById('bankFlashcardPhrase').value=t;previewBankFlashcard()}
+function saveBankFlashcard(){let q=db.bankQuestions.find(x=>x.id===bankCurrent),front=document.getElementById('bankFlashcardFront')?.value.trim(),back=document.getElementById('bankFlashcardBack')?.value.trim(),subject=document.getElementById('bankFlashcardSubject')?.value;if(!q||!front||!back)return toast('Preencha frente e verso antes de salvar');let duplicate=db.cards.some(c=>c.sourceQuestionId===q.id&&bankFlashcardPlain(c.front)===front&&bankFlashcardPlain(c.back)===back);if(duplicate)return toast('Este flashcard já foi salvo nesta questão');db.cards.push({id:Date.now()+Math.floor(Math.random()*10000),subject:subject||db.subjects[0]||'Geral',front:esc(front),back:esc(back),media:'',tags:'banco de questões, '+q.exam+', questão '+q.number,sourceQuestionId:q.id,ok:0,bad:0,interval:0,due:day(),history:[]});save();document.getElementById('bankFlashcardMaker').style.display='none';toast('Flashcard salvo para revisão ♡')}
+
+function bankOrdered(){let base=bankSelectionIds?(db.bankQuestions||[]).filter(q=>bankSelectionIds.includes(q.id)):bankExamQuestions();return base.slice().sort((a,b)=>bankTopicIds?(String(a.exam).localeCompare(String(b.exam),'pt-BR',{numeric:true})||(a.number||0)-(b.number||0)):(a.number||0)-(b.number||0))}
+function bankNav(q){let a=bankOrdered(),i=a.findIndex(x=>x.id===q.id);return{prev:i>0?a[i-1]:null,next:i>=0&&i<a.length-1?a[i+1]:null}}
+function bankQuestionMap(q){let qs=(bankSelectionIds||bankTopicIds)?bankOrdered():(db.bankQuestions||[]).filter(x=>x.exam===q.exam).sort((a,b)=>(a.number||0)-(b.number||0)),latest={};for(const a of db.bankAttempts||[]){if(qs.some(x=>x.id===a.questionId))latest[a.questionId]=a}let buttons=qs.map(x=>{let cls='bankMapBtn',tip='Não respondida';if(bankMode==='exam'){if(bankExamAnswers[x.id]!=null){cls+=' saved';tip='Resposta salva no simulado'}}else if(latest[x.id]){cls+=latest[x.id].correct?' ok':' bad';tip=latest[x.id].correct?'Última tentativa: acerto':'Última tentativa: erro'}if(x.annulled){cls+=' annulled';tip='Questão anulada pela banca'}if(x.id===q.id)cls+=' current';return `<button class='${cls}' title='${esc(x.exam)} • ${tip}' onclick="openBankQuestion('${x.id}')">${bankTopicIds?esc(x.exam.replace('SUS-BA ',''))+' · ':''}${x.number}${x.annulled?' ⚪':''}</button>`}).join('');return `<div class=questionTools style='position:relative;top:auto;margin-top:12px'><div class=row style='justify-content:space-between'><b>🧭 Navegar pela prova</b><button id=bankMapToggle class='btn ghost mini' onclick='toggleBankQuestionMap()'>Mostrar questões</button></div><div id=bankMapBody class=hidden><div class=bankMap>${buttons}</div><div class=bankMapLegend>${bankMode==='exam'?'<span>🟨 resposta salva • cores de acerto/erro aparecem somente após finalizar</span>':'<span>🟩 acertei</span><span>🟥 errei</span><span>⬜ não respondida</span>'}<span>⭕ questão atual</span><span>• ${qs.length} questões</span></div></div></div>`}
+function handleBankArrowKeys(e){if(!bankCurrent||route!=='Banco de Questões')return;let t=e.target;if(t&&(t.matches('input,textarea,select')||t.isContentEditable))return;if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;let q=(db.bankQuestions||[]).find(x=>x.id===bankCurrent);if(!q)return;let n=bankNav(q);let dest=e.key==='ArrowLeft'?n.prev:n.next;if(dest){e.preventDefault();openBankQuestion(dest.id)}}
+document.addEventListener('keydown',handleBankArrowKeys);
+function toggleBankQuestionMap(){let body=document.getElementById('bankMapBody'),btn=document.getElementById('bankMapToggle');if(!body)return;let opening=body.classList.contains('hidden');body.classList.toggle('hidden');if(btn)btn.textContent=opening?'Ocultar questões':'Mostrar questões'}
+function startBankPractice(){bankSelectionIds=null;let a=bankOrdered();if(!a.length)return toast('Nenhuma questão cadastrada');bankMode='practice';openBankQuestion(a[Math.floor(Math.random()*a.length)].id)}
+function startBankExam(){bankSelectionIds=null;let a=bankOrdered();if(!a.length)return toast('Nenhuma questão cadastrada');bankMode='exam';bankExamStart=Date.now();bankExamAnswers={};openBankQuestion(a[0].id)}
+function updateBankExamClock(){let e=document.getElementById('bankExamClock');if(!e||bankMode!=='exam')return;let s=Math.floor((Date.now()-bankExamStart)/1000),m=Math.floor(s/60);e.textContent=String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');setTimeout(updateBankExamClock,1000)}
+function finishBankExam(){if(bankMode!=='exam')return;let a=bankOrdered(),answered=Object.keys(bankExamAnswers).length,correct=0,elapsed=Math.max(1,Math.round((Date.now()-bankExamStart)/60000));for(const q of a){if(q.annulled){correct++;continue}if(bankExamAnswers[q.id]!=null){let ok=q.type==='short'?gradeShortBank(q,bankExamAnswers[q.id]).level==='Corresponde totalmente':bankExamAnswers[q.id]===q.correctIndex;if(ok)correct++;db.bankAttempts.push({id:Date.now()+q.number,questionId:q.id,answer:bankExamAnswers[q.id],correct:ok,date:day(),mode:'exam',examMinutes:elapsed});bankReviewSchedule(q.id,ok,'exam',db.bankAttempts[db.bankAttempts.length-1])}}save();bankMode='practice';let first=a[0];view.innerHTML=`<div class='panel hero'><h2>🏁 Simulado finalizado</h2><p><b>${correct}/${a.length}</b> acertos • ${answered}/${a.length} respondidas • ${elapsed} min</p><p class=muted>O mapa da prova agora mostrará em verde os acertos e em vermelho os erros.</p>${a.filter(q=>!q.annulled&&bankExamAnswers[q.id]!=null).map(q=>{let at=(db.bankAttempts||[]).filter(x=>x.questionId===q.id&&x.mode==='exam').slice(-1)[0];return at&&!at.correct?bankErrorReasonBox(at.id,q):''}).join('')}<div class=row><button class=btn onclick="go('Banco de Questões')">Voltar ao banco</button>${first?`<button class='btn ghost' onclick="openBankQuestion('${first.id}')">Ver mapa da prova</button>`:''}</div></div>`}
+function showBankChoiceFeedback(q){document.querySelectorAll('.bankChoice').forEach((e,i)=>{e.classList.remove('answerCorrect','answerWrong');e.classList.add(i===q.correctIndex?'answerCorrect':'answerWrong')})}
+
+let bankCaseInkMode='off',bankInkHighlighterColor='#ffe66d',bankCaseInkCtx=null,bankCaseInkDrawing=false,bankCaseInkLast=null,bankInkUndo=[],bankInkRedo=[],bankInkStrokeStart=null;
+function bankInkSnapshot(){
+ let c=document.getElementById('bankCaseInk');if(!c)return null;
+ try{return c.toDataURL('image/png')}catch(_){return null}
+}
+function restoreBankInkSnapshot(src,done){
+ let c=document.getElementById('bankCaseInk'),x=c?.getContext('2d');if(!c||!x){done?.();return}
+ x.save();x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.restore();
+ if(!src){done?.();return}
+ let img=new Image();img.onload=()=>{x.save();x.setTransform(1,0,0,1,0,0);x.drawImage(img,0,0,c.width,c.height);x.restore();done?.()};img.onerror=()=>done?.();img.src=src;
+}
+function setupBankCaseInk(){
+ let canvas=document.getElementById('bankCaseInk'),wrap=document.getElementById('bankCaseInkWrap');if(!canvas||!wrap)return;
+ let rect=wrap.getBoundingClientRect(),ratio=window.devicePixelRatio||1,w=Math.max(1,Math.round(rect.width)),h=Math.max(1,Math.round(rect.height));
+ canvas.width=w*ratio;canvas.height=h*ratio;canvas.style.width=w+'px';canvas.style.height=h+'px';
+ let x=canvas.getContext('2d');x.setTransform(ratio,0,0,ratio,0,0);x.lineCap='round';x.lineJoin='round';bankCaseInkCtx=x;
+ bankInkUndo=[];bankInkRedo=[];bankInkStrokeStart=null;
+ let saved=db.bankSavedInk?.[bankCurrent];if(saved?.data)restoreBankInkSnapshot(saved.data);
+ const point=e=>{let r=canvas.getBoundingClientRect();return{x:Math.max(1,Math.min(r.width-1,e.clientX-r.left)),y:Math.max(1,Math.min(r.height-1,e.clientY-r.top)),pressure:e.pressure||.5}};
+ const paint=(from,to,mode=bankCaseInkMode)=>{let ctx=bankCaseInkCtx;if(!ctx)return;ctx.save();if(mode==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.globalAlpha=1;ctx.lineWidth=20}else if(mode==='highlighter'){ctx.globalCompositeOperation='source-over';ctx.globalAlpha=.05;ctx.strokeStyle=bankInkHighlighterColor;ctx.lineWidth=16}else{ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;ctx.strokeStyle='#7b3157';ctx.lineWidth=Math.max(2.4,2.4*(to.pressure||.5))}ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke();ctx.restore()};
+ canvas.onpointerdown=e=>{if(bankCaseInkMode==='off'||e.pointerType==='touch')return;e.preventDefault();try{canvas.setPointerCapture(e.pointerId)}catch(_){}bankCaseInkDrawing=true;bankCaseInkLast=point(e);bankInkStrokeStart=bankInkSnapshot()};
+ canvas.onpointermove=e=>{if(!bankCaseInkDrawing||bankCaseInkMode==='off'||e.pointerType==='touch')return;e.preventDefault();let events=e.getCoalescedEvents?e.getCoalescedEvents():[e];for(const ev of events){let p=point(ev);paint(bankCaseInkLast,p);bankCaseInkLast=p}};
+ const stop=e=>{if(e.pointerType==='touch')return;if(bankCaseInkDrawing&&bankInkStrokeStart!=null){bankInkUndo.push(bankInkStrokeStart);if(bankInkUndo.length>30)bankInkUndo.shift();bankInkRedo=[]}bankCaseInkDrawing=false;bankCaseInkLast=null;bankInkStrokeStart=null;try{if(e?.pointerId!=null&&canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch(_){}};
+ canvas.onpointerup=stop;canvas.onpointercancel=stop;
+}
+function undoBankCaseInk(){
+ let current=bankInkSnapshot();if(!bankInkUndo.length)return toast('Nada para desfazer');
+ let prev=bankInkUndo.pop();if(current)bankInkRedo.push(current);restoreBankInkSnapshot(prev);
+}
+function redoBankCaseInk(){
+ let current=bankInkSnapshot();if(!bankInkRedo.length)return toast('Nada para refazer');
+ let next=bankInkRedo.pop();if(current)bankInkUndo.push(current);restoreBankInkSnapshot(next);
+}
+function saveBankCaseInk(){
+ let c=document.getElementById('bankCaseInk');if(!c||!bankCurrent)return toast('Esta questão não possui anotação em tela');
+ let data=bankInkSnapshot();if(!data)return toast('Não foi possível salvar a anotação');
+ db.bankSavedInk=db.bankSavedInk||{};db.bankSavedInk[bankCurrent]={data,updatedAt:Date.now()};save();toast('💾 Anotação salva nesta questão');
+}
+function deleteSavedBankCaseInk(){
+ if(!bankCurrent||!db.bankSavedInk?.[bankCurrent])return toast('Não há anotação salva nesta questão');
+ delete db.bankSavedInk[bankCurrent];save();toast('Anotação salva excluída');
+}
+function toggleBankInkFloat(){
+ let bar=document.querySelector('.bankInkFloat');if(!bar)return;
+ let open=bar.classList.toggle('open'),b=bar.querySelector('.bankInkToggle');
+ if(b){b.title=open?'Recolher ferramentas':'Mostrar ferramentas';b.setAttribute('aria-label',b.title)}
+ requestAnimationFrame(positionBankInkFloat);
+}
+function setupBankInkFloatControls(){
+ let bar=document.querySelector('.bankInkFloat');if(!bar||bar.dataset.controlsReady)return;
+ bar.dataset.controlsReady='1';
+ let toggle=bar.querySelector('.bankInkToggle');
+ toggle?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();toggleBankInkFloat()});
+}
+function resetPageZoom(){
+ let meta=document.querySelector('meta[name="viewport"]');if(!meta)return;
+ let normal='width=device-width,initial-scale=1,maximum-scale=5,user-scalable=yes,viewport-fit=cover';
+ let force='width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+ meta.setAttribute('content',force);
+ document.documentElement.style.zoom='1';
+ void document.documentElement.offsetWidth;
+ window.scrollTo({left:0,top:0,behavior:'auto'});
+ setTimeout(()=>{
+   meta.setAttribute('content','width=device-width,initial-scale=1.0001,minimum-scale=1,maximum-scale=1.0001,user-scalable=no,viewport-fit=cover');
+   void document.documentElement.offsetWidth;
+   setTimeout(()=>{
+     meta.setAttribute('content',normal);
+     document.documentElement.style.zoom='';
+     window.scrollTo({left:0,top:0,behavior:'auto'});
+     requestAnimationFrame(()=>{positionBankInkFloat();setTimeout(positionBankInkFloat,80)});
+   },80);
+ },80);
+}
+let bankInkFloatPos=null;
+function positionBankInkFloat(){
+ let bar=document.querySelector('.bankInkFloat');if(!bar)return;
+ let vv=window.visualViewport,scale=vv?.scale||1,ox=vv?.offsetLeft||0,oy=vv?.offsetTop||0;
+ let x=bankInkFloatPos?ox+bankInkFloatPos.x/scale:ox+12/scale;
+ let y=bankInkFloatPos?oy+bankInkFloatPos.y/scale:oy+12/scale;
+ bar.style.setProperty('--ink-x',x+'px');bar.style.setProperty('--ink-y',y+'px');bar.style.setProperty('--ink-scale',(1/scale));
+}
+function setupBankInkFloatDrag(){
+ let bar=document.querySelector('.bankInkFloat'),handle=bar?.querySelector('.bankInkDrag');if(!bar||!handle||handle.dataset.dragReady)return;
+ handle.dataset.dragReady='1';let dragging=false,startX=0,startY=0,baseX=0,baseY=0;
+ handle.onpointerdown=e=>{e.preventDefault();e.stopPropagation();dragging=true;startX=e.clientX;startY=e.clientY;let vv=window.visualViewport,scale=vv?.scale||1;let r=bar.getBoundingClientRect();baseX=r.left-(vv?.offsetLeft||0);baseY=r.top-(vv?.offsetTop||0);try{handle.setPointerCapture(e.pointerId)}catch(_){}};
+ handle.onpointermove=e=>{if(!dragging)return;e.preventDefault();let vv=window.visualViewport,w=vv?.width||window.innerWidth,h=vv?.height||window.innerHeight,r=bar.getBoundingClientRect();let nx=Math.max(4,Math.min(w-r.width-4,baseX+(e.clientX-startX)));let ny=Math.max(4,Math.min(h-r.height-4,baseY+(e.clientY-startY)));bankInkFloatPos={x:nx,y:ny};positionBankInkFloat()};
+ const stop=e=>{if(!dragging)return;dragging=false;try{if(handle.hasPointerCapture?.(e.pointerId))handle.releasePointerCapture(e.pointerId)}catch(_){}};
+ handle.onpointerup=stop;handle.onpointercancel=stop;
+}
+if(window.visualViewport){visualViewport.addEventListener('resize',()=>requestAnimationFrame(positionBankInkFloat));visualViewport.addEventListener('scroll',()=>requestAnimationFrame(positionBankInkFloat))}
+window.addEventListener('resize',()=>requestAnimationFrame(positionBankInkFloat));window.addEventListener('scroll',()=>requestAnimationFrame(positionBankInkFloat),{passive:true});
+function setBankInkHighlighterColor(color){bankInkHighlighterColor=color;setBankCaseInkMode('highlighter')}
+function setBankCaseInkMode(mode){
+ let canvas=document.getElementById('bankCaseInk'),wrap=document.getElementById('bankCaseInkWrap');if(!canvas)return toast('Esta questão não possui situação-problema');
+ bankCaseInkMode=bankCaseInkMode===mode?'off':mode;canvas.classList.toggle('active',bankCaseInkMode!=='off');wrap?.classList.toggle('inking',bankCaseInkMode!=='off');
+ document.querySelectorAll('[data-ink-mode]').forEach(b=>b.classList.toggle('on',b.dataset.inkMode===bankCaseInkMode));
+}
+function clearBankCaseInk(){let c=document.getElementById('bankCaseInk');if(!c)return toast('Esta questão não possui situação-problema');let before=bankInkSnapshot();if(before){bankInkUndo.push(before);if(bankInkUndo.length>30)bankInkUndo.shift();bankInkRedo=[]}let x=c.getContext('2d');x.save();x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,c.width,c.height);x.restore()}
+function selectBankChoice(i){bankSelected=i;document.querySelectorAll('.bankChoice').forEach((e,j)=>{e.classList.toggle('selected',j===i);e.querySelector('input').checked=j===i})}
+function cutBankChoice(i){let e=document.getElementById('bankChoice'+i);bankCuts.has(i)?bankCuts.delete(i):bankCuts.add(i);e.classList.toggle('cut',bankCuts.has(i))}
+function highlightBank(color){let sel=getSelection();if(!sel||sel.isCollapsed)return toast('Selecione um trecho do enunciado');let p=document.getElementById('bankPrompt'),cs=document.getElementById('bankCase');let root=p?.contains(sel.anchorNode)?p:(cs?.contains(sel.anchorNode)?cs:null);if(!root)return toast('Selecione um trecho da situação ou pergunta');let range=sel.getRangeAt(0);let mark=document.createElement('mark');mark.style.backgroundColor=color;try{range.surroundContents(mark)}catch(e){document.execCommand('hiliteColor',false,color)}saveBankAnnotation();sel.removeAllRanges()}
+function clearBankHighlight(){let sel=getSelection();if(!sel||sel.isCollapsed)return toast('Selecione o trecho');document.execCommand('hiliteColor',false,'transparent');saveBankAnnotation()}
+function saveBankAnnotation(){let q=db.bankQuestions.find(x=>x.id==bankCurrent);if(!q)return;db.bankAnnotations[bankCurrent]=db.bankAnnotations[bankCurrent]||{html:q.prompt,notes:[]};db.bankAnnotations[bankCurrent].html=document.getElementById('bankPrompt')?.innerHTML||q.prompt;db.bankAnnotations[bankCurrent].caseHtml=document.getElementById('bankCase')?.innerHTML||(q.caseText||'');save()}
+function addBankNote(){let n=prompt('Sua observação sobre esta questão:');if(!n)return;let q=db.bankQuestions.find(x=>x.id==bankCurrent);db.bankAnnotations[bankCurrent]=db.bankAnnotations[bankCurrent]||{html:q.prompt,notes:[]};db.bankAnnotations[bankCurrent].notes.push(n);save();openBankQuestion(bankCurrent)}
+function toggleBankScratch(){let w=document.getElementById('bankScratchWrap');w.classList.toggle('hidden');if(!w.classList.contains('hidden'))setupBankScratch()}
+function setupBankScratch(){let c=document.getElementById('bankScratch');if(!c)return;let r=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=r.width*ratio;c.height=260*ratio;let x=c.getContext('2d');x.scale(ratio,ratio);x.lineWidth=2;x.lineCap='round';x.strokeStyle='#7b3157';let on=false,last;let p=e=>{let z=c.getBoundingClientRect();return[e.clientX-z.left,e.clientY-z.top]};c.onpointerdown=e=>{on=true;last=p(e)};c.onpointermove=e=>{if(!on)return;let q=p(e);x.beginPath();x.moveTo(...last);x.lineTo(...q);x.stroke();last=q};c.onpointerup=()=>on=false;c.onpointerleave=()=>on=false}
+function clearBankScratch(){let c=document.getElementById('bankScratch');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height)}
+function normBankText(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9%<> ]/g,' ').replace(/\s+/g,' ').trim()}
+function gradeShortBank(q,answer){let a=normBankText(answer);if(!a)return{level:'Não corresponde',hit:[],miss:q.concepts||[]};let accepted=(q.accepted||[]).some(x=>a.includes(normBankText(x))||normBankText(x).includes(a));let concepts=(q.concepts||[]),hit=concepts.filter(x=>a.includes(normBankText(x))),need=q.requiredCount||concepts.length||1;if(accepted||hit.length>=need)return{level:'Corresponde totalmente',hit,miss:[]};if(hit.length)return{level:'Corresponde parcialmente',hit,miss:concepts.filter(x=>!hit.includes(x))};let exp=normBankText(q.expected),words=a.split(' ').filter(x=>x.length>4),idea=words.some(w=>exp.includes(w));return{level:idea?'Traz a ideia — precisa melhorar a escrita':'Não corresponde',hit:idea?words.filter(w=>exp.includes(w)):[],miss:concepts}}
+function stripBankHtml(s){let d=document.createElement('div');d.innerHTML=s||'';return (d.textContent||d.innerText||'').replace(/\s+/g,' ').trim()}
+function bankFlashcardTakeaway(q){if(q.type==='short'&&q.expected)return q.expected;let correct=q.alternatives?.[q.correctIndex];if(correct)return correct;let txt=stripBankHtml(q.resolution||''),m=txt.match(/Leve para a prova[:\s-]*(.+?)(?=(?:Pegadinha|Gabarito|Resposta|$))/i),take=m?.[1]?.trim();return take&&take.length>20?take.slice(0,650):'Revise o conceito central deste tema.'}
+function bankFlashcardQuestion(q){
+ // Anchor the question in the original clinical scenario and the examiner's actual request.
+ // Never infer the task from unrelated words in the resolution or answer choices.
+ const clean=x=>stripBankHtml(String(x||'')).replace(/\s+/g,' ').trim();
+ const prompt=clean(q.prompt).replace(/[:;\s]+$/,'').replace(/[.!]+$/,'').trim();
+ const rawCase=clean(q.caseText||q.case||'');
+ let context=rawCase;
+ if(context.length>320){
+  const first=context.slice(0,235),cut=Math.max(first.lastIndexOf('. '),first.lastIndexOf('; '));
+  context=(cut>100?first.slice(0,cut+1):first.trim())+' […] '+context.slice(-115).trim();
+ }
+ let request=prompt.replace(/^Indique\s+(a|o)\s+/i,'Qual é $1 ').replace(/^Indique\s+/i,'Qual é ');
+ if(!request||/^(assinale|marque|selecione|escolha)\s+(a\s+)?(alternativa|op[cç][aã]o)\s+(correta|incorreta)/i.test(request)){
+  const topic=clean(q.topic||q.area||'o caso clínico');
+  request='Qual é a resposta correta sobre '+topic+' para este caso?';
+ }
+ if(request&&!/[?]$/.test(request))request=request+'?';
+ return (context?context+'\n\n':'')+request;
+}
+function createBankErrorFlashcard(id){let q=db.bankQuestions.find(x=>x.id===id);if(!q)return;let subject='Erros do Banco de Questões';if(!db.subjects.includes(subject))db.subjects.push(subject);db.subjectIcons[subject]='🧠';let tag='Banco de Questões • '+(q.topic||q.area||'Revisão')+' • '+q.exam+' Q'+q.number,exists=db.cards.some(c=>c.bankQuestionId===q.id);if(exists)return toast('Este erro já virou flashcard ♡');let front=esc(bankFlashcardQuestion(q)),back=esc(bankFlashcardTakeaway(q));db.cards.push({id:Date.now(),subject,front,back,media:'',tags:tag,ok:0,bad:0,interval:0,due:day(),history:[],bankQuestionId:q.id,bankAutoFront:front,bankAutoBack:back,bankCardVersion:2});save();toast('Flashcard do erro criado ♡')}
+function refreshBankErrorFlashcards(options={}){
+ // Migrate only flashcards linked to bank questions; keep manually edited cards intact.
+ // The migration is idempotent and preserves all study history, intervals and due dates.
+ let changed=false,updated=0,skipped=0;
+ const oldPattern=/^(Em .+, qual exame ou teste|Em .+, qual é a conduta|Qual é o principal agente ou causa|Qual é o critério ou definição|Qual é a principal medida de prevenção|Qual é o ponto-chave cobrado)/i;
+ const questions=new Map((db.bankQuestions||[]).map(q=>[String(q.id),q]));
+ for(const card of db.cards||[]){
+  if(card.bankQuestionId==null)continue;
+  const q=questions.get(String(card.bankQuestionId));if(!q){skipped++;continue}
+  const front=esc(bankFlashcardQuestion(q));
+  const back=esc(bankFlashcardTakeaway(q));
+  const previous=stripBankHtml(card.front||'').trim();
+  const autoFront=card.bankAutoFront?card.front===card.bankAutoFront:oldPattern.test(previous);
+  if(!autoFront){skipped++;continue}
+  const autoBack=card.bankAutoBack?card.back===card.bankAutoBack:true;
+  if(card.front!==front){card.front=front;changed=true;updated++}
+  if(autoBack&&card.back!==back){card.back=back;changed=true}
+  if(card.bankAutoFront!==front||card.bankCardVersion!==2){card.bankAutoFront=front;card.bankCardVersion=2;changed=true}
+  if(autoBack&&card.bankAutoBack!==back){card.bankAutoBack=back;changed=true}
+ }
+ if(changed){
+  db.updatedAt=Date.now();
+  if(!options.deferSave){
+   localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
+   if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}
+  }
+ }
+ return {changed,updated,skipped};
+}
+function bankErrorReasonLabel(k){return ({knowledge:'🧠 Não sabia',confusion:'🔀 Confundi conceitos',distractor:'🎯 Caí no distrator',attention:'👀 Interpretação/desatenção',memory:'🔢 Esqueci critério/número',guess:'🎲 Chutei'})[k]||k}
+function bankErrorReasonBox(attemptId,q){let opts=[['knowledge','🧠 Não sabia'],['confusion','🔀 Confundi conceitos'],['distractor','🎯 Caí no distrator'],['attention','👀 Interpretação/desatenção'],['memory','🔢 Esqueci critério/número'],['guess','🎲 Chutei']];return `<div class=qbox style='margin-top:14px'><b>🔎 Por que você acha que errou?</b><p class=muted>Um clique. Isso ajuda o FlashMed a separar falta de conteúdo de erro de prova.</p><div class=row>${opts.map(x=>`<button class='btn ghost mini' onclick="tagBankError(${attemptId},'${x[0]}','${q.id}')">${x[1]}</button>`).join('')}</div><div id='errorDetail-${attemptId}'></div></div>`}
+function tagBankError(attemptId,reason,qid){let a=(db.bankAttempts||[]).find(x=>x.id==attemptId);if(!a)return;a.errorReason=reason;if(reason==='distractor'){let q=(db.bankQuestions||[]).find(x=>x.id===qid),picked=typeof a.answer==='number'?(q?.alternatives?.[a.answer]||''):'';a.distractorText=picked;let box=document.getElementById('errorDetail-'+attemptId);if(box)box.innerHTML=`<label style='display:block;margin-top:10px'>Qual palavra/trecho te derrubou? <span class=muted>(opcional)</span><input id='distractorNote-${attemptId}' class=field placeholder='Ex.: EXCETO, primeira conduta, sempre, número do critério…'><button class='btn mini' onclick='saveDistractorNote(${attemptId})'>Salvar detalhe</button></label>`}save();toast(bankErrorReasonLabel(reason)+' registrado ♡');if(route==='Métricas')render()}
+function saveDistractorNote(attemptId){let a=(db.bankAttempts||[]).find(x=>x.id==attemptId),el=document.getElementById('distractorNote-'+attemptId);if(!a||!el)return;a.distractorNote=el.value.trim();save();toast('Distrator registrado 🎯')}
+function bankResolutionHasGenericBoilerplate(html){
+ const t=normBankText(stripBankHtml(html||''));
+ return /o que a questao esta te contando|o que voce precisava saber|raciocinio passo a passo|pegadinha sus ba|leve para a prova transforme o erro/.test(t);
+}
+function renderBankResolution(q){
+ if(!q)return '<p class=muted>Resolução não disponível.</p>';
+ const raw=String(q.resolution||'').trim();
+ const clean=x=>stripBankHtml(x||'');
+ const answer=q.type==='short'?(q.expected||'Resposta esperada não cadastrada.'):(q.alternatives?.[q.correctIndex]||'Alternativa correta não cadastrada.');
+ const prompt=clean(q.prompt);
+ const clinical=clean(q.caseText||q.case||'');
+ const generic=bankResolutionHasGenericBoilerplate(raw);
+ const specific=generic
+  ? raw.replace(/<p[^>]*>\s*(?:🔎\s*)?<b>\s*O que a questão está te contando\??[\s\S]*?<\/p>/gi,'')
+       .replace(/<p[^>]*>\s*(?:🧠\s*)?<b>\s*O que você precisava saber\??[\s\S]*?<\/p>/gi,'')
+       .replace(/<p[^>]*>\s*(?:📋\s*)?<b>\s*Raciocínio passo a passo\??[\s\S]*?<\/p>/gi,'')
+       .replace(/<p[^>]*>\s*(?:🎯\s*)?<b>\s*Pegadinha SUS-BA\??[\s\S]*?<\/p>/gi,'')
+       .replace(/<p[^>]*>\s*(?:💡\s*)?<b>\s*Leve para a prova[\s\S]*?<\/p>/gi,'')
+  : raw;
+ const parts=[];
+ parts.push('<section class="bankResolutionBlock"><h3>🎯 O que a questão está pedindo</h3><p>'+esc(prompt||'Confira o comando original da questão.')+'</p></section>');
+ if(clinical)parts.push('<section class="bankResolutionBlock"><h3>🔎 Leitura do caso</h3><p>'+esc(clinical)+'</p><p class="muted">Relacione os achados do enunciado com o comando: a pista decisiva deve ser explicada clinicamente, e não apenas repetida.</p></section>');
+ parts.push('<section class="bankResolutionBlock"><h3>✅ Resposta correta</h3><p><b>'+(q.type==='short'?'Resposta esperada: ':'Alternativa correta: ')+esc(answer)+'</b></p></section>');
+ if(specific && clean(specific))parts.push('<section class="bankResolutionBlock"><h3>🧠 Comentário da questão</h3><div class="rich">'+specific+'</div></section>');
+ if(q.type!=='short' && Array.isArray(q.alternatives) && q.alternatives.length){
+   const detailed=Array.isArray(q.alternativeExplanations)?q.alternativeExplanations:null;
+   parts.push('<section class="bankResolutionBlock"><h3>⚖️ Análise das alternativas</h3><div class="bankAlternativeAnalysis">'+q.alternatives.map((a,i)=>{
+    const label='ABCDE'[i]||String(i+1),correct=i===q.correctIndex;
+    const note=detailed&&(detailed[i]||detailed[label]||detailed[String(i)])||'';
+    return '<div class="bankAlternativeNote '+(correct?'isCorrect':'')+'"><b>'+(correct?'✅ ':'❌ ')+label+') '+esc(a||'Alternativa não cadastrada')+'</b>'+(note?'<p>'+esc(note)+'</p>':(correct?'<p>É a opção indicada pelo gabarito. A justificativa clínica deve ser conectada aos achados do caso e ao comando da questão.</p>':'<p class="muted">A justificativa específica deste distrator ainda não está cadastrada. Este item precisa de revisão editorial para esclarecer por que a alternativa não se aplica ao caso.</p>'))+'</div>';
+   }).join('')+'</div></section>');
+ }
+ parts.push('<section class="bankResolutionBlock bankTakeaway"><h3>💡 Para levar para a prova</h3><p>'+(q.takeaway?esc(q.takeaway):'<b>Regra de revisão:</b> explique em uma frase qual dado do enunciado sustenta a resposta e por que ela atende exatamente ao comando.')+'</p></section>');
+ return parts.join('');
+}
+function answerBankQuestion(){let q=db.bankQuestions.find(x=>x.id==bankCurrent);if(q.annulled){if(bankMode==='exam'){bankExamAnswers[q.id]='ANULADA';toast('Questão anulada • ponto preservado');let n=bankNav(q).next;if(n)openBankQuestion(n.id);else finishBankExam();return}bankResult.innerHTML=`<div class=panel style='margin-top:18px'><h3>⚪ Questão anulada pela banca</h3><p>Não há alternativa oficial correta para pontuação.</p><div class=rich>${renderBankResolution(q)}</div></div>`;return}if(q.type==='short'){let answer=(document.getElementById('bankShortAnswer')?.value||'').trim();if(!answer)return toast('Digite sua resposta');if(bankMode==='exam'){bankExamAnswers[q.id]=answer;toast('Resposta salva');let n=bankNav(q).next;if(n)openBankQuestion(n.id);else finishBankExam();return}let g=gradeShortBank(q,answer),correct=g.level==='Corresponde totalmente';db.bankAttempts.push({id:Date.now(),questionId:q.id,answer,correct,date:day(),mode:'practice',grade:g.level,responseSeconds:Math.max(1,Math.round((Date.now()-bankQuestionStart)/1000))});bankReviewSchedule(q.id,correct,'practice',db.bankAttempts[db.bankAttempts.length-1]);save();bankResult.innerHTML=`<div class=panel style='margin-top:18px'><h3>${g.level==='Corresponde totalmente'?'✅':g.level==='Não corresponde'?'❌':'🟡'} ${g.level}</h3><p><b>Sua resposta:</b> ${esc(answer)}</p><p><b>Resposta esperada:</b> ${esc(q.expected)}</p>${g.hit.length?`<p><b>Pontos contemplados:</b> ${esc(g.hit.join(', '))}</p>`:''}${g.miss.length?`<p><b>Pontos que faltaram:</b> ${esc(g.miss.join(', '))}</p>`:''}<div class=rich>${renderBankResolution(q)}</div><p class=muted>Correção automática por conceitos/termos aceitos no padrão oficial; respostas semanticamente equivalentes muito diferentes na redação podem precisar de conferência manual.</p>${!correct?`<div class=row><button class=btn onclick="createBankErrorFlashcard('${q.id}')">🃏 Flashcard automático do erro</button><button class='btn ghost' onclick="go('Adicionar flashcard')">🎀 Criar manualmente</button><button class='btn ghost' onclick="addDecorebaFromBank('${q.id}')">📒 Isso é decoreba</button></div>${bankErrorReasonBox(db.bankAttempts[db.bankAttempts.length-1].id,q)}`:''}</div>`;return}if(bankSelected===null)return toast('Marque uma alternativa');if(bankMode==='exam'){bankExamAnswers[q.id]=bankSelected;toast('Resposta salva');let n=bankNav(q).next;if(n)openBankQuestion(n.id);else finishBankExam();return}let correct=bankSelected===q.correctIndex;db.bankAttempts.push({id:Date.now(),questionId:q.id,answer:bankSelected,correct,date:day(),mode:'practice',responseSeconds:Math.max(1,Math.round((Date.now()-bankQuestionStart)/1000))});bankReviewSchedule(q.id,correct,'practice',db.bankAttempts[db.bankAttempts.length-1]);save();bankResult.innerHTML=`<div class=panel style='margin-top:18px'><h3>${correct?'✅ Acertou!':'❌ Resposta incorreta'}</h3><p><b>Sua resposta:</b> ${'ABCDE'[bankSelected]} • <b>Gabarito:</b> ${'ABCDE'[q.correctIndex]}</p><div class=rich>${renderBankResolution(q)}</div><div class=row><button class='btn ghost' onclick="go('Questões erradas')">📓 Caderno de erros</button>${!correct?`<button class=btn onclick="createBankErrorFlashcard('${q.id}')">🃏 Flashcard automático do erro</button>`:''}<button class='btn ghost' onclick="go('Adicionar flashcard')">🎀 Criar manualmente</button><button class='btn ghost' onclick="addDecorebaFromBank('${q.id}')">📒 Isso é decoreba</button></div>${!correct?bankErrorReasonBox(db.bankAttempts[db.bankAttempts.length-1].id,q):''}</div>`;showBankChoiceFeedback(q)}
+function questions(){return `<div class=cols><div class=panel><h2>Registrar questão</h2><select id=qt class=field onchange="alts.classList.toggle('hidden',this.value!='multiple')"><option value=multiple>Múltipla escolha (A–E)</option><option value=open>Questão aberta</option></select><select id=qs class=field>${db.subjects.map(s=>`<option>${esc(s)}</option>`).join('')}</select><label>Enunciado</label>${editor('qq','Cole o enunciado e imagens aqui…')}<div id=alts>${['A','B','C','D','E'].map(x=>`<input id='q${x}' class=field placeholder='Alternativa ${x}'>`).join('')}<input id=correct class=field placeholder='Gabarito (ex.: C)'></div><label>Resposta + resolução/comentário</label>${editor('qr','Por que errei? Qual é o raciocínio correto?')}<button class=btn onclick=addQ()>Salvar no caderno de erros</button></div><div class=panel><h2>Caderno de erros</h2>${db.questions.slice().reverse().map(q=>`<div class=qbox><span class=tag>${esc(q.subject)}</span><div class=rich><b>${q.text}</b></div>${q.type==='multiple'?q.alts.map((a,i)=>a?`<span class=choice>${'ABCDE'[i]}) ${esc(a)}</span>`:'').join(''):''}<button class='btn ghost' style='margin-top:9px' onclick='solveQuestion(${q.id})'>✍ Resolver agora</button><details><summary><b>Resposta e resolução</b></summary><div class=rich>${q.resolution}</div><p><b>Gabarito:</b> ${esc(q.correct||'—')}</p></details></div>`).join('')||'<p class=muted>Nenhuma questão ainda.</p>'}</div></div>`}function addQ(){let t=qq.innerHTML.trim(),res=qr.innerHTML.trim();if(!t)return toast('Adicione o enunciado');db.questions.push({id:Date.now(),type:qt.value,subject:qs.value,text:t,alts:['A','B','C','D','E'].map(x=>document.querySelector('#q'+x)?.value||''),correct:document.querySelector('#correct')?.value||'',resolution:res});save();render();toast('Questão salva ♡')}
+let qScratchData='';
+function solveQuestion(id){let q=db.questions.find(x=>x.id==id);if(!q)return;view.innerHTML=`<div class=panel><div class=row><button class='btn ghost' onclick="go('Questões erradas')">← Voltar</button><span class=tag>${esc(q.subject)}</span></div><div class=rich style='margin-top:18px'><h3>${q.text}</h3></div>${q.type==='multiple'?q.alts.map((a,i)=>a?`<label class=choice><input type=radio name=ans value='${'ABCDE'[i]}'> <b>${'ABCDE'[i]}</b> ${esc(a)}</label>`:'').join(''):editor('typedAnswer','Digite sua resposta, se preferir…')}<div class=panel style='margin-top:14px'><b>✍️ Responder à mão / rascunho</b><p class=muted>Use a caneta do tablet, dedo ou mouse. A resolução só aparece quando você pedir.</p><canvas id=qScratch class=draw style='height:340px'></canvas><div class=row style='margin-top:8px'><button class='btn ghost' onclick='clearQScratch()'>Limpar</button><button class='btn ghost' onclick='fullQScratch()'>⛶ Tela cheia</button></div></div><div class=row style='justify-content:center;margin-top:14px'><button class=btn onclick='showQResolution(${id})'>Ver resposta e resolução</button></div><div id=qResolution></div></div>`;setTimeout(setupQScratch,0)}
+function setupQScratch(){let c=document.getElementById('qScratch');if(!c)return;let r=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=r.width*ratio;c.height=340*ratio;let x=c.getContext('2d');x.scale(ratio,ratio);x.lineWidth=2;x.lineCap='round';x.strokeStyle='#7b3157';let on=false,last;let p=e=>{let z=c.getBoundingClientRect();return[e.clientX-z.left,e.clientY-z.top]};c.onpointerdown=e=>{on=true;last=p(e)};c.onpointermove=e=>{if(!on)return;let q=p(e);x.beginPath();x.moveTo(...last);x.lineTo(...q);x.stroke();last=q;qScratchData=c.toDataURL()};c.onpointerup=()=>{on=false;qScratchData=c.toDataURL()}}
+function clearQScratch(){qScratchData='';setupQScratch()}function fullQScratch(){document.getElementById('qScratch')?.requestFullscreen?.()}
+function showQResolution(id){let q=db.questions.find(x=>x.id==id),c=document.getElementById('qScratch');if(c)qScratchData=c.toDataURL();qResolution.innerHTML=`<div class=panel style='margin-top:16px;background:#fff5f9'><h2>Resposta e resolução</h2>${q.type==='multiple'?`<p><b>Gabarito:</b> ${esc(q.correct||'—')}</p>`:''}<div class=rich>${q.resolution||'<span class=muted>Sem resolução cadastrada.</span>'}</div>${qScratchData?`<hr style='border:0;border-top:1px solid var(--line)'><b>Seu rascunho</b><p><img src='${qScratchData}' style='max-width:100%;border:1px solid var(--line);border-radius:14px'></p>`:''}</div>`;qResolution.scrollIntoView({behavior:'smooth'})}
+function importChat(){return `<div class=panel><h2>✦ Flashcards IA</h2><p>Peça os flashcards ao ChatGPT, copie o bloco inteiro e cole abaixo. O FlashMed separa automaticamente cada cartão em <b>P:</b> e <b>R:</b>, usando <b>---</b> entre eles. Marcadores como <b>[IMAGEM: ...]</b> são preservados na frente do cartão.</p><select id=impSub class=field>${db.subjects.map(s=>`<option>${esc(s)}</option>`).join('')}</select><div class=importBox><b>Formato aceito</b><pre>P: [IMAGEM: descrição opcional] Pergunta do cartão\nR: Resposta objetiva\n---\nP: Próxima pergunta\nR: Próxima resposta</pre></div><textarea id=bulk class=field rows=14 placeholder='Cole aqui o bloco completo de flashcards que eu gerei para você…'></textarea><div class=row><button class=btn onclick=parseBulk()>Separar cartões e visualizar</button><button class='btn ghost' onclick=copyPrompt()>Copiar modelo de pedido ao ChatGPT</button></div><div id=preview></div></div>`}function parseBulk(){let raw=bulk.value.trim(),parts=raw.split(/\n\s*---+\s*\n/),cards=[];parts.forEach(p=>{let m=p.match(/(?:^|\n)\s*(?:P|Pergunta|Frente)\s*:\s*([\s\S]*?)(?:\n\s*(?:R|Resposta|Verso)\s*:\s*)([\s\S]*)/i);if(m)cards.push({front:m[1].trim(),back:m[2].trim()})});if(!cards.length)return toast('Não encontrei cartões no formato P:/R:');preview.innerHTML=`<div class=qbox><b>${cards.length} cartões encontrados</b>${cards.slice(0,5).map(c=>`<p><b>P:</b> ${esc(c.front)}<br><b>R:</b> ${esc(c.back)}</p>`).join('')}<button class=btn id=confirmImport>Importar ${cards.length}</button></div>`;confirmImport.onclick=()=>{cards.forEach((c,i)=>db.cards.push({id:Date.now()+i,subject:impSub.value,front:esc(c.front),back:esc(c.back),media:'',tags:'importado do ChatGPT',ok:0,bad:0,interval:0,due:day(),history:[]}));save();toast(cards.length+' flashcards importados');go('Matérias')}}function copyPrompt(){let t='Crie meus flashcards no formato exato abaixo, sem numeração e separando cada cartão por ---\\nP: pergunta curta\\nR: resposta objetiva\\n---\\nP: próxima pergunta\\nR: próxima resposta';navigator.clipboard?.writeText(t);toast('Modelo copiado')}
+function metrics(){try{let b=bankAnalytics(),s=stats(),subs=subjStats(),A=b.A||[],M=b.M||{},groups={};A.forEach(a=>(groups[a.questionId]||(groups[a.questionId]=[])).push(a));let latest=Object.entries(groups).map(([id,a])=>({q:M[id],a:a[a.length-1],all:a})).filter(x=>x.q),timed=A.filter(a=>Number.isFinite(a.responseSeconds)&&a.responseSeconds>0),avgTime=timed.length?Math.round(timed.reduce((z,a)=>z+a.responseSeconds,0)/timed.length):null,fastWrong=latest.filter(x=>!x.a.correct&&x.a.responseSeconds>0&&x.a.responseSeconds<=30),repeatedWrong=latest.filter(x=>!x.a.correct&&x.all.filter(a=>!a.correct).length>=2),slowWrong=latest.filter(x=>!x.a.correct&&x.a.responseSeconds>=120),recovered=latest.filter(x=>x.all.some(a=>!a.correct)&&x.a.correct),areas={};latest.forEach(x=>{let k=x.q.area||'Sem área',z=areas[k]||(areas[k]={n:0,ok:0});z.n++;if(x.a.correct)z.ok++});let areaRows=Object.entries(areas).map(([name,z])=>({name,...z,acc:Math.round(z.ok/z.n*100)})).sort((a,z)=>a.acc-z.acc),topics={};latest.forEach(x=>{let k=x.q.topic||x.q.area||'Sem tema',z=topics[k]||(topics[k]={n:0,ok:0,area:x.q.area||''});z.n++;if(x.a.correct)z.ok++});let topicRows=Object.entries(topics).map(([name,z])=>({name,...z,acc:Math.round(z.ok/z.n*100)})).filter(x=>x.n>=2).sort((a,z)=>a.acc-z.acc),nowD=new Date(),days=[...Array(14)].map((_,i)=>{let d=new Date(nowD);d.setDate(d.getDate()-(13-i));let k=d.toISOString().slice(0,10),a=A.filter(x=>x.date===k);return{k,label:k.slice(5),n:a.length,acc:a.length?Math.round(a.filter(x=>x.correct).length/a.length*100):null}}),maxN=Math.max(1,...days.map(x=>x.n)),signals=[{icon:'⚡',title:'Possível pressa',n:fastWrong.length,text:'Erros na tentativa mais recente em até 30 s. Vale reler comando e alternativas antes de confirmar.'},{icon:'🧠',title:'Possível lacuna de conteúdo',n:repeatedWrong.length,text:'Questões ainda erradas após pelo menos 2 tentativas. Prioridade para revisão ativa do conceito.'},{icon:'🧩',title:'Raciocínio demorado',n:slowWrong.length,text:'Erros após 2 min ou mais. Pode indicar dúvida entre hipóteses ou dificuldade de aplicação.'},{icon:'🌱',title:'Erros recuperados',n:recovered.length,text:'Questões que já foram erradas e agora estão corretas: aprendizado demonstrado.'}],priority=signals.slice(0,3).sort((a,z)=>z.n-a.n)[0],advice=priority&&priority.n?priority.title==='Possível pressa'?'Antes de aumentar volume, experimente uma regra de 10 segundos: releia exatamente o que a banca pediu antes de marcar.':priority.title==='Possível lacuna de conteúdo'?'Sua melhor alavanca agora é revisar as questões resistentes e transformá-las em evocação ativa/flashcards.':'Nas questões demoradas, registre qual foi a dúvida entre as alternativas e treine casos contrastantes.':'Continue acumulando dados; o FlashMed vai separar melhor seus padrões conforme você resolver mais questões.';return `<div class='panel hero'><h2>FlashMed Analytics 🧠🎀</h2><p>Uma leitura do seu estudo real: <b>o que você domina, o que recuperou e onde vale ajustar a estratégia.</b></p><p class=muted>Os padrões de tempo são sinais, não diagnósticos da causa do erro.</p></div><div class=grid style='margin-top:16px'><div class=kpi><span class=muted>Domínio atual</span><b>${b.latest.length?b.currentAcc+'%':'—'}</b><small class=muted>última tentativa por questão</small></div><div class=kpi><span class=muted>Primeira tentativa</span><b>${b.first.length?b.firstAcc+'%':'—'}</b><small class=muted>sua linha de base</small></div><div class=kpi><span class=muted>Erros recuperados</span><b>${b.recovered||0}</b><small class=muted>errou → depois acertou</small></div><div class=kpi><span class=muted>Tempo médio</span><b>${avgTime==null?'—':avgTime+'s'}</b><small class=muted>tentativas com tempo registrado</small></div></div><div class=panel style='margin-top:16px'><h2>💗 Leitura do momento</h2><div class=goldLine></div><p>${advice}</p></div>${(()=>{let errs=A.filter(a=>!a.correct&&a.errorReason),keys=['knowledge','confusion','distractor','attention','memory','guess'],distr=A.filter(a=>!a.correct&&a.errorReason==='distractor');return `<div class=panel style='margin-top:16px'><h2>🩷 Anatomia dos meus erros</h2><p class=muted>Motivos que você mesma marcou depois das questões. Estes dados têm mais peso do que inferências por tempo. O FlashMed usa essas categorias nos Insights para sugerir a próxima ação.</p>${errs.length?`<div class=grid>${keys.map(k=>{let n=errs.filter(a=>a.errorReason===k).length,p=Math.round(n/errs.length*100);return `<div class=kpi><span class=muted>${bankErrorReasonLabel(k)}</span><b>${p}%</b><small class=muted>${n} erro(s)</small></div>`}).join('')}</div>${distr.length?`<h3>🎯 Distratores que me derrubaram</h3>${distr.slice(-8).reverse().map(a=>{let q=M[a.questionId];return `<div class=qbox><b>${esc(q?.topic||q?.area||'Questão')}</b> • ${esc(q?.exam||'')} Q${q?.number||''}<div class=muted>${a.distractorNote?esc(a.distractorNote):a.distractorText?'Alternativa marcada: '+esc(a.distractorText):'Distrator registrado'}</div></div>`}).join('')}`:``}`:'<p class=muted>Quando você classificar seus próximos erros, o perfil aparecerá aqui.</p>'}</div>`})()}${(()=>{let errs=A.filter(a=>!a.correct&&a.errorReason),count=k=>errs.filter(a=>a.errorReason===k).length,knowledge=count('knowledge'),confusion=count('confusion'),distractor=count('distractor'),attention=count('attention'),memory=count('memory'),guess=count('guess'),contentN=knowledge+confusion+memory+guess,examN=distractor+attention,byTopic={};errs.forEach(a=>{let q=M[a.questionId];if(!q)return;let k=q.topic||q.area||'Sem tema',z=byTopic[k]||(byTopic[k]={n:0,content:0,exam:0,area:q.area||''});z.n++;if(['knowledge','confusion','memory','guess'].includes(a.errorReason))z.content++;if(['distractor','attention'].includes(a.errorReason))z.exam++});let topicInsight=Object.entries(byTopic).map(([name,z])=>({name,...z})).filter(x=>x.n>=2).sort((a,z)=>z.n-a.n)[0],cards=[];if(errs.length){if(contentN>=examN&&contentN){cards.push(['🧠','Prioridade: consolidar conteúdo',contentN+' de '+errs.length+' erros classificados envolvem desconhecimento, confusão, evocação ou chute.','Revisão ativa + questões contrastantes + flashcards direcionados.'])}else if(examN){cards.push(['🎯','Prioridade: técnica de prova',examN+' de '+errs.length+' erros classificados foram distrator ou interpretação/desatenção.','Antes de marcar, releia o comando e identifique palavras restritivas.'])}if(confusion)cards.push(['🔀','Conceitos que se misturam',confusion+' erro(s) foram marcados como confusão entre conceitos.','Treine comparações A × B e casos contrastantes.']);if(memory)cards.push(['🔢','Decorebas pedindo reforço',memory+' erro(s) envolveram critério, número ou cutoff esquecido.','Transforme números decisivos em evocação curta e repetida.']);if(distractor)cards.push(['🎯','Distratores merecem atenção',distractor+' erro(s) ocorreram mesmo com conteúdo parcialmente conhecido.','Revise as palavras/trechos registrados em “Distratores que me derrubaram”.']);if(topicInsight)cards.push(['📚','Padrão em '+topicInsight.name,topicInsight.n+' erro(s) classificados neste tema • '+topicInsight.content+' de conteúdo • '+topicInsight.exam+' de técnica de prova.',topicInsight.content>topicInsight.exam?'Reforce o conceito antes de aumentar o volume de questões.':topicInsight.exam>topicInsight.content?'Mantenha o conteúdo e treine leitura fina das alternativas.':'Misture revisão conceitual e treino de prova.'])}return `<div class=panel style='margin-top:16px'><h2>🪤 Meu perfil de pegadinhas</h2><div class=goldLine></div><p class=muted>O FlashMed separa erros de técnica de prova para mostrar o que costuma te derrubar.</p>${(()=>{let tagged=A.filter(a=>!a.correct&&a.errorReason),tech=tagged.filter(a=>['distractor','attention','guess'].includes(a.errorReason)),rows=[['🎯 Distrator','distractor'],['👀 Interpretação/desatenção','attention'],['🎲 Chute','guess']].map(([name,k])=>({name,n:tech.filter(a=>a.errorReason===k).length})).filter(x=>x.n);return tech.length?`<div class=grid>${rows.map(x=>`<div class=kpi><span class=muted>${x.name}</span><b>${Math.round(x.n/tech.length*100)}%</b><small class=muted>${x.n} ocorrência(s)</small></div>`).join('')}</div><p class=muted style='margin-top:12px'>${rows[0]&&rows[0].n?'<b>Treino recomendado:</b> antes de confirmar a alternativa, diga em uma frase por que ela responde exatamente ao comando.':''}</p>`:'<p>Ainda faltam erros classificados como distrator, desatenção ou chute para montar seu perfil.</p>'})()}</div><div class=panel style='margin-top:16px'><h2>🎀 FlashMed Insights</h2><div class=goldLine></div><p class=muted>O FlashMed transforma sua Anatomia dos Erros em decisões de estudo. As regras são transparentes e usam apenas seus próprios registros.</p>${cards.length?`<div class=cols>${cards.slice(0,4).map(x=>`<div class=qbox><h3 style='margin-top:0'>${x[0]} ${esc(x[1])}</h3><p>${esc(x[2])}</p><div class=muted><b>Próxima ação:</b> ${esc(x[3])}</div></div>`).join('')}</div>`:'<p>Classifique alguns erros e aqui aparecerão prioridades práticas de estudo — conteúdo, técnica de prova, comparações ou decorebas.</p>'}</div>`})()}<div class=cols style='margin-top:16px'><div class=panel><h2>🔎 Por que estou errando?</h2><p class=muted>Classificação por comportamento observado nas questões.</p>${signals.map(x=>`<div class=qbox><div class=row style='justify-content:space-between'><b>${x.icon} ${x.title}</b><span class=pill>${x.n}</span></div><div class=muted>${x.text}</div></div>`).join('')}</div><div class=panel><h2>📈 Ritmo — últimos 14 dias</h2>${days.some(x=>x.n)?`<div style='display:flex;align-items:flex-end;gap:7px;height:180px;padding-top:12px;border-bottom:1px solid var(--line)'>${days.map(x=>`<div title='${x.k}: ${x.n} tentativas • ${x.acc==null?'—':x.acc+'% acerto'}' style='flex:1;height:${Math.max(3,x.n/maxN*155)}px;background:${x.n?'linear-gradient(#f6a5cb,#c93f83)':'#f7e5ee'};border-radius:8px 8px 2px 2px'></div>`).join('')}</div><p class=muted>Altura = volume de questões. Passe o mouse para ver volume e acerto do dia.</p>`:'<p class=muted>Seu gráfico aparecerá conforme você resolver questões em dias diferentes.</p>'}</div></div><div class=cols style='margin-top:16px'><div class=panel><h2>🎯 Temas para reforçar</h2>${topicRows.length?topicRows.slice(0,8).map(x=>`<div class=qbox><div class=row style='justify-content:space-between'><b>${esc(x.name)}</b><span class=tag>${x.acc}%</span></div><div class=muted>${esc(x.area)} • ${x.n} questões diferentes</div><div class=bar style='margin-top:8px'><i style='width:${x.acc}%'></i></div></div>`).join(''):'<p class=muted>Preciso de pelo menos 2 questões diferentes do mesmo tema para comparar.</p>'}</div><div class=panel><h2>🗺️ Desempenho por área</h2>${areaRows.length?areaRows.map(x=>`<div class=qbox><div class=row style='justify-content:space-between'><b>${esc(x.name)}</b><span class=tag>${x.acc}%</span></div><div class=muted>${x.n} questões diferentes</div><div class=bar style='margin-top:8px'><i style='width:${x.acc}%'></i></div></div>`).join(''):'<p class=muted>Resolva questões para formar seu mapa.</p>'}</div></div><div class=panel style='margin-top:16px'><h2>🧱 Questões resistentes</h2>${repeatedWrong.length?repeatedWrong.slice(0,12).map(x=>`<div class=qbox><b>${esc(x.q.topic||x.q.area)}</b> • ${esc(x.q.exam)} Q${x.q.number}<div class=muted>${x.all.length} tentativas • ${x.all.filter(a=>!a.correct).length} erros • última tentativa: ${x.a.responseSeconds?x.a.responseSeconds+'s':'sem tempo'}</div><button class='btn ghost mini' onclick="openBankQuestion('${x.q.id}')">Rever questão →</button></div>`).join(''):'<p class=muted>Nenhuma questão resistente neste momento. ✨</p>'}</div><div class=cols style='margin-top:16px'><div class=panel><h2>✍️ Questões abertas</h2>${b.open.length?`<p>Completas: <b>${b.openFull}</b> • Parciais: <b>${b.partial}</b> • Total de respostas: <b>${b.open.length}</b></p>`:'<p class=muted>Aparecerá quando você responder questões abertas.</p>'}</div><div class=panel><h2>🃏 Flashcards</h2><p>Revisões avaliadas: <b>${s.total}</b> • Precisão: <b>${s.total?s.acc+'%':'—'}</b></p><p>Pendentes hoje: <b>${db.cards.filter(due).length}</b></p></div></div><div class=panel style='margin-top:16px'><h2>🎀 Flashcards por material</h2><table class=metricTable><tr><th>Material</th><th>Cartões</th><th>Pendentes</th><th>Precisão</th></tr>${subs.map(x=>`<tr><td>${esc(x.x)}</td><td>${x.cards}</td><td>${x.due}</td><td>${x.attempts?x.acc+'%':'—'}</td></tr>`).join('')}</table></div>`}catch(err){console.error('FlashMed metrics',err);return `<div class=panel><h2>📊 Métricas</h2><p>Não consegui montar as métricas agora.</p><p class=muted>${esc(err?.message||'Erro inesperado')}</p><button class=btn onclick="go('Dashboard')">Voltar ao Dashboard</button></div>`}}
+function timerView(){let t=timer.elapsed+(timer.on?(Date.now()-timer.start):0);return `<div class=panel style='text-align:center'><h2>Tempo de estudo</h2><div class=timer id=timerText>${fmt(t)}</div><select id=timerSub class=field style='max-width:350px' onchange='timer.subject=this.value'><option>Geral</option>${db.subjects.map(s=>`<option ${timer.subject==s?'selected':''}>${esc(s)}</option>`).join('')}</select><div class=row style='justify-content:center'><button class=btn onclick=toggleTimer()>${timer.on?'Pausar':'Iniciar'}</button><button class='btn ghost' onclick=finishTimer()>Finalizar e salvar</button></div></div>`}function fmt(ms){let s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return [h,m,x].map(n=>String(n).padStart(2,'0')).join(':')}function toggleTimer(){if(timer.on){timer.elapsed+=Date.now()-timer.start;timer.on=false}else{timer.start=Date.now();timer.on=true}render()}function finishTimer(){let ms=timer.elapsed+(timer.on?(Date.now()-timer.start):0),m=Math.max(1,Math.round(ms/60000));db.sessions.push({date:day(),minutes:m,subject:timer.subject});timer={on:false,start:0,elapsed:0,subject:'Geral'};save();render();toast(`${m} min salvos`)}
+function reminders(){return `<div class=panel><h2>Lembretes</h2><div class=row><input id=rt type=datetime-local class=field style='max-width:260px'><input id=rx class=field placeholder='Ex.: Revisar HELLP' style='max-width:420px'><button class=btn onclick=addR()>Adicionar</button></div>${db.reminders.map((r,i)=>`<div class=qbox><b>${new Date(r.when).toLocaleString('pt-BR')}</b><p>${esc(r.text)}</p><button class='btn ghost' onclick='db.reminders.splice(${i},1);save();render()'>Excluir</button></div>`).join('')||'<p class=muted>Nenhum lembrete.</p>'}<p class=muted>Alertas do navegador dependem da página estar aberta. Em uma versão hospedada como PWA, notificações podem ser ampliadas.</p></div>`}function addR(){if(rt.value&&rx.value){db.reminders.push({when:rt.value,text:rx.value});save();render()}}
+function cloudView(){return `<div class="cols"><div class="panel"><h2>☁ Backup e recuperação</h2><p><b>Supabase conectado.</b> Seus dados ficam associados ao seu usuário.</p><div class="row"><button class="btn" onclick="syncDown()">Sincronizar agora</button><button class="btn ghost" onclick="logoutFlashMed()">Sair da conta</button></div><p class="muted">As alterações são salvas neste aparelho e sincronizadas automaticamente com sua conta.</p></div><div class="panel"><h2>Backup manual</h2><div class="row"><button class="btn" onclick="exportDB()">Exportar JSON</button><button class="btn ghost" onclick="exportSafetyJournal()">Baixar histórico de segurança</button><button class="btn ghost" onclick="exportFlashMedRecovery()">Baixar snapshots de recuperação</button><label class="btn ghost">Importar JSON<input type="file" accept=".json" hidden onchange="importDB(this)"></label></div><h3>Status</h3><p>🟢 Conta conectada e sincronização ativa</p></div></div>`}
+
+let flashmedSyncQueue=Promise.resolve();
+function flashmedRecoverySnapshot(label,data){
+  // Recovery copies belong in IndexedDB, not localStorage: duplicating the entire
+  // database in localStorage can exhaust the browser quota and block every save.
+  try{
+    const key='__flashmed_recovery_'+String(label||'snapshot').replace(/[^a-z0-9_-]/gi,'_');
+    flashmedAssetPut(key,{data:flashmedLocalPayload(data),savedAt:Date.now()})
+      .catch(e=>console.warn('Backup de recuperação IndexedDB indisponível',e));
+  }catch(e){console.warn('Backup de recuperação indisponível',e)}
+}
+function flashmedMergePersonal(remote,local){
+ if(!remote||!local)return false;let changed=false;
+ for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['studyNotebooks','id'],['pdfLibrary','id'],['agendaEvents','id']]){
+  let a=Array.isArray(remote[key])?remote[key]:[],b=Array.isArray(local[key])?local[key]:[];
+  const indexById=new Map(a.map((x,i)=>[String(x?.[idKey]??''),i]));
+  for(const item of b){
+   let id=String(item?.[idKey]??'');if(!id)continue;
+   if(!indexById.has(id)){a.push(item);indexById.set(id,a.length-1);changed=true;continue}
+   // Agenda completion/edit state must merge by recency, not merely by ID.
+   // Otherwise a stale cloud copy can overwrite a newer checked/unchecked state.
+   if(key==='agendaEvents'){
+    const ix=indexById.get(id),existing=a[ix];
+    if(Number(item?.updatedAt||0)>Number(existing?.updatedAt||0)){a[ix]=item;changed=true}
+   }
+  }
+  remote[key]=a;
+ }
+ // Study notebooks: merge the most recently edited full notebook so page strokes sync instead of only merging IDs.
+ if(Array.isArray(local.studyNotebooks)){
+  remote.studyNotebooks=Array.isArray(remote.studyNotebooks)?remote.studyNotebooks:[];
+  const studyById=new Map(remote.studyNotebooks.map(x=>[String(x.id),x]));
+  for(const item of local.studyNotebooks){
+   const id=String(item?.id??'');if(!id)continue;
+   const old=studyById.get(id);
+   if(!old){remote.studyNotebooks.push(item);studyById.set(id,item);changed=true}
+   else if((item.updatedAt||item.createdAt||0)>(old.updatedAt||old.createdAt||0)){
+    const ix=remote.studyNotebooks.findIndex(x=>String(x.id)===id);
+    if(ix>=0)remote.studyNotebooks[ix]=item;
+    studyById.set(id,item);changed=true;
+   }
+  }
+ }
+ // PDF library metadata: preserve the most recently edited version for each file.
+ if(Array.isArray(local.pdfLibrary)){remote.pdfLibrary=Array.isArray(remote.pdfLibrary)?remote.pdfLibrary:[];const pdfById=new Map(remote.pdfLibrary.map(x=>[String(x.id),x]));for(const item of local.pdfLibrary){const id=String(item?.id??'');if(!id)continue;const old=pdfById.get(id);if(!old){remote.pdfLibrary.push(item);pdfById.set(id,item);changed=true}else if((item.updatedAt||0)>(old.updatedAt||0)){const ix=remote.pdfLibrary.findIndex(x=>String(x.id)===id);if(ix>=0)remote.pdfLibrary[ix]=item;pdfById.set(id,item);changed=true}}}
+ // Keep deletion markers in the cloud too, so removed calendar items do not return on the next sync.
+ const deleted=new Set([...(Array.isArray(remote.deletedAgendaEventIds)?remote.deletedAgendaEventIds:[]),...(Array.isArray(local.deletedAgendaEventIds)?local.deletedAgendaEventIds:[])].map(String));
+ if(deleted.size!==(remote.deletedAgendaEventIds||[]).length)changed=true;
+ remote.deletedAgendaEventIds=[...deleted];
+ if(deleted.size){const before=(remote.agendaEvents||[]).length;remote.agendaEvents=(remote.agendaEvents||[]).filter(e=>!deleted.has(String(e.id)));if(remote.agendaEvents.length!==before)changed=true}
+ for(const key of ['bankAnnotations','bankSavedInk','bankReviewState','bankReviewSchedule','imageAssets']){
+  if(local[key]&&typeof local[key]==='object'&&!Array.isArray(local[key])){
+   remote[key]=remote[key]||{};
+   for(const [k,v] of Object.entries(local[key]))if(!(k in remote[key])){remote[key][k]=v;changed=true}
+  }
+ }
+ // Recover weekly planning and quick reminders as well as the agenda.
+ remote.studyPlan=remote.studyPlan&&typeof remote.studyPlan==='object'?remote.studyPlan:{};
+ const localPlan=local.studyPlan&&typeof local.studyPlan==='object'?local.studyPlan:{};
+ for(const key of ['weeklyTasks','weekSchedule']){
+  const a=Array.isArray(remote.studyPlan[key])?remote.studyPlan[key]:[];
+  const b=Array.isArray(localPlan[key])?localPlan[key]:[];
+  const indexById=new Map(a.map((x,i)=>[String(x?.id??''),i]));
+  for(const item of b){
+   const id=String(item?.id??'');if(!id)continue;
+   if(!indexById.has(id)){a.push(item);indexById.set(id,a.length-1);changed=true;continue}
+   const ix=indexById.get(id),existing=a[ix];
+   if(Number(item?.updatedAt||0)>Number(existing?.updatedAt||0)){a[ix]=item;changed=true}
+  }
+  remote.studyPlan[key]=a;
+ }
+ for(const key of ['weeklyCardOrder','weeklyStartTimes','weeklyAvailability']){
+  const a=remote.studyPlan[key]&&typeof remote.studyPlan[key]==='object'?remote.studyPlan[key]:{};
+  const b=localPlan[key]&&typeof localPlan[key]==='object'?localPlan[key]:{};
+  remote.studyPlan[key]=a;
+  for(const [k,v] of Object.entries(b)){
+   if(!(k in a)){a[k]=v;changed=true}
+   else if(key==='weeklyCardOrder'&&Array.isArray(a[k])&&Array.isArray(v)){const next=[...new Set([...a[k],...v])];if(next.length!==a[k].length){a[k]=next;changed=true}}
+  }
+ }
+ if(Array.isArray(local.quickReminders)){
+  const a=Array.isArray(remote.quickReminders)?remote.quickReminders:[];
+  const seen=new Set(a.map(x=>String(x?.id??'')));
+  for(const item of local.quickReminders){const id=String(item?.id??'');if(id&&!seen.has(id)){a.push(item);seen.add(id);changed=true}}
+  remote.quickReminders=a;
+ }
+
+ return changed;
+}
+/* Merge deletion markers from every replica, then apply them after the last data merge.
+   This prevents stale local/cloud copies from resurrecting intentionally deleted items. */
+function flashmedMergeDeletionMarkers(target,source){
+ if(!target||!source)return false;
+ let changed=false;
+ for(const key of ['deletedAgendaEventIds','deletedWeeklyTaskIds','deletedWeeklyTaskKeys','deletedWeeklyTaskTitles']){
+  const before=Array.isArray(target[key])?target[key]:[];
+  const incoming=Array.isArray(source[key])?source[key]:[];
+  const merged=[...new Set([...before,...incoming].map(v=>String(v)))];
+  if(merged.length!==before.length||!Array.isArray(target[key]))changed=true;
+  target[key]=merged;
+ }
+ return changed;
+}
+function flashmedApplyDeletionMarkers(target,source){
+ if(!target)return false;
+ let changed=flashmedMergeDeletionMarkers(target,source);
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');
+ const agendaDeleted=new Set((target.deletedAgendaEventIds||[]).map(String));
+ const taskDeleted=new Set((target.deletedWeeklyTaskIds||[]).map(String));
+ const occurrenceDeleted=new Set((target.deletedWeeklyTaskKeys||[]).map(String));
+ const titleDeleted=new Set((target.deletedWeeklyTaskTitles||[]).map(norm));
+ const signature=x=>String(x?.title||'').trim().toLocaleLowerCase('pt-BR')+'|'+String(x?.date||'');
+ const deletedTask=x=>taskDeleted.has(String(x?.id??''))||taskDeleted.has(String(x?.taskId??''))||occurrenceDeleted.has(signature(x))||titleDeleted.has(norm(x?.title));
+ const p=target.studyPlan&&typeof target.studyPlan==='object'?target.studyPlan:(target.studyPlan={});
+ for(const [owner,key,filter] of [
+  [p,'weeklyTasks',x=>!deletedTask(x)],
+  [p,'weekSchedule',x=>!deletedTask(x)],
+  [target,'agendaEvents',x=>!agendaDeleted.has(String(x?.id??''))&&!taskDeleted.has(String(x?.studyTaskId??''))&&!occurrenceDeleted.has(signature(x))&&!titleDeleted.has(norm(x?.title))]
+ ]){
+  const before=Array.isArray(owner[key])?owner[key]:[];
+  const after=before.filter(filter);
+  if(after.length!==before.length)changed=true;
+  owner[key]=after;
+ }
+ const beforeCount=[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length;
+ const beforeTitleMarkers=(target.deletedWeeklyTaskTitles||[]).length;
+ flashmedApplyPermanentTitleDeletions(target);
+ if(beforeCount!==[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length||(target.deletedWeeklyTaskTitles||[]).length!==beforeTitleMarkers)changed=true;
+ return changed;
+}
+
+async function syncUp(){
+ if(!cloud||!currentUser)return;
+ await occlusionHydrateAssets(db);
+ const snapshot=JSON.parse(JSON.stringify(db));flashmedJournalRestore(snapshot);
+ flashmedRecoverySnapshot('before_upload',snapshot);
+ flashmedSyncQueue=flashmedSyncQueue.catch(()=>{}).then(async()=>{
+  try{
+   const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
+   if(q.error)throw q.error;
+   const settings=Object.assign({},q.data?.settings||{});
+   const remote=settings.flashmed_data;
+   if(remote){flashmedRecoverySnapshot('remote_before_merge',remote);flashmedMergePersonal(snapshot,remote);mergeCardStudyHistory(snapshot,remote);flashmedMergeDeletionMarkers(snapshot,remote)}
+   flashmedApplyDeletionMarkers(snapshot);
+   // Apply deletion tombstones after every merge so stale copies cannot resurrect a removed weekly task.
+   snapshot.deletedWeeklyTaskIds=Array.isArray(snapshot.deletedWeeklyTaskIds)?snapshot.deletedWeeklyTaskIds.map(String):[];
+   if(snapshot.deletedWeeklyTaskIds.length){const deletedTasks=new Set(snapshot.deletedWeeklyTaskIds);const p=snapshot.studyPlan||(snapshot.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedTasks.has(String(t.id)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedTasks.has(String(t.taskId||t.id)));snapshot.agendaEvents=(snapshot.agendaEvents||[]).filter(e=>!deletedTasks.has(String(e.studyTaskId||'')));}
+   const deletedOccurrenceKeys=new Set(Array.isArray(snapshot.deletedWeeklyTaskKeys)?snapshot.deletedWeeklyTaskKeys.map(String):[]);if(deletedOccurrenceKeys.size){const sig=x=>String(x?.title||'').trim().toLocaleLowerCase('pt-BR')+'|'+String(x?.date||'');const p=snapshot.studyPlan||(snapshot.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));snapshot.agendaEvents=(snapshot.agendaEvents||[]).filter(e=>!deletedOccurrenceKeys.has(sig(e)));}
+   // Also merge changes made locally while this upload was waiting.
+   flashmedMergePersonal(snapshot,db);mergeCardStudyHistory(snapshot,db);
+   // Critical: the local merge above can reintroduce stale rows. Union tombstones and filter again immediately before upload.
+   flashmedApplyDeletionMarkers(snapshot,db);
+   settings.flashmed_data=snapshot;
+   const u=await cloud.from('profiles').update({settings,updated_at:new Date().toISOString()}).eq('user_id',currentUser.id);
+   if(u.error)throw u.error;
+   flashmedMergePersonal(db,snapshot);mergeCardStudyHistory(db,snapshot);
+   // Keep the in-memory and local copies consistent with the deletion-safe cloud snapshot.
+   flashmedApplyDeletionMarkers(db,snapshot);
+   try{localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));}catch(localErr){console.warn('FlashMed: sincronizado na nuvem; espelho local excede a quota. Backup IndexedDB mantido.',localErr);flashmedEmergencySave(db);}
+   cloudDot.classList.add('ok');flashmedSaveOK();saveState.textContent='salvo na nuvem';
+  }catch(e){cloudDot.classList.remove('ok');saveState.textContent='erro na nuvem — dados locais preservados';console.error(e)}
+ });
+ return flashmedSyncQueue;
+}
+// Keep study attempts when a cloud refresh replaces the local card collection.
+// Use a multiset merge: repeated ratings on the same day are genuine separate attempts.
+function mergeCardStudyHistory(remote,local){
+ if(!remote||!local||!Array.isArray(remote.cards)||!Array.isArray(local.cards))return false;
+ const localById=new Map(local.cards.map(c=>[String(c.id),c]));
+ let changed=false;
+ for(const card of remote.cards){
+  const old=localById.get(String(card.id));if(!old)continue;
+  const existing=Array.isArray(card.history)?card.history:[];
+  const previous=Array.isArray(old.history)?old.history:[];
+  const count=new Map();
+  const signature=h=>JSON.stringify([h.date||'',h.rating||'',h.at||h.timestamp||'']);
+  for(const h of existing){const k=signature(h);count.set(k,(count.get(k)||0)+1)}
+  for(const h of previous){
+   const k=signature(h),n=count.get(k)||0;
+   if(n>0){count.set(k,n-1);continue}
+   existing.push(h);changed=true;
+  }
+  if(changed)card.history=existing;
+  const good=existing.filter(h=>h.rating==='ok'||h.rating==='easy').length;
+  const bad=existing.filter(h=>h.rating!=='ok'&&h.rating!=='easy').length;
+  const newOk=Math.max(card.ok||0,old.ok||0,good),newBad=Math.max(card.bad||0,old.bad||0,bad);
+  if(newOk!==(card.ok||0)||newBad!==(card.bad||0)){card.ok=newOk;card.bad=newBad;changed=true}
+  if(previous.length>0&&(!card.due||((old.history||[]).length>=(card.history||[]).length&&old.due&&old.due>card.due))){
+   if(old.due&&old.due!==card.due){card.due=old.due;card.interval=Math.max(card.interval||0,old.interval||0);changed=true}
+  }
+ }
+ return changed;
+}
+async function syncDown(quiet=false){
+  if(!cloud||!currentUser)return;
+  const __fmSyncT0=performance.now();let __fmSyncMark=__fmSyncT0;
+  const __fmSyncStep=(name)=>{const t=performance.now();flashmedPerfLog('sincronização',{step:name,stepMs:Math.round(t-__fmSyncMark),totalMs:Math.round(t-__fmSyncT0)});__fmSyncMark=t};
+  try{
+    const q=await cloud.from('profiles').select('settings').eq('user_id',currentUser.id).single();
+    __fmSyncStep('leitura do perfil na nuvem');
+    if(q.error){
+      if(q.error.code==='PGRST116'){
+        const initial=flashmedEmptyAccountData();
+        const created=await cloud.from('profiles').insert({user_id:currentUser.id,settings:{flashmed_data:initial},updated_at:new Date().toISOString()});
+        if(created.error)throw created.error;
+        db=initial;localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));localStorage.setItem('flashmed_active_user_id',currentUser.id);
+        return await syncDown(quiet);
+      }
+      throw q.error;
+    }
+    const remote=q.data?.settings?.flashmed_data;
+    const localAccountId=localStorage.getItem('flashmed_active_user_id');
+    // Never merge another account's browser cache into the authenticated user's cloud data.
+    const localBeforeSync=localAccountId===currentUser.id?db:flashmedEmptyAccountData();
+    if(remote){
+      flashmedRecoverySnapshot('local_before_download',localBeforeSync);
+      flashmedRecoverySnapshot('cloud_before_download',remote);
+      const recoveredLocalPersonal=flashmedMergePersonal(remote,localBeforeSync);
+      const recoveredJournal=flashmedJournalRestore(remote);
+      const recoveredLocalStudy=mergeCardStudyHistory(remote,localBeforeSync);
+      const recoveredEmergency=await flashmedEmergencyRestore(remote);
+      const recoveredOcclusionCards=await occlusionLoadDedicatedCards(remote);
+      // After authentication, Supabase is the source of truth. This is essential
+      // on a new/incognito browser, whose freshly-created local DB may have a
+      // newer timestamp but contains no user data.
+      db=remote;
+      const recoveredDeletionMarkers=flashmedApplyDeletionMarkers(db,localBeforeSync);
+      // Preserve intentional deletions of weekly planning tasks across cloud refreshes.
+      db.deletedWeeklyTaskIds=Array.isArray(db.deletedWeeklyTaskIds)?db.deletedWeeklyTaskIds.map(String):[];
+      if(db.deletedWeeklyTaskIds.length){const deletedTasks=new Set(db.deletedWeeklyTaskIds);const p=db.studyPlan||(db.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedTasks.has(String(t.id)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedTasks.has(String(t.taskId||t.id)));db.agendaEvents=(db.agendaEvents||[]).filter(e=>!deletedTasks.has(String(e.studyTaskId||'')));}
+      const deletedOccurrenceKeys=new Set(Array.isArray(db.deletedWeeklyTaskKeys)?db.deletedWeeklyTaskKeys.map(String):[]);if(deletedOccurrenceKeys.size){const sig=x=>String(x?.title||'').trim().toLocaleLowerCase('pt-BR')+'|'+String(x?.date||'');const p=db.studyPlan||(db.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));p.weekSchedule=(p.weekSchedule||[]).filter(t=>!deletedOccurrenceKeys.has(sig(t)));db.agendaEvents=(db.agendaEvents||[]).filter(e=>!deletedOccurrenceKeys.has(sig(e)));}
+      // Normalize preferences when loading older cloud data. This keeps
+      // "Meu FlashMed" compatible with accounts created before personalization.
+      db.settings=db.settings||{};
+      db.settings.appearance=db.settings.appearance||'light';
+      db.settings.questionFont=db.settings.questionFont||'normal';
+      db.settings.density=db.settings.density||'comfortable';
+      db.settings.dashboard=Object.assign(
+        {missions:true,kpis:true,focus:true,exams:true,study:true},
+        db.settings.dashboard||{}
+      );
+      db.subjects=db.subjects||[];
+      db.subjectIcons=db.subjectIcons||{};
+      db.knowledgeNotes=db.knowledgeNotes||[];db.knowledgeBooks=db.knowledgeBooks||[];
+      db.cards=db.cards||[];
+      db.questions=db.questions||[];
+      db.sessions=db.sessions||[];
+      db.reminders=db.reminders||[];
+      db.decorebas=db.decorebas||[];
+      db.imageAssets=db.imageAssets||{};
+      await occlusionPersistRemoteAssets(db);
+      await occlusionHydrateAssets(db);
+      __fmSyncStep('recuperação e hidratação de mídias');
+      // Keep built-in official question-bank content when the user's cloud data
+      // predates a new app release. User data remains the source of truth for
+      // personal content; only missing official seeded questions are merged in.
+      db.bankQuestions=db.bankQuestions||[];
+      db.bankAttempts=db.bankAttempts||[];
+      db.bankAnnotations=db.bankAnnotations||{};
+      let addedOfficial=false;
+      for(const q of db.bankQuestions){if(String(q.id||'').startsWith('sus26-')){q.exam='SUS-BA 2026.1';q.family='SUS-BA Oficial'}}
+      for(const item of [...SUS261_ALL,...SUS262,...SUS251,...SUS252,...SUS241,...SUS231,...[...(window.PEDCHAT262||[])]]){
+        if(!db.bankQuestions.some(x=>x.id===item.id)){db.bankQuestions.push(item);addedOfficial=true}
+      }
+      const correctedOfficial=applyExactOfficialText();
+      // Update this individually reviewed commentary in existing cloud question banks.
+      let evidenceResolutionUpdated=false;
+      const reviewedTB1=SUS26_1.find(x=>x.id==='sus26-1');
+      const storedTB1=db.bankQuestions.find(x=>x.id==='sus26-1');
+      if(reviewedTB1&&storedTB1&&storedTB1.resolution!==reviewedTB1.resolution){
+       storedTB1.resolution=reviewedTB1.resolution;evidenceResolutionUpdated=true;
+      }
+      const expandedLessons=applySUS261MiniLessons();
+      let expanded251=applySUS251MiniLessons();
+      for(const seed of SUS251){const saved=db.bankQuestions.find(x=>x.id===seed.id);if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded251=true}}
+      let expanded262=false;
+      for(const seed of SUS262){
+        const saved=db.bankQuestions.find(x=>x.id===seed.id);
+        if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded262=true}
+      }
+      let expanded252=applySUS252MiniLessons();
+      for(const seed of SUS252){
+        const saved=db.bankQuestions.find(x=>x.id===seed.id);
+        if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded252=true}
+      }
+      let expanded241=applySUS241MiniLessons();
+      for(const seed of SUS241){
+        const saved=db.bankQuestions.find(x=>x.id===seed.id);
+        if(saved&&saved.resolution!==seed.resolution){saved.resolution=seed.resolution;expanded241=true}
+      }
+      const definitive241Corrected=reconcileSUS241Definitive();
+      __fmSyncStep('verificação e atualização do banco de questões');
+      const removedOriginalTest=removeOriginalTestCard();
+      const migratedBankCards=refreshBankErrorFlashcards({deferSave:true});
+      const removedDuolingo=flashmedApplyDeletionMarkers(db,localBeforeSync)||recoveredDeletionMarkers;
+      localStorage.setItem(KEY,JSON.stringify(flashmedLocalPayload(db)));
+      if(removedDuolingo||evidenceResolutionUpdated||recoveredJournal||recoveredLocalPersonal||recoveredLocalStudy||recoveredEmergency||recoveredOcclusionCards||migratedBankCards.changed||removedOriginalTest||addedOfficial||correctedOfficial||expandedLessons||expanded251||expanded262||expanded252||expanded241||definitive241Corrected) await syncUp();
+      __fmSyncStep('mesclagem e eventuais gravações');
+      render();
+    } else {
+      db=localBeforeSync;
+      await syncUp();
+    }
+    localStorage.setItem('flashmed_active_user_id',currentUser.id);
+    cloudDot.classList.add('ok');saveState.textContent='nuvem sincronizada';if(!quiet)toast('Sincronizado ♡');
+  }catch(e){console.error(e);cloudDot.classList.remove('ok');if(!quiet)toast('Não foi possível sincronizar')}
+}
+async function logoutFlashMed(){if(!confirm('Deseja sair do FlashMed neste computador? Seus dados sincronizados na nuvem serão preservados.'))return;try{await syncUp();const result=await cloud.auth.signOut();if(result?.error)throw result.error;for(const key of [KEY,'flashmed_safety_journal_v1']){try{localStorage.removeItem(key)}catch(e){}}for(const key of Object.keys(localStorage)){if(key.startsWith('flashmed_recovery_'))localStorage.removeItem(key)}location.reload()}catch(e){console.error('Erro ao sair do FlashMed',e);toast('Não foi possível concluir a saída. Seus dados locais foram mantidos por segurança.')}}
+function exportFlashMedRecovery(){let keys=Object.keys(localStorage).filter(k=>k.startsWith('flashmed_recovery_')).sort().reverse();if(!keys.length)return toast('Ainda não há snapshots de recuperação neste navegador');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(keys.map(k=>({key:k,data:JSON.parse(localStorage.getItem(k))})),null,2)],{type:'application/json'}));a.download='flashmed-recuperacao-'+day()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
+function exportSafetyJournal(){let snap=localStorage.getItem(FLASHMED_JOURNAL);if(!snap)return toast('Ainda não há histórico de segurança');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([snap],{type:'application/json'}));a.download='flashmed-historico-seguranca.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
+function exportDB(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='flashmed-larissa-backup.json';a.click()}function flashmedMergeImportedBackup(current,imported){
+  if(!current||!imported||typeof current!=='object'||typeof imported!=='object')throw new Error('Backup inválido');
+  const clone=x=>JSON.parse(JSON.stringify(x));
+  const merged=clone(current);
+  const uniqueMerge=(existing,incoming,key='id')=>{
+    const out=Array.isArray(existing)?existing.slice():[];
+    const seen=new Set(out.map(x=>String(x?.[key]??'')));
+    let added=0;
+    for(const item of (Array.isArray(incoming)?incoming:[])){
+      const id=String(item?.[key]??'');
+      if(id&&seen.has(id))continue;
+      if(id)seen.add(id);
+      out.push(clone(item));added++;
+    }
+    return {items:out,added};
+  };
+  const result={tasks:0,blocks:0,events:0,reminders:0};
+  const currentPlan=merged.studyPlan&&typeof merged.studyPlan==='object'?merged.studyPlan:{};
+  const importPlan=imported.studyPlan&&typeof imported.studyPlan==='object'?imported.studyPlan:{};
+  const plan=clone(currentPlan);
+  for(const key of ['weeklyTasks','weekSchedule']){
+    const res=uniqueMerge(plan[key],importPlan[key],'id');
+    plan[key]=res.items;
+    result[key==='weeklyTasks'?'tasks':'blocks']=res.added;
+  }
+  for(const key of ['weeklyCardOrder']){
+    const a=plan[key]&&typeof plan[key]==='object'?plan[key]:{};
+    const b=importPlan[key]&&typeof importPlan[key]==='object'?importPlan[key]:{};
+    plan[key]=clone(a);
+    for(const [date,ids] of Object.entries(b)){
+      if(!Array.isArray(plan[key][date]))plan[key][date]=clone(ids);
+      else plan[key][date]=[...new Set([...plan[key][date],...(Array.isArray(ids)?ids:[])])];
+    }
+  }
+  for(const key of ['weeklyStartTimes','weeklyAvailability']){
+    const a=plan[key]&&typeof plan[key]==='object'?plan[key]:{};
+    const b=importPlan[key]&&typeof importPlan[key]==='object'?importPlan[key]:{};
+    plan[key]=clone(a);
+    for(const [k,v] of Object.entries(b))if(!(k in plan[key]))plan[key][k]=clone(v);
+  }
+  for(const [key,value] of Object.entries(importPlan)){
+    if(['weeklyTasks','weekSchedule','weeklyCardOrder','weeklyStartTimes','weeklyAvailability'].includes(key))continue;
+    if(plan[key]===undefined||plan[key]===null||plan[key]==='')plan[key]=clone(value);
+  }
+  merged.studyPlan=plan;
+  const deleted=new Set((Array.isArray(merged.deletedAgendaEventIds)?merged.deletedAgendaEventIds:[]).map(String));
+  const agenda=uniqueMerge((merged.agendaEvents||[]).filter(e=>!deleted.has(String(e.id))), (imported.agendaEvents||[]).filter(e=>!deleted.has(String(e.id))),'id');
+  merged.agendaEvents=agenda.items;
+  result.events=agenda.added;
+  // Recover quick reminders only if the backup actually contains them; this backup does not,
+  // so existing quick reminders are deliberately left untouched.
+  if(Array.isArray(imported.quickReminders)){
+    const qr=uniqueMerge(merged.quickReminders,imported.quickReminders,'id');
+    merged.quickReminders=qr.items;result.reminders=qr.added;
+  }
+  merged.updatedAt=Date.now();
+  return {data:merged,counts:result};
+}
+function importDB(i){
+  const f=i.files&&i.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const imported=JSON.parse(r.result);
+      if(!imported||typeof imported!=='object'||Array.isArray(imported)||!imported.studyPlan&&!Array.isArray(imported.agendaEvents))throw new Error('JSON não contém planejamento ou agenda');
+      flashmedRecoverySnapshot('before_planner_agenda_recovery',db);
+      const result=flashmedMergeImportedBackup(db,imported);
+      db=result.data;
+      const saved=save();
+      render();
+      if(cloud&&currentUser)syncUp();
+      const c=result.counts;
+      const msg='Recuperação parcial concluída: '+c.tasks+' tarefas, '+c.blocks+' blocos do cronograma e '+c.events+' eventos da agenda adicionados'+(saved?'.':' . O armazenamento principal está cheio; o FlashMed tentará proteger os dados no backup de emergência e sincronizar na nuvem.');
+      toast(msg);
+      console.info('FlashMed planner/agenda recovery',c,'local save:',saved);
+    }catch(e){console.error('Falha ao mesclar backup de planejamento/agenda',e);toast('Não foi possível mesclar o backup. Os dados atuais foram mantidos.')}
+    finally{i.value=''}
+  };
+  r.readAsText(f);
+}
+function decorebaSuggestion(q){let ans=q.type==='short'?(q.expected||''):(q.alternatives?.[q.correctIndex]||'');let topic=q.topic||q.area||'Este tema';return ans?`${topic}: ${String(ans).replace(/\s+/g,' ').trim()}`:`${topic}: registre aqui o critério, valor, dose ou associação que precisa lembrar.`}
+function addDecorebaFromBank(id){let q=(db.bankQuestions||[]).find(x=>x.id===id);if(!q)return;db.decorebas=db.decorebas||[];let old=db.decorebas.find(x=>x.questionId===id);if(old)return toast('Essa questão já está no Caderno de Decorebas ♡');let suggestion=decorebaSuggestion(q),phrase=prompt('📒 Qual é a frase que você precisa decorar?\n\nEdite a sugestão abaixo para ficar do seu jeito:',suggestion);if(!phrase||!phrase.trim())return;db.decorebas.push({id:Date.now(),questionId:id,exam:q.exam||'',number:q.number||'',area:q.area||'',topic:q.topic||'',text:phrase.trim(),createdAt:Date.now(),mastered:false});save();toast('Decoreba salva no seu caderno 🩷')}
+function toggleDecoreba(id){let d=(db.decorebas||[]).find(x=>x.id==id);if(!d)return;d.mastered=!d.mastered;save();render()}
+function deleteDecoreba(id){if(!confirm('Remover esta decoreba do caderno?'))return;db.decorebas=(db.decorebas||[]).filter(x=>x.id!=id);save();render()}
+function decorebasView(){let a=(db.decorebas||[]).slice().sort((x,y)=>(x.mastered-y.mastered)||(y.createdAt-x.createdAt)),pending=a.filter(x=>!x.mastered).length;return `<div class='panel hero'><h2>📒 Caderno de Decorebas</h2><p>Seu caderno pessoal de critérios, números, doses e associações que não podem escapar na prova.</p><div class=row><span class=pill>🧠 ${pending} para fixar</span><span class=pill>✓ ${a.length-pending} já fixadas</span></div></div><div class=panel style='margin-top:16px'><p class=muted>Nas resoluções do Banco de Questões, use <b>📒 Isso é decoreba</b>. O FlashMed prepara uma frase com o gabarito da questão e você pode ajustá-la antes de salvar.</p>${a.length?a.map(d=>`<div class=qbox style='opacity:${d.mastered?.68:1}'><div class=row style='justify-content:space-between'><div><span class=tag>${esc(d.topic||d.area||'Decoreba')}</span> ${d.exam?`<span class=muted>${esc(d.exam)} Q${d.number}</span>`:''}</div><div class=row><button class='btn ghost mini' onclick='toggleDecoreba(${d.id})'>${d.mastered?'↩ Rever':'✓ Já fixei'}</button><button class='btn ghost mini' onclick='deleteDecoreba(${d.id})'>Excluir</button></div></div><p style='font-size:17px'><b>${esc(d.text)}</b></p></div>`).join(''):'<div class=qbox><b>Seu caderno ainda está vazio.</b><p class=muted>Quando uma questão cobrar uma informação que é pura decoreba, salve-a direto da resolução.</p></div>'}</div>`}
+
+
