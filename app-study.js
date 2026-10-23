@@ -447,8 +447,28 @@ function flashmedRecoverySnapshot(label,data){
       .catch(e=>console.warn('Backup de recuperação IndexedDB indisponível',e));
   }catch(e){console.warn('Backup de recuperação indisponível',e)}
 }
+/* Tombstones for personal-item deletions. A removed item must not be re-added by a stale replica. */
+function flashmedRecordDeletedItem(collection,id){
+ const key=String(id??'');if(!collection||!key)return false;
+ db.deletedPersonalItems=Array.isArray(db.deletedPersonalItems)?db.deletedPersonalItems:[];
+ if(!db.deletedPersonalItems.some(x=>x&&x.collection===collection&&String(x.id)===key))db.deletedPersonalItems.push({collection,id:key,deletedAt:Date.now()});
+ return true;
+}
+function flashmedMergePersonalDeletionMarkers(target,source){
+ if(!target)return false;let changed=false;const before=Array.isArray(target.deletedPersonalItems)?target.deletedPersonalItems:[];
+ const incoming=Array.isArray(source?.deletedPersonalItems)?source.deletedPersonalItems:[];
+ const map=new Map();for(const item of [...before,...incoming])if(item&&item.collection&&item.id!=null){const k=String(item.collection)+'|'+String(item.id);if(!map.has(k))map.set(k,item)}
+ const merged=[...map.values()];if(merged.length!==before.length||!Array.isArray(target.deletedPersonalItems))changed=true;target.deletedPersonalItems=merged;return changed;
+}
+function flashmedApplyPersonalItemDeletions(target,source){
+ if(!target)return false;let changed=flashmedMergePersonalDeletionMarkers(target,source);
+ const groups={cards:'cards',bankAttempts:'bankAttempts',decorebas:'decorebas',sessions:'sessions',questions:'questions',knowledgeNotes:'knowledgeNotes',knowledgeBooks:'knowledgeBooks',studyNotebooks:'studyNotebooks',pdfLibrary:'pdfLibrary',agendaEvents:'agendaEvents'};
+ const deleted=new Set((target.deletedPersonalItems||[]).map(x=>x&&x.collection&&x.id!=null?String(x.collection)+'|'+String(x.id):''));
+ for(const [collection,key] of Object.entries(groups)){if(!Array.isArray(target[key]))continue;const before=target[key],after=before.filter(item=>!deleted.has(collection+'|'+String(item?.id??'')));if(after.length!==before.length){target[key]=after;changed=true}}
+ return changed;
+}
 function flashmedMergePersonal(remote,local){
- if(!remote||!local)return false;let changed=false;
+ if(!remote||!local)return false;let changed=flashmedMergePersonalDeletionMarkers(remote,local);
  for(const [key,idKey] of [['cards','id'],['bankAttempts','id'],['decorebas','id'],['sessions','id'],['questions','id'],['knowledgeNotes','id'],['knowledgeBooks','id'],['studyNotebooks','id'],['pdfLibrary','id'],['agendaEvents','id']]){
   let a=Array.isArray(remote[key])?remote[key]:[],b=Array.isArray(local[key])?local[key]:[];
   const indexById=new Map(a.map((x,i)=>[String(x?.[idKey]??''),i]));
@@ -523,6 +543,7 @@ function flashmedMergePersonal(remote,local){
   remote.quickReminders=a;
  }
 
+ changed=flashmedApplyPersonalItemDeletions(remote,local)||changed;
  return changed;
 }
 /* Merge deletion markers from every replica, then apply them after the last data merge.
@@ -542,6 +563,7 @@ function flashmedMergeDeletionMarkers(target,source){
 function flashmedApplyDeletionMarkers(target,source){
  if(!target)return false;
  let changed=flashmedMergeDeletionMarkers(target,source);
+ changed=flashmedApplyPersonalItemDeletions(target,source)||changed;
  const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');
  const agendaDeleted=new Set((target.deletedAgendaEventIds||[]).map(String));
  const taskDeleted=new Set((target.deletedWeeklyTaskIds||[]).map(String));
