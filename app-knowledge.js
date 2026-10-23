@@ -1,4 +1,6 @@
 /* FlashMed — Caderno de Conhecimentos, notas, anexos e compartilhamento. */
+let knowledgeDraftAttachments=[];
+let knowledgeDraftFiles=[];
 function knowledgeInitBooks(){
  db.knowledgeBooks=Array.isArray(db.knowledgeBooks)?db.knowledgeBooks:[];
  db.knowledgeNotes=Array.isArray(db.knowledgeNotes)?db.knowledgeNotes:[];
@@ -78,8 +80,6 @@ function knowledgeAttachmentHtml(items){
   return '<a class="knowledgeAttachmentLink" href="'+url+'" target="_blank" rel="noopener noreferrer"><span>🔗</span><span><strong>'+name+'</strong><small>'+url+'</small></span><span>↗</span></a>';
  }).join('')+'</div>';
 }
-let knowledgeDraftAttachments=[];
-let knowledgeDraftFiles=[];
 const KNOWLEDGE_MEDIA_PREFIX='knowledge_media_';
 function knowledgeAttachmentId(){return KNOWLEDGE_MEDIA_PREFIX+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9)}
 function knowledgeGuessFileType(file){
