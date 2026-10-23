@@ -1,44 +1,4 @@
-// --- Jogos FlashMed ---
-const FLASH_GAMES={
- pharma:[
-  {q:'Qual classe bloqueia a enzima conversora de angiotensina?',a:'IECA',tip:'Ex.: enalapril, captopril.'},
-  {q:'Qual efeito adverso clássico dos IECAs costuma cair em prova?',a:'Tosse seca',tip:'Relacionada ao aumento de bradicinina.'},
-  {q:'Qual é o antídoto da intoxicação por opioides?',a:'Naloxona',tip:'Antagonista opioide.'},
-  {q:'Qual classe inclui losartana e valsartana?',a:'BRA',tip:'Bloqueadores do receptor AT1 da angiotensina II.'},
-  {q:'Qual fármaco é o antídoto da toxicidade pelo sulfato de magnésio?',a:'Gluconato de cálcio',tip:'Decoreba obstétrica importante.'}
- ],
- who:[
-  {q:'Prurido anal noturno, principalmente em criança. Quem sou eu?',a:'Enterobius vermicularis',tip:'Oxiuríase.'},
-  {q:'Anemia ferropriva + hábito de andar descalço. Quem sou eu?',a:'Ancilostomídeos',tip:'Ancylostoma/Necator.'},
-  {q:'Água doce + caramujo + hipertensão portal. Quem sou eu?',a:'Schistosoma mansoni',tip:'Esquistossomose.'},
-  {q:'Diarreia gordurosa após água contaminada. Quem sou eu?',a:'Giardia duodenalis',tip:'Giardíase.'}
- ],
- rapid:[
-  {q:'Gestante 35 semanas, PA 170×115 + cefaleia/escotomas. Prioridade?',a:'Estabilização materna + tratar HAS grave + MgSO₄',tip:'Pré-eclâmpsia com sinais de gravidade.'},
-  {q:'Lactente com bronquiolite típica e hipoxemia. Base do tratamento?',a:'Suporte e oxigênio quando indicado',tip:'Broncodilatador/corticoide não são rotina.'},
-  {q:'Suspeita de torção testicular. Próxima conduta?',a:'Exploração cirúrgica imediata',tip:'Não atrasar por exames quando a suspeita é alta.'}
- ]};
-let gameState={type:null,index:0,reveal:false,score:0,round:1,max:10,answered:false};
-const GAME_META={pharma:['💊','Desafio Farmacológico','Classes, efeitos adversos, antídotos e raciocínio de prescrição.'],who:['🕵️','Quem sou eu?','Descubra o diagnóstico, agente ou parasito pelas pistas.'],rapid:['⚡','Conduta relâmpago','Escolha mentalmente a próxima decisão antes do tempo acabar.'],memory:['🧠','Memória Médica','Encontre os pares: medicamento-classe, doença-achado e agente-doença.']};
-const MEMORY_PAIRS=[
- ['Captopril','IECA'],['Losartana','BRA'],['Naloxona','Opioides'],['Flumazenil','Benzodiazepínicos'],
- ['Koplik','Sarampo'],['Gottron','Dermatomiosite'],['Morangueiro','Escarlatina'],['Kernicterus','Bilirrubina indireta'],
- ['Enterobius','Prurido anal noturno'],['Giardia','Esteatorreia'],['Schistosoma','Hipertensão portal'],['VSR','Bronquiolite']
-];
-function gameDayNumber(){return Math.max(0,Math.floor((new Date(day()+'T12:00:00')-new Date('2026-09-27T12:00:00'))/86400000))}
-function dailyGameInfo(){let n=gameDayNumber(),unlocked=(n+1)*10;return {day:n+1,unlocked}}
-let memoryState={cards:[],open:[],matched:new Set(),moves:0};
-function gamesView(){return `<div class='panel' style='padding:0;overflow:hidden'><iframe id='flashmedGamesFrame' title='FlashMed Games' src='games.html?embedded=1&build=20260929-missions-v11' style='width:100%;height:calc(100vh - 155px);min-height:760px;border:0;display:block;background:#fff6fb' loading='eager'></iframe></div>`}
-
-function shuffleGame(a){let x=a.slice();for(let i=x.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x}
-function startMemoryGame(){let pairs=shuffleGame(MEMORY_PAIRS).slice(0,6),cards=[];pairs.forEach((p,i)=>{cards.push({id:i+'a',pair:i,text:p[0]},{id:i+'b',pair:i,text:p[1]})});memoryState={cards:shuffleGame(cards),open:[],matched:new Set(),moves:0};renderMemoryGame()}
-function renderMemoryGame(){title.textContent='Jogos';let s=memoryState;view.innerHTML=`<div class=panel><div class=row style='justify-content:space-between'><div class=row><button class='btn ghost' onclick="go('Jogos')">← Jogos</button><span class=pill>🧠 Memória Médica</span></div><span class=pill>🎯 ${s.moves} jogadas</span></div><p class=muted>Encontre os 6 pares relacionados. Não são cartas idênticas: você precisa lembrar a associação médica.</p><div class=memoryBoard>${s.cards.map((c,i)=>{let shown=s.open.includes(i)||s.matched.has(c.pair);return `<button class="memoryCard ${shown?'':'covered'} ${s.matched.has(c.pair)?'matched':''}" onclick="flipMemory(${i})" ${s.matched.has(c.pair)?'disabled':''}>${shown?esc(c.text):'✦'}</button>`}).join('')}</div>${s.matched.size===6?`<div class='panel hero' style='margin-top:16px;text-align:center'><h2>🎉 Você encontrou todos!</h2><p>${s.moves} jogadas</p><button class=btn onclick='startMemoryGame()'>Jogar novamente</button></div>`:''}</div>`}
-function flipMemory(i){let s=memoryState;if(s.open.includes(i)||s.matched.has(s.cards[i].pair)||s.open.length>=2)return;s.open.push(i);renderMemoryGame();if(s.open.length===2){s.moves++;let [a,b]=s.open;if(s.cards[a].pair===s.cards[b].pair){s.matched.add(s.cards[a].pair);s.open=[];setTimeout(renderMemoryGame,350)}else setTimeout(()=>{s.open=[];renderMemoryGame()},850)}}
-function startGame(type){let a=FLASH_GAMES[type];gameState={type,index:Math.floor(Math.random()*a.length),reveal:false,score:0,round:1,max:10,answered:false};renderGame()}
-function renderGame(){let a=FLASH_GAMES[gameState.type],q=a[gameState.index%a.length],m=GAME_META[gameState.type],pct=Math.round((gameState.round-1)/gameState.max*100);title.textContent='Jogos';view.innerHTML=`<div class=panel><div class=row style='justify-content:space-between'><div class=row><button class='btn ghost' onclick="go('Jogos')">← Jogos</button><span class=pill>${m[0]} ${m[1]}</span></div><span class=pill>⭐ ${gameState.score} ponto(s)</span></div><div class=gameProgress style='margin-top:14px'><i style='width:${pct}%'></i></div><p class=muted>Rodada ${gameState.round} de ${gameState.max}</p><div class=flash style='margin-top:10px'><div><div class=gameIcon>${m[0]}</div><h2>${esc(q.q)}</h2>${gameState.reveal?`<div class=gameAnswer>${esc(q.a)}</div><p class=muted>${esc(q.tip)}</p>`:`<p class=muted>Pense na resposta antes de revelar.</p>`}</div></div><div class=row style='justify-content:center;margin-top:14px'>${!gameState.reveal?`<button class=btn onclick='gameState.reveal=true;renderGame()'>Revelar resposta</button>`:`<button class='btn ghost' onclick='gradeGame(false)'>❌ Errei</button><button class=btn onclick='gradeGame(true)'>✅ Acertei</button>`}</div></div>`}
-function gradeGame(ok){if(ok)gameState.score++;if(gameState.round>=gameState.max)return finishGame();gameState.round++;let a=FLASH_GAMES[gameState.type];gameState.index=(gameState.index+1+Math.floor(Math.random()*Math.max(1,a.length-1)))%a.length;gameState.reveal=false;renderGame()}
-function finishGame(){let m=GAME_META[gameState.type],pct=Math.round(gameState.score/gameState.max*100);view.innerHTML=`<div class='panel hero' style='text-align:center'><div class=gameIcon>${m[0]}</div><h2>Partida concluída!</h2><div style='font-size:48px;font-weight:950'>${gameState.score}/${gameState.max}</div><p>${pct}% de acertos</p><div class=row style='justify-content:center'><button class=btn onclick="startGame('${gameState.type}')">Jogar novamente</button><button class='btn ghost' onclick="go('Jogos')">Outros jogos</button></div></div>`}
-
+// FlashMed — funcionalidades ativas.
 // --- Casos Clínicos • beta seguro: módulo isolado, sem tocar no Banco de Questões ---
 const CLINICAL_CASES=[
 {id:'cc1',area:'Atenção Primária',level:'Postinho',title:'Consulta de demanda espontânea',patient:'Mulher, 27 anos, procura a UBS por ardor ao urinar e aumento da frequência urinária há 2 dias. Nega febre, vômitos, dor lombar, corrimento vaginal e gestação. Sem comorbidades conhecidas.',tasks:['Qual sua hipótese principal e quais diagnósticos diferenciais você consideraria?','Que perguntas/exame físico ainda faria?','Solicitaria exames? Justifique.','Escreva sua conduta e uma prescrição como faria na UBS.','Quais orientações e sinais de alarme explicaria à paciente?'],model:'Quadro compatível com cistite aguda não complicada. Confirmar ausência de sinais de pielonefrite, gestação, anormalidade urológica e causas ginecológicas. Em mulher jovem típica, o diagnóstico pode ser clínico; EAS pode auxiliar conforme contexto e urocultura fica reservada a situações selecionadas. A prescrição deve considerar protocolo local, alergias, gestação e resistência antimicrobiana. Orientar hidratação conforme tolerância, adesão, retorno se febre, dor lombar, vômitos, piora ou ausência de resposta.'},
