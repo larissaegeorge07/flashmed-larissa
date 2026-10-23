@@ -33,7 +33,7 @@ const studyNotebookImageCache=new Map();
 
 
 
-function studyNotebookDeleteImage(id){const x=studyNotebookCurrent();if(!x)return;x.page.images=(x.page.images||[]).filter(im=>String(im.id)!==String(id));studyNotebookImageCache.delete(id);x.book.updatedAt=Date.now();save();studyNotebookRenderImages();studyNotebookDraw();toast('Imagem excluída do caderno.')}
+async function studyNotebookDeleteImage(id){const x=studyNotebookCurrent();if(!x)return;x.page.images=(x.page.images||[]).filter(im=>String(im.id)!==String(id));studyNotebookImageCache.delete(id);x.book.updatedAt=Date.now();save();studyNotebookRenderImages();studyNotebookDraw();toast('Imagem excluída do caderno.')}
 function studyNotebookRenderImages(){
  const x=studyNotebookCurrent(),layer=document.getElementById('studyNotebookImageLayer'),list=document.getElementById('studyNotebookImageList');if(!x)return;
  const movable=studyNotebookActiveTool==='moveImage'&&x.page.mode!=='type';
