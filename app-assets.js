@@ -7,16 +7,17 @@ async function flashmedAssetGet(id){let d=await flashmedAssetDB();return new Pro
 async function flashmedAssetDelete(id){let d=await flashmedAssetDB();return new Promise((resolve,reject)=>{let tx=d.transaction(FLASHMED_ASSET_STORE,'readwrite');tx.objectStore(FLASHMED_ASSET_STORE).delete(id);tx.oncomplete=()=>{d.close();resolve(true)};tx.onerror=()=>{d.close();reject(tx.error)}})}
 const OCCLUSION_CARDS_STORE_KEY='__flashmed_occlusion_cards_v1__';
 async function occlusionLoadDedicatedCards(target=db){
-  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];target.cards=target.cards||[];let seen=new Set(target.cards.map(c=>String(c.id)));let added=0;for(const c of saved){if(!seen.has(String(c.id))){target.cards.push(c);seen.add(String(c.id));added++}}return added}catch(e){console.warn('Não foi possível carregar cartões de oclusão',e);return 0}
+  try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);let saved=box&&Array.isArray(box.cards)?box.cards:[];target.cards=target.cards||[];const deleted=new Set((target.deletedPersonalItems||db.deletedPersonalItems||[]).filter(x=>x&&x.collection==='cards').map(x=>String(x.id)));let seen=new Set(target.cards.map(c=>String(c.id))),added=0;for(const c of saved){if(deleted.has(String(c.id)))continue;if(!seen.has(String(c.id))){target.cards.push(c);seen.add(String(c.id));added++}}return added}catch(e){console.warn('Não foi possível carregar cartões de oclusão',e);return 0}
 }
 async function occlusionSaveDedicatedCards(cards){
   try{
-    let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY),saved=box&&Array.isArray(box.cards)?box.cards:[],byId=new Map(saved.map(c=>[String(c.id),c]));
-    for(const c of cards)byId.set(String(c.id),JSON.parse(JSON.stringify(c)));
-    await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,{cards:[...byId.values()],savedAt:Date.now()});
-    let verify=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY),ids=new Set((verify&&Array.isArray(verify.cards)?verify.cards:[]).map(c=>String(c.id))),written=cards.filter(c=>ids.has(String(c.id))).length;
-    return {ok:written===cards.length,written,total:cards.length};
-  }catch(e){console.error('Falha no banco dedicado de oclusão',e);return {ok:false,written:0,total:cards.length}}
+    const deleted=new Set((db.deletedPersonalItems||[]).filter(x=>x&&x.collection==='cards').map(x=>String(x.id)));
+    const current=(Array.isArray(cards)?cards:[]).filter(c=>!deleted.has(String(c.id))).map(c=>JSON.parse(JSON.stringify(c)));
+    await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,{cards:current,savedAt:Date.now()});
+    let verify=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY),saved=verify&&Array.isArray(verify.cards)?verify.cards:[];
+    const ids=new Set(saved.map(c=>String(c.id))),written=current.filter(c=>ids.has(String(c.id))).length;
+    return {ok:written===current.length&&saved.length===current.length,written,total:current.length};
+  }catch(e){console.error('Falha no banco dedicado de oclusão',e);return {ok:false,written:0,total:Array.isArray(cards)?cards.length:0}}
 }
 async function occlusionDeleteDedicatedCard(id){
   try{let box=await flashmedAssetGet(OCCLUSION_CARDS_STORE_KEY);if(!box||!Array.isArray(box.cards))return true;box.cards=box.cards.filter(c=>String(c.id)!==String(id));box.savedAt=Date.now();await flashmedAssetPut(OCCLUSION_CARDS_STORE_KEY,box);return true}catch(e){console.warn('Falha ao remover cartão dedicado',e);return false}
