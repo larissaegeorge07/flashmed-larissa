@@ -257,5 +257,5 @@ async function knowledgeSaveNote(id,bookId){
  if(ix>=0){note.createdAt=existing.createdAt||now;db.knowledgeNotes[ix]=note}else db.knowledgeNotes.unshift(note);
  knowledgeDraftAttachments=[];knowledgeDraftFiles=[];knowledgeEditingId=null;const ok=save();knowledgeNotesViewRender();toast(ok?'Post-it salvo':'Não foi possível salvar o post-it')
 }
-function knowledgeDeleteNote(id){const n=db.knowledgeNotes.find(x=>String(x.id)===String(id));if(!n||!confirm('Excluir esta anotação?'))return;db.knowledgeNotes=db.knowledgeNotes.filter(x=>String(x.id)!==String(id));save();knowledgeNotesViewRender();toast('Anotação excluída')}
+function knowledgeDeleteNote(id){const n=db.knowledgeNotes.find(x=>String(x.id)===String(id));if(!n||!confirm('Excluir esta anotação?'))return;flashmedRecordDeletedItem('knowledgeNotes',id);db.knowledgeNotes=db.knowledgeNotes.filter(x=>String(x.id)!==String(id));save();knowledgeNotesViewRender();toast('Anotação excluída')}
 function knowledgeNotesViewRender(){const el=document.getElementById('view');if(el){el.innerHTML=flashmedPageBanner('Caderno de Conhecimentos')+knowledgeNotesView();knowledgeHydrateLocalAttachments(el);if(knowledgeEditingId==='newNote'||knowledgeEditingId!==null)knowledgeRenderDraftAttachments()}}
