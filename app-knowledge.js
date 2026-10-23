@@ -6,7 +6,7 @@ function knowledgeInitBooks(){
  db.knowledgeNotes=Array.isArray(db.knowledgeNotes)?db.knowledgeNotes:[];
  db.knowledgeNotes.forEach(n=>{if(n.bookId===undefined){let oldName=String(n.subject||'').trim();if(oldName){let b=db.knowledgeBooks.find(x=>x.name.toLocaleLowerCase('pt-BR')===oldName.toLocaleLowerCase('pt-BR'));if(!b){b={id:'kb_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:oldName,createdAt:Date.now()};db.knowledgeBooks.push(b)}n.bookId=b.id}else n.bookId=''}});
 }
-knowledgeInitBooks();
+// Inicialização adiada: app.js declara db depois deste módulo no index.html.
 function knowledgeBookName(id){return db.knowledgeBooks.find(b=>String(b.id)===String(id))?.name||'Sem caderno'}
 function knowledgeNotesView(){
  knowledgeInitBooks();
