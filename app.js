@@ -239,11 +239,6 @@ const plannerQuotes=[
 function plannerQuoteOfDay(){const d=new Date();const key=d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();return plannerQuotes[key%plannerQuotes.length]}
 function plannerTodayItems(){const p=db.studyPlan||{};const today=new Date().toISOString().slice(0,10);return (Array.isArray(p.weekSchedule)?p.weekSchedule:[]).filter(x=>x.date===today)}
 
-function plannerSUSChecklistHtml(){
- const state=db.studyPlan?.susBaChecklist||{};
- const total=SUSBA_STUDY_WEEKS.reduce((n,w)=>n+w[1].length,0),done=Object.values(state).filter(Boolean).length;
- return '<section class="panel plannerSUSPanel"><div class="plannerSUSHead"><div><span class="fmEditorialKicker">RETOMADA DOS ESTUDOS</span><h3>Preparação SUS-BA 2027</h3><p class="muted">Checklist baseado no cronograma que montamos, organizado em 11 semanas e 55 temas.</p></div><div class="plannerSUSProgress"><b>'+done+'/'+total+'</b><small>temas concluídos</small></div></div><div class="plannerSUSBar"><i style="width:'+Math.round(done/total*100)+'%"></i></div><div class="plannerSUSGrid">'+SUSBA_STUDY_WEEKS.map((w,wi)=>'<details class="plannerSUSWeek" '+(wi===0?'open':'')+'><summary><b>'+esc(w[0])+'</b><span>'+w[1].filter((t,ti)=>state[wi+'-'+ti]).length+'/'+w[1].length+'</span></summary><div class="plannerSUSTopics">'+w[1].map((t,ti)=>'<label class="plannerSUSTopic '+(state[wi+'-'+ti]?'isDone':'')+'"><input type="checkbox" '+(state[wi+'-'+ti]?'checked':'')+' onchange="plannerToggleSUSTopic('+wi+','+ti+',this.checked)"><span>'+esc(t)+'</span></label>').join('')+'</div></details>').join('')+'</div><p class="muted plannerSUSFoot">Rotina original: 1 tema por dia, revisão ativa, flashcards cumulativos e questões; uma prova por semana quando possível. Fins de semana ficam como descanso/stand-by, sem cobrança.</p></section>';
-}
 function plannerToggleSUSTopic(wi,ti,checked){
  db.studyPlan=db.studyPlan||{};db.studyPlan.susBaChecklist=db.studyPlan.susBaChecklist||{};db.studyPlan.susBaChecklist[wi+'-'+ti]=!!checked;const ok=save();const host=document.getElementById('plannerSUSChecklist');if(host)host.innerHTML=plannerSUSChecklistHtml();if(ok&&cloud)syncUp();
 }
