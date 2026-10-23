@@ -2765,6 +2765,3 @@ html.study-notebook-page-locked #app,html.study-notebook-page-locked main{oversc
 .studyToolOptions button[aria-label="Diminuir espessura"],.studyToolOptions button[aria-label="Aumentar espessura"]{min-width:0!important;width:100%;padding:1px!important;font-size:10px!important;min-height:22px!important}
 .studyToolOptions .opacityLabel{font-size:8px!important;overflow-wrap:anywhere}
 @media(max-width:600px){.studyNotebookToolbar{width:48px!important;min-width:48px!important;overflow-x:hidden!important}.studyToolOptions{width:100%!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;padding:2px!important;gap:2px!important}}
-
-
-body{font:12pt/1.6 Arial,sans-serif;max-width:850px;margin:30px auto;color:#222}img{max-width:100%}@media print{body{margin:15mm}}
