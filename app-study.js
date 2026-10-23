@@ -1,51 +1,7 @@
-/* Caderno de Estudos simplificado — páginas pautadas com anotações digitadas.
-   Os campos antigos (strokes/images) são preservados nos dados; esta interface não os apaga. */
-let studyNotebookCurrentId=null,studyNotebookPageIndex=0;
-function studyNotebookInit(){
- db.studyNotebooks=Array.isArray(db.studyNotebooks)?db.studyNotebooks:[];
- db.studyNotebooks.forEach(b=>{
-  b.pages=Array.isArray(b.pages)?b.pages:[];
-  if(!b.pages.length)b.pages.push({id:'pg_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),title:'Anotações',text:'',createdAt:Date.now()});
-  b.pages.forEach(p=>{if(typeof p.text!=='string')p.text='';if(typeof p.title!=='string')p.title='Anotações';});
- });
-}
-studyNotebookInit();
-function studyNotebookView(){
- studyNotebookInit();
- if(studyNotebookCurrentId!==null&&!db.studyNotebooks.some(b=>String(b.id)===String(studyNotebookCurrentId)))studyNotebookCurrentId=null;
- if(studyNotebookCurrentId!==null)return studyNotebookEditorView();
- const books=[...db.studyNotebooks].sort((a,b)=>(b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
- return '<section class="panel hero"><h2>📓 Caderno de Estudos</h2><p>Um espaço simples para organizar suas matérias e digitar anotações em páginas pautadas.</p><div class="row"><span class="pill">'+books.length+' caderno(s)</span><span class="pill">Salvamento automático</span></div></section><section class="panel" style="margin-top:14px"><h3>Criar um caderno por matéria</h3><div class="row" style="align-items:flex-end"><label style="flex:1;min-width:190px">Matéria<input id="studyNotebookNewName" class="field" maxlength="90" placeholder="Ex.: Obstetrícia — Pré-eclâmpsia" onkeydown="if(event.key===\'Enter\')studyNotebookCreate()"></label><button class="btn" onclick="studyNotebookCreate()">＋ Criar caderno</button></div><p class="studyNotebookHint">Crie um caderno para cada matéria e adicione páginas quando precisar.</p></section><div class="studyNotebookShelf">'+(books.length?books.map(b=>'<article class="studyNotebookCard"><div class="studyNotebookCover">📓</div><h3>'+esc(b.name)+'</h3><div class="muted">'+b.pages.length+' página(s) • atualizado '+new Date(b.updatedAt||b.createdAt||Date.now()).toLocaleDateString('pt-BR')+'</div><div class="row" style="margin-top:auto"><button class="btn" onclick="studyNotebookOpen('+knowledgeJsArg(b.id)+')">Abrir caderno</button><button class="btn ghost mini" onclick="studyNotebookRename('+knowledgeJsArg(b.id)+')">Renomear</button></div></article>').join(''):'<div class="panel" style="grid-column:1/-1;text-align:center"><h3>Seu primeiro caderno está esperando ✨</h3><p class="muted">Digite uma matéria acima e toque em “Criar caderno”.</p></div>')+'</div>';
-}
-function studyNotebookCreate(){
- const el=document.getElementById('studyNotebookNewName'),name=(el?.value||'').trim();
- if(!name)return toast('Digite o nome da matéria');
- if(db.studyNotebooks.some(b=>String(b.name||'').toLocaleLowerCase('pt-BR')===name.toLocaleLowerCase('pt-BR')))return toast('Já existe um caderno com esse nome');
- const now=Date.now(),b={id:'snb_'+now+'_'+Math.random().toString(36).slice(2,7),name,createdAt:now,updatedAt:now,pages:[{id:'pg_'+now,title:'Anotações da aula',text:'',createdAt:now}]};
- db.studyNotebooks.unshift(b);studyNotebookCurrentId=b.id;studyNotebookPageIndex=0;save();render();toast('Caderno criado e salvo ✨');
-}
-function studyNotebookOpen(id){studyNotebookCurrentId=id;studyNotebookPageIndex=0;render()}
-function studyNotebookRename(id){const b=db.studyNotebooks.find(x=>String(x.id)===String(id));if(!b)return;let name=prompt('Novo nome para o caderno:',b.name);if(name===null)return;name=name.trim();if(!name)return toast('O nome não pode ficar vazio');b.name=name;b.updatedAt=Date.now();save();render()}
-function studyNotebookBack(){studyNotebookCurrentId=null;render()}
-function studyNotebookCurrent(){
- const b=db.studyNotebooks.find(x=>String(x.id)===String(studyNotebookCurrentId));if(!b)return null;
- b.pages=Array.isArray(b.pages)?b.pages:[];if(!b.pages.length)b.pages.push({id:'pg_'+Date.now(),title:'Anotações',text:''});
- studyNotebookPageIndex=Math.max(0,Math.min(studyNotebookPageIndex,b.pages.length-1));
- const p=b.pages[studyNotebookPageIndex];if(typeof p.text!=='string')p.text='';
- return {book:b,page:p};
-}
-function studyNotebookEditorView(){
- const item=studyNotebookCurrent();if(!item){studyNotebookCurrentId=null;return studyNotebookView()}
- const b=item.book,p=item.page;
- return '<button class="btn ghost" onclick="studyNotebookBack()">← Meus cadernos</button><section class="panel hero" style="margin-top:10px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="muted" style="font-size:11px;font-weight:850;letter-spacing:.1em">CADERNO DE ESTUDOS</div><h2 style="margin:3px 0">'+esc(b.name)+'</h2><p class="muted" style="margin:0">Digite suas anotações diretamente na folha pautada.</p></div><span class="pill">'+b.pages.length+' página(s)</span></div></section><div class="studyNotebookPages">'+b.pages.map((pg,i)=>'<span class="studyNotebookPageTab '+(i===studyNotebookPageIndex?'active':'')+'"><button type="button" class="studyNotebookPageSelect" onclick="studyNotebookSelectPage('+i+')">Página '+(i+1)+'</button><button type="button" class="studyNotebookPageDelete" title="Excluir página '+(i+1)+'" aria-label="Excluir página '+(i+1)+'" onclick="studyNotebookDeletePage('+i+')">×</button></span>').join('')+'<button class="btn" onclick="studyNotebookAddPage()">＋ Nova página</button></div><section class="studyNotebookPage studyNotebookTypedPage"><input class="studyNotebookPageTitle" aria-label="Título da página" value="'+esc(p.title||'Anotações')+'" onchange="studyNotebookSetPageTitle(this.value)" maxlength="100" placeholder="Título da aula ou assunto"><textarea id="studyNotebookTyping" class="studyNotebookTyping studyNotebookTypingSimple" aria-label="Anotações digitadas" placeholder="Comece a digitar suas anotações aqui..." oninput="studyNotebookSetText(this.value)">'+esc(p.text||'')+'</textarea></section><div class="studyNotebookPageNav"><button type="button" onclick="studyNotebookPreviousPage()" '+(studyNotebookPageIndex===0?'disabled':'')+'>← Anterior</button><span class="muted">Página '+(studyNotebookPageIndex+1)+' de '+b.pages.length+'</span><button type="button" onclick="studyNotebookNextPage()">Próxima →</button></div>';
-}
-function studyNotebookSetText(value){const x=studyNotebookCurrent();if(!x)return;x.page.text=value;x.book.updatedAt=Date.now();save()}
-function studyNotebookSetPageTitle(title){const x=studyNotebookCurrent();if(!x)return;x.page.title=String(title||'').slice(0,100);x.book.updatedAt=Date.now();save()}
-function studyNotebookSelectPage(index){studyNotebookPageIndex=index;render()}
-function studyNotebookAddPage(){const x=studyNotebookCurrent();if(!x)return;const now=Date.now();x.book.pages.push({id:'pg_'+now+'_'+Math.random().toString(36).slice(2,5),title:'Anotações da aula',text:'',createdAt:now});studyNotebookPageIndex=x.book.pages.length-1;x.book.updatedAt=now;save();render()}
-function studyNotebookDeletePage(index){const x=studyNotebookCurrent();if(!x)return;if(x.book.pages.length<=1)return toast('O caderno precisa ter pelo menos uma página.');if(!confirm('Excluir definitivamente a página '+(index+1)+' e suas anotações digitadas?'))return;x.book.pages.splice(index,1);if(studyNotebookPageIndex>index)studyNotebookPageIndex--;else if(studyNotebookPageIndex>=x.book.pages.length)studyNotebookPageIndex=x.book.pages.length-1;x.book.updatedAt=Date.now();save();render()}
-function studyNotebookNextPage(){const x=studyNotebookCurrent();if(!x)return;if(studyNotebookPageIndex<x.book.pages.length-1)studyNotebookSelectPage(studyNotebookPageIndex+1);else studyNotebookAddPage()}
-function studyNotebookPreviousPage(){if(studyNotebookPageIndex>0)studyNotebookSelectPage(studyNotebookPageIndex-1)}
+/* Caderno de Estudos temporariamente removido. O Caderno de Conhecimentos permanece ativo.
+   Os registros studyNotebooks existentes são mantidos nos dados; nenhuma anotação é apagada aqui. */
+function studyNotebookView(){return '<section class="panel hero"><h2>📓 Caderno de Estudos</h2><p>Esta ferramenta está temporariamente desativada durante a reorganização do FlashMed. O Caderno de Conhecimentos continua disponível normalmente.</p></section>'}
+
 function addCardView(){return `<div class=panel><h2>Novo flashcard</h2><select id=cs class=field>${db.subjects.map(s=>`<option>${esc(s)}</option>`).join('')}</select><label>Frente / pergunta</label>${editor('cf','Pergunta, caso clínico, imagem…')}<label>Verso / resposta</label>${editor('cb','Resposta, explicação, imagem…')}<label>Mídia incorporada</label><input id=cm class=field placeholder='URL direta de imagem/áudio/vídeo ou YouTube'><label>Tags</label><input id=ct class=field placeholder='ex.: gravidade, decoreba'><button class=btn onclick=addCard()>Salvar flashcard</button><p class=muted>Você pode colar imagens diretamente no editor, enviar um arquivo ou usar URL. YouTube, áudio e vídeo rodam dentro do FlashMed.</p></div>`}
 function addCard(){let f=cf.innerHTML.trim(),b=cb.innerHTML.trim();if(!f||!b)return toast('Preencha frente e verso');db.cards.push({id:Date.now(),subject:cs.value,front:f,back:b,media:cm.value,tags:ct.value,ok:0,bad:0,interval:0,due:day(),history:[]});save();toast('Flashcard salvo ♡');render()}
 function toggleDraw(){drawWrap.classList.toggle('hidden');if(!drawWrap.classList.contains('hidden'))setupCanvas()}function setupCanvas(){let c=document.getElementById('draw');if(!c)return;let r=c.getBoundingClientRect(),ratio=devicePixelRatio||1;c.width=r.width*ratio;c.height=220*ratio;let x=c.getContext('2d');x.scale(ratio,ratio);x.lineWidth=2;x.lineCap='round';x.strokeStyle='#7b3157';let on=false,last=null;function p(e){let z=c.getBoundingClientRect(),t=e.touches?.[0]||e;return [t.clientX-z.left,t.clientY-z.top]}c.onpointerdown=e=>{on=true;last=p(e)};c.onpointermove=e=>{if(!on)return;let q=p(e);x.beginPath();x.moveTo(...last);x.lineTo(...q);x.stroke();last=q};c.onpointerup=()=>on=false;c.onpointerleave=()=>on=false}function clearDraw(){let c=draw,x=c.getContext('2d');x.clearRect(0,0,c.width,c.height)}
