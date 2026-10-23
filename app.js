@@ -230,45 +230,7 @@ async function occlusionDeleteDedicatedCard(id){
 function flashmedReferencedAssetIds(source=db){return [...new Set((source.cards||[]).map(c=>c&&c.occlusion&&c.occlusion.assetId).filter(Boolean))]}
 async function occlusionHydrateAssets(source=db){source.imageAssets=source.imageAssets||{};let ids=flashmedReferencedAssetIds(source);for(const id of ids){let existing=source.imageAssets[id];if(existing&&existing.data){try{await flashmedAssetPut(id,existing)}catch(e){console.warn('Não foi possível migrar imagem de oclusão',e)}continue}try{let local=await flashmedAssetGet(id);if(local)source.imageAssets[id]=local}catch(e){console.warn('Não foi possível carregar imagem de oclusão',e)}}return source}
 async function occlusionPersistRemoteAssets(source=db){source.imageAssets=source.imageAssets||{};for(const [id,a] of Object.entries(source.imageAssets)){if(a&&a.data){try{await flashmedAssetPut(id,a)}catch(e){console.warn('Não foi possível persistir imagem sincronizada',e)}}}}
-function flashmedLocalPayload(source=db){let lean=Object.assign({},source,{imageAssets:{}});return JSON.parse(JSON.stringify(lean))}
-function flashmedPruneRecoverySnapshots(all=false){try{let keys=Object.keys(localStorage).filter(k=>k.startsWith('flashmed_recovery_')).sort();let remove=all?keys:keys.slice(0,Math.max(0,keys.length-3));for(const k of remove)localStorage.removeItem(k);return remove.length}catch(e){return 0}}
-async function flashmedEmergencySave(source=db){try{await flashmedAssetPut('__flashmed_emergency_db__',{data:flashmedLocalPayload(source),savedAt:Date.now()});return true}catch(e){console.error('FlashMed emergency save error',e);return false}}
-async function flashmedEmergencyRestore(target){try{let e=await flashmedAssetGet('__flashmed_emergency_db__');if(!e||!e.data)return false;let changed=flashmedMergePersonal(target,e.data);if(changed){target.updatedAt=Math.max(target.updatedAt||0,e.data.updatedAt||0)}return changed}catch(err){console.warn('Emergency restore unavailable',err);return false}}
-
-
-// Independent compact safety journal: survives failure of the oversized full database.
-const FLASHMED_JOURNAL='flashmed_safety_journal_v1';
-function flashmedPersonalSnapshot(source){return {cards:(source.cards||[]).map(c=>({...c,media:typeof c.media==='string'&&c.media.startsWith('data:')?'':c.media})),bankAttempts:source.bankAttempts||[],decorebas:source.decorebas||[],knowledgeNotes:source.knowledgeNotes||[],knowledgeBooks:source.knowledgeBooks||[],studyNotebooks:source.studyNotebooks||[],savedAt:Date.now()}}
-function flashmedJournalSave(){let snap=flashmedPersonalSnapshot(db),old=null;try{old=JSON.parse(localStorage.getItem(FLASHMED_JOURNAL)||'null')}catch(e){}if(old)flashmedMergePersonal(snap,old);let payload=JSON.stringify(snap);try{localStorage.setItem(FLASHMED_JOURNAL,payload);return true}catch(e){flashmedPruneRecoverySnapshots(true);try{localStorage.setItem(FLASHMED_JOURNAL,payload);return true}catch(e2){console.error('FlashMed journal error',e2);return false}}}
-function flashmedJournalRestore(target){try{let saved=JSON.parse(localStorage.getItem(FLASHMED_JOURNAL)||'null');return saved?flashmedMergePersonal(target,saved):false}catch(e){console.error(e);return false}}
-function flashmedSaveError(){let status=document.getElementById('saveState');if(status)status.textContent='⚠️ Falha ao salvar — exporte seu backup';let banner=document.getElementById('flashmedSaveAlert');if(!banner){banner=document.createElement('div');banner.id='flashmedSaveAlert';banner.style.cssText='position:fixed;bottom:12px;left:12px;right:12px;z-index:99999;padding:16px;background:#a31836;color:white;border-radius:12px;font-weight:800;text-align:center';document.body.appendChild(banner)}banner.innerHTML='⚠️ Não foi possível salvar todos os dados. <button onclick="exportDB()" style="padding:8px;margin-left:8px">Baixar backup agora</button>'}
-function flashmedSaveOK(){document.getElementById('flashmedSaveAlert')?.remove()}
-function save(){
-  db.updatedAt=Date.now();
-  let payload;
-  try{payload=JSON.stringify(flashmedLocalPayload(db))}
-  catch(e){console.error('FlashMed: não foi possível preparar os dados para salvar',e);flashmedSaveError();return false}
-  let fullOK=false,fallbackPending=false;
-  try{localStorage.setItem(KEY,payload);fullOK=true}
-  catch(firstError){
-    console.warn('FlashMed: primeira gravação local falhou; liberando snapshots antigos e tentando novamente',firstError);
-    flashmedPruneRecoverySnapshots(true);
-    try{localStorage.setItem(KEY,payload);fullOK=true}
-    catch(storageError){
-      console.warn('FlashMed: localStorage continua indisponível; tentando IndexedDB e nuvem',storageError);
-      fallbackPending=true;
-      const st=document.getElementById('saveState');if(st)st.textContent='salvando backup local seguro…';
-      flashmedEmergencySave(db).then(ok=>{
-        if(ok){flashmedSaveOK();const status=document.getElementById('saveState');if(status)status.textContent=cloud?'backup local seguro • sincronizando nuvem':'backup local seguro (IndexedDB)'}
-        else{flashmedSaveError();console.error('FlashMed: falharam o armazenamento principal e o backup de emergência.')}
-      }).catch(err=>{console.error('FlashMed: falha inesperada no backup de emergência',err);flashmedSaveError()});
-    }
-  }
-  if(fullOK){flashmedSaveOK();const st=document.getElementById('saveState');if(st)st.textContent=cloud?'salvo neste aparelho • sincronizando':'salvo neste aparelho'}
-  if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(syncUp,800)}
-  // If IndexedDB fallback has started, avoid showing a false "save failed" in the feature UI.
-  return fullOK||fallbackPending;
-} function toast(s){let e=toastEl();e.textContent=s;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)} function toastEl(){return document.querySelector('#toast')}
+function toast(s){let e=toastEl();e.textContent=s;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)} function toastEl(){return document.querySelector('#toast')}
 function mins(){return Math.round(db.sessions.reduce((a,s)=>a+s.minutes,0))}function stats(){let r=db.cards.reduce((a,c)=>(a.ok+=c.ok||0,a.bad+=c.bad||0,a),{ok:0,bad:0});return {...r,total:r.ok+r.bad,acc:r.ok+r.bad?Math.round(100*r.ok/(r.ok+r.bad)):0}}function due(c){return !c.due||new Date(c.due)<=now()}
 function subjStats(){return db.subjects.map(x=>{let cs=db.cards.filter(c=>c.subject==x),o=cs.reduce((a,c)=>a+(c.ok||0),0),b=cs.reduce((a,c)=>a+(c.bad||0),0),attempts=o+b;return{x,cards:cs.length,o,b,attempts,acc:attempts?Math.round(100*o/attempts):0,due:cs.filter(due).length}})}function subjectWeak(){return subjStats().filter(x=>x.attempts).sort((a,b)=>a.acc-b.acc)[0]?.x||'—'}
 function bankAnalytics(){let A=db.bankAttempts||[],M=Object.fromEntries((db.bankQuestions||[]).map(q=>[q.id,q])),ok=A.filter(a=>a.correct).length,areas={},topics={},firstBy={},latestBy={};A.forEach(a=>{if(!firstBy[a.questionId])firstBy[a.questionId]=a;latestBy[a.questionId]=a});let latest=Object.values(latestBy),first=Object.values(firstBy),recovered=Object.keys(latestBy).filter(id=>firstBy[id]&&!firstBy[id].correct&&latestBy[id].correct).length,stubborn=Object.keys(latestBy).filter(id=>firstBy[id]&&!firstBy[id].correct&&!latestBy[id].correct).length;A.forEach(a=>{let q=M[a.questionId];if(!q)return;let z=areas[q.area]||(areas[q.area]={n:0,ok:0});z.n++;if(a.correct)z.ok++;let t=topics[q.topic||q.area]||(topics[q.topic||q.area]={n:0,ok:0,area:q.area});t.n++;if(a.correct)t.ok++});let open=A.filter(a=>M[a.questionId]?.type==='short'),obj=A.filter(a=>M[a.questionId]?.type!=='short');return {A,M,total:A.length,ok,acc:A.length?Math.round(ok/A.length*100):0,answered:new Set(A.map(a=>a.questionId)).size,latest,first,recovered,stubborn,currentOk:latest.filter(a=>a.correct).length,currentAcc:latest.length?Math.round(latest.filter(a=>a.correct).length/latest.length*100):0,firstAcc:first.length?Math.round(first.filter(a=>a.correct).length/first.length*100):0,open,obj,openFull:open.filter(a=>a.correct||a.grade==='Corresponde totalmente').length,partial:open.filter(a=>a.grade&&a.grade!=='Corresponde totalmente'&&a.grade!=='Não corresponde').length,areas:Object.entries(areas).map(([name,z])=>({name,...z,acc:Math.round(z.ok/z.n*100)})).sort((a,b)=>a.acc-b.acc),weak:Object.entries(topics).map(([name,z])=>({name,...z,acc:Math.round(z.ok/z.n*100)})).filter(x=>x.n>=2).sort((a,b)=>a.acc-b.acc).slice(0,5)}}
