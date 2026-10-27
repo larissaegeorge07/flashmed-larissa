@@ -7,8 +7,9 @@
   function notebooks(){db.studyNotebooks=Array.isArray(db.studyNotebooks)?db.studyNotebooks:[];return db.studyNotebooks}
   function activeNotebook(){return notebooks().find(n=>String(n.id)===String(currentNotebookId))}
   function ensurePages(n){
+    let migrated=false;
     const legacy=typeof n.content==='string'?n.content:'';
-    if(!Array.isArray(n.pages)||!n.pages.length)n.pages=[{title:'Página 1',content:legacy,updatedAt:n.updatedAt||Date.now()}];
+    if(!Array.isArray(n.pages)||!n.pages.length){n.pages=[{title:'Página 1',content:legacy,updatedAt:n.updatedAt||Date.now()}];migrated=true;}
     n.pages=n.pages.map((p,i)=>typeof p==='string'?{title:'Página '+(i+1),content:p,updatedAt:Date.now()}:({title:p.title||'Página '+(i+1),content:typeof p.content==='string'?p.content:'',updatedAt:p.updatedAt||Date.now()}));
     // Migration guard: if an earlier version left a blank first page while the old single-page
     // content still exists, restore it. If both versions differ, preserve the old text as a
@@ -17,8 +18,10 @@
     if(hasLegacy&&!matches){
       if(!n.pages[0].content.trim())n.pages[0].content=legacy;
       else n.pages.push({title:'Conteúdo recuperado',content:legacy,updatedAt:Date.now(),recoveredLegacy:true});
+      migrated=true;
     }
     currentPageIndex=Math.max(0,Math.min(currentPageIndex,n.pages.length-1));
+    if(migrated)n._fmPagesMigrationPending=true;
     return n.pages;
   }
   function savePage(){
@@ -56,7 +59,7 @@
     return ok;
   };
   if(window.fmNotebookScheduleSave)window.fmNotebookScheduleSave=function(){
-    const state=$('fmNotebookSaveState');if(state)state.textContent=window.cloud&&window.currentUser?'Salvando na nuvem…':'Salvando…';
+    const state=$('fmNotebookSaveState');if(state)state.textContent=(typeof cloud!=='undefined'&&cloud&&typeof currentUser!=='undefined'&&currentUser)?'Salvando na nuvem…':'Salvando…';
     clearTimeout(persistTimer);persistTimer=setTimeout(()=>window.fmNotebookSaveNow&&window.fmNotebookSaveNow(),500);
   };
   const originalNew=window.fmNotebookNew;
@@ -151,6 +154,7 @@
     }
     const n=activeNotebook();if(!n)return;
     ensurePages(n);
+    if(n._fmPagesMigrationPending){delete n._fmPagesMigrationPending;setTimeout(()=>{if(window.save)window.save();if(typeof cloud!=='undefined'&&cloud&&typeof currentUser!=='undefined'&&currentUser&&window.syncUp)window.syncUp()},0)}
     if(pageIndexByNotebook[String(n.id)]===undefined)pageIndexByNotebook[String(n.id)]=currentPageIndex;
     currentPageIndex=Math.max(0,Math.min(pageIndexByNotebook[String(n.id)]||0,n.pages.length-1));
     const wanted=n.pages[currentPageIndex].content||'';
