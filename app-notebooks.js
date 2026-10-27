@@ -10,7 +10,10 @@
     const title=document.getElementById('fmNotebookTitle');
     if(!n||!ed)return;
     n.title=(title?.value||'').trim()||'Anotações sem título';
-    n.content=ed.innerHTML;
+    // Allow the multi-page notebook module to persist the active page while keeping
+    // the legacy content field pointed at page 1. This prevents page 2 from replacing page 1.
+    const pageHandled=typeof window.fmNotebookPrepareSave==='function'&&window.fmNotebookPrepareSave(n,ed);
+    if(!pageHandled)n.content=ed.innerHTML;
     n.updatedAt=Date.now();
     const ok=save();
     const state=document.getElementById('fmNotebookSaveState');
