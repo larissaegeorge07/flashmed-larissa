@@ -102,7 +102,7 @@
     setTimeout(()=>{window.print();setTimeout(cleanup,1200)},100);
   }
   function enhance(){
-    if(window.route!==routeName)return;
+    if(typeof route!=='undefined'&&route!==routeName)return;
     const ed=$('fmNotebookEditor');if(!ed)return;
     if(!currentNotebookId){
       const back=document.querySelector('.fmNotebookTop button');
