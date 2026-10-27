@@ -49,9 +49,9 @@
     if(n&&ed)prepareNotebookSave(n,ed);
     const ok=window.save?window.save():false;
     const state=$('fmNotebookSaveState');
-    if(state)state.textContent=ok?(window.cloud&&window.currentUser?'Salvando na nuvem…':'Salvo neste aparelho; aguardando sincronização'):'Falha ao salvar';
-    if(ok&&window.cloud&&window.currentUser&&typeof window.syncUp==='function'){
-      window.syncUp().then(()=>{if(state&&document.body.contains(state))state.textContent=(window.cloudDot&&window.cloudDot.classList.contains('ok')&&$('saveState')?.textContent==='salvo na nuvem')?'Salvo na nuvem':'Não foi possível confirmar a nuvem'}).catch(()=>{if(state)state.textContent='Falha na nuvem — mantenha esta página aberta e tente novamente'});
+    if(state)state.textContent=ok?(typeof cloud!=='undefined'&&cloud&&typeof currentUser!=='undefined'&&currentUser?'Salvando na nuvem…':'Salvo neste aparelho; aguardando sincronização'):'Falha ao salvar';
+    if(ok&&typeof cloud!=='undefined'&&cloud&&typeof currentUser!=='undefined'&&currentUser&&typeof window.syncUp==='function'){
+      window.syncUp().then(()=>{if(state&&document.body.contains(state))state.textContent=(document.getElementById('cloudDot')&&document.getElementById('cloudDot').classList.contains('ok')&&$('saveState')?.textContent==='salvo na nuvem')?'Salvo na nuvem':'Não foi possível confirmar a nuvem'}).catch(()=>{if(state)state.textContent='Falha na nuvem — mantenha esta página aberta e tente novamente'});
     }
     return ok;
   };
