@@ -108,13 +108,17 @@
   function switchPage(delta){
     const n=activeNotebook();if(!n)return;
     savePage();const pages=ensurePages(n);currentPageIndex=Math.max(0,Math.min(pages.length-1,currentPageIndex+delta));pageIndexByNotebook[String(n.id)]=currentPageIndex;
-    if(window.fmNotebookSaveNow)window.fmNotebookSaveNow();window.render();
+    // Do not call fmNotebookSaveNow after changing the index: the editor still shows the
+    // previous page until render, and saving here would copy its text over the destination page.
+    if(window.save)window.save();window.render();
   }
   function addPage(){
     const n=activeNotebook();if(!n)return;
     savePage();const pages=ensurePages(n);pages.push({title:'Página '+(pages.length+1),content:'',updatedAt:Date.now()});
     currentPageIndex=pages.length-1;pageIndexByNotebook[String(n.id)]=currentPageIndex;n.content=pages[0].content;n.updatedAt=Date.now();
-    if(window.fmNotebookSaveNow)window.fmNotebookSaveNow();else if(window.save)window.save();
+    // The old page is already saved before the index changes. Persist the new blank page
+    // without reading the still-visible old editor into it.
+    if(window.save)window.save();
     window.render();
   }
   function applyListType(type){
