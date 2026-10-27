@@ -7,8 +7,17 @@
   function notebooks(){db.studyNotebooks=Array.isArray(db.studyNotebooks)?db.studyNotebooks:[];return db.studyNotebooks}
   function activeNotebook(){return notebooks().find(n=>String(n.id)===String(currentNotebookId))}
   function ensurePages(n){
-    if(!Array.isArray(n.pages)||!n.pages.length)n.pages=[{title:'Página 1',content:n.content||'',updatedAt:n.updatedAt||Date.now()}];
-    n.pages=n.pages.map((p,i)=>typeof p==='string'?{title:'Página '+(i+1),content:p,updatedAt:Date.now()}:({title:p.title||'Página '+(i+1),content:p.content||'',updatedAt:p.updatedAt||Date.now()}));
+    const legacy=typeof n.content==='string'?n.content:'';
+    if(!Array.isArray(n.pages)||!n.pages.length)n.pages=[{title:'Página 1',content:legacy,updatedAt:n.updatedAt||Date.now()}];
+    n.pages=n.pages.map((p,i)=>typeof p==='string'?{title:'Página '+(i+1),content:p,updatedAt:Date.now()}:({title:p.title||'Página '+(i+1),content:typeof p.content==='string'?p.content:'',updatedAt:p.updatedAt||Date.now()}));
+    // Migration guard: if an earlier version left a blank first page while the old single-page
+    // content still exists, restore it. If both versions differ, preserve the old text as a
+    // separate recovery page rather than overwriting either copy.
+    const hasLegacy=!!legacy.trim(), matches=n.pages.some(p=>p.content===legacy);
+    if(hasLegacy&&!matches){
+      if(!n.pages[0].content.trim())n.pages[0].content=legacy;
+      else n.pages.push({title:'Conteúdo recuperado',content:legacy,updatedAt:Date.now(),recoveredLegacy:true});
+    }
     currentPageIndex=Math.max(0,Math.min(currentPageIndex,n.pages.length-1));
     return n.pages;
   }
@@ -21,10 +30,35 @@
     n.content=pages[0].content;
     n.updatedAt=Date.now();
   }
+  function prepareNotebookSave(n,ed){
+    if(!n||!ed)return false;
+    if(String(currentNotebookId)!==String(n.id))currentNotebookId=n.id;
+    const pages=ensurePages(n);
+    pages[currentPageIndex].content=ed.innerHTML;
+    pages[currentPageIndex].updatedAt=Date.now();
+    n.content=pages[0].content; // legacy compatibility field always mirrors page 1
+    n.updatedAt=Date.now();
+    return true;
+  }
+  window.fmNotebookPrepareSave=prepareNotebookSave;
+  let persistTimer=null;
   const originalSave=window.fmNotebookSaveNow;
-  if(originalSave)window.fmNotebookSaveNow=function(){savePage();return originalSave.apply(this,arguments)};
-  const originalSchedule=window.fmNotebookScheduleSave;
-  if(originalSchedule)window.fmNotebookScheduleSave=function(){savePage();return originalSchedule.apply(this,arguments)};
+  if(originalSave)window.fmNotebookSaveNow=function(){
+    const n=activeNotebook(),ed=$('fmNotebookEditor'),title=$('fmNotebookTitle');
+    if(n&&title)n.title=(title.value||'').trim()||'Anotações sem título';
+    if(n&&ed)prepareNotebookSave(n,ed);
+    const ok=window.save?window.save():false;
+    const state=$('fmNotebookSaveState');
+    if(state)state.textContent=ok?(window.cloud&&window.currentUser?'Salvando na nuvem…':'Salvo neste aparelho; aguardando sincronização'):'Falha ao salvar';
+    if(ok&&window.cloud&&window.currentUser&&typeof window.syncUp==='function'){
+      window.syncUp().then(()=>{if(state&&document.body.contains(state))state.textContent=(window.cloudDot&&window.cloudDot.classList.contains('ok')&&$('saveState')?.textContent==='salvo na nuvem')?'Salvo na nuvem':'Não foi possível confirmar a nuvem'}).catch(()=>{if(state)state.textContent='Falha na nuvem — mantenha esta página aberta e tente novamente'});
+    }
+    return ok;
+  };
+  if(window.fmNotebookScheduleSave)window.fmNotebookScheduleSave=function(){
+    const state=$('fmNotebookSaveState');if(state)state.textContent=window.cloud&&window.currentUser?'Salvando na nuvem…':'Salvando…';
+    clearTimeout(persistTimer);persistTimer=setTimeout(()=>window.fmNotebookSaveNow&&window.fmNotebookSaveNow(),500);
+  };
   const originalNew=window.fmNotebookNew;
   if(originalNew)window.fmNotebookNew=function(title){originalNew.apply(this,arguments);const n=notebooks()[0];if(n){currentNotebookId=n.id;currentPageIndex=0;pageIndexByNotebook[String(n.id)]=0;window.render()}};
   const originalOpen=window.fmNotebookOpen;
@@ -77,7 +111,8 @@
     const n=activeNotebook();if(!n)return;
     savePage();const pages=ensurePages(n);pages.push({title:'Página '+(pages.length+1),content:'',updatedAt:Date.now()});
     currentPageIndex=pages.length-1;pageIndexByNotebook[String(n.id)]=currentPageIndex;n.content=pages[0].content;n.updatedAt=Date.now();
-    if(window.save)window.save();window.render();
+    if(window.fmNotebookSaveNow)window.fmNotebookSaveNow();else if(window.save)window.save();
+    window.render();
   }
   function applyListType(type){
     const ed=$('fmNotebookEditor');if(!ed)return;ed.focus();const selRestore=window.getSelection();if(savedRange&&selRestore){selRestore.removeAllRanges();try{selRestore.addRange(savedRange)}catch(e){}}
