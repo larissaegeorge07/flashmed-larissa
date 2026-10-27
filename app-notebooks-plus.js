@@ -80,7 +80,7 @@
     if(window.save)window.save();window.render();
   }
   function applyListType(type){
-    const ed=$('fmNotebookEditor');if(!ed)return;ed.focus();
+    const ed=$('fmNotebookEditor');if(!ed)return;ed.focus();const selRestore=window.getSelection();if(savedRange&&selRestore){selRestore.removeAllRanges();try{selRestore.addRange(savedRange)}catch(e){}}
     const sel=window.getSelection();let node=sel&&sel.anchorNode;while(node&&node!==ed&&node.nodeName!=='OL')node=node.parentNode;
     if(node&&node.nodeName==='OL'){node.style.listStyleType=type;window.fmNotebookScheduleSave?.();return}
     window.fmNotebookCommand?.('insertOrderedList');
@@ -127,7 +127,7 @@
     if(toolbar&&!toolbar.querySelector('.fmNotebookListStyle')){
       const select=document.createElement('select');select.className='fmNotebookListStyle';select.title='Tipo de lista com letras';select.setAttribute('aria-label','Tipo de lista com letras');
       [['A. Lista','upper-alpha'],['a. Lista','lower-alpha'],['I. Lista','upper-roman'],['i. Lista','lower-roman']].forEach(([label,value])=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.appendChild(o)});
-      select.onchange=()=>applyListType(select.value);const listButton=Array.from(toolbar.querySelectorAll('button')).find(b=>(b.textContent||'').includes('Lista numerada'));
+      select.onpointerdown=rememberSelection;select.onmousedown=rememberSelection;select.onchange=()=>applyListType(select.value);const listButton=Array.from(toolbar.querySelectorAll('button')).find(b=>(b.textContent||'').includes('Lista numerada'));
       if(listButton)listButton.insertAdjacentElement('afterend',select);else toolbar.appendChild(select);
     }
     if(!ed.dataset.fmEnhListeners){
@@ -136,6 +136,7 @@
       ed.addEventListener('paste',()=>setTimeout(()=>{addImageNotes(ed);savePage()},100));
       document.querySelectorAll('.fmNotebookColor input').forEach(input=>{input.addEventListener('pointerdown',rememberSelection);input.addEventListener('mousedown',rememberSelection);input.addEventListener('focus',rememberSelection)});
       ed.dataset.fmEnhListeners='1';
+      const observer=new MutationObserver(()=>{addImageNotes(ed);savePage()});observer.observe(ed,{childList:true,subtree:true});
     }
   }
   const style=document.createElement('style');
