@@ -447,6 +447,10 @@ function flashmedMergeDeletionMarkers(target,source){
 function flashmedApplyDeletionMarkers(target,source){
  if(!target)return false;
  let changed=flashmedMergeDeletionMarkers(target,source);
+ // Duolingo is a valid recurring study task; discard the stale title tombstone that hid it.
+ const cleanDuolingoMarker=list=>Array.isArray(list)?list.filter(v=>!/^fazer\\s+duolingo\\b/i.test(String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim())):[];
+ for(const replica of [target,source])if(replica&&Array.isArray(replica.deletedWeeklyTaskTitles)){const clean=cleanDuolingoMarker(replica.deletedWeeklyTaskTitles);if(clean.length!==replica.deletedWeeklyTaskTitles.length){replica.deletedWeeklyTaskTitles=clean;changed=true}}
+
  changed=flashmedApplyPersonalItemDeletions(target,source)||changed;
  const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLocaleLowerCase('pt-BR');
  const agendaDeleted=new Set((target.deletedAgendaEventIds||[]).map(String));
@@ -468,7 +472,7 @@ function flashmedApplyDeletionMarkers(target,source){
  }
  const beforeCount=[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length;
  const beforeTitleMarkers=(target.deletedWeeklyTaskTitles||[]).length;
- flashmedApplyPermanentTitleDeletions(target);
+ // Legacy permanent-title deletion hook removed; deletion markers above are authoritative.
  if(beforeCount!==[...(p.weeklyTasks||[]),...(p.weekSchedule||[]),...(target.agendaEvents||[])].length||(target.deletedWeeklyTaskTitles||[]).length!==beforeTitleMarkers)changed=true;
  return changed;
 }
