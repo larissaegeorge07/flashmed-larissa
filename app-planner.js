@@ -150,12 +150,18 @@ function plannerSetStudyColor(id,color){const p=db.studyPlan||{},item=(p.weekSch
 function plannerMoveWeek(delta){plannerWeekManuallyNavigated=true;plannerWeekOffset=Math.max(0,plannerWeekOffset+delta);const p=db.studyPlan||{};const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml(p.weekSchedule||[])}
 function plannerDeleteAgendaEvent(id){const key=String(id),e=agendaEvents().find(x=>String(x.id)===key);if(!e)return;if(!confirm('Excluir este compromisso da agenda?'))return;db.agendaEvents=(db.agendaEvents||[]).filter(x=>String(x.id)!==key);db.deletedAgendaEventIds=Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds:[];if(!db.deletedAgendaEventIds.map(String).includes(key))db.deletedAgendaEventIds.push(key);if(e.studyTaskId){const taskId=String(e.studyTaskId),p=db.studyPlan||(db.studyPlan={});p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>String(t.id)!==taskId);p.weekSchedule=(p.weekSchedule||[]).filter(t=>String(t.taskId||t.id)!==taskId);p.updatedAt=Date.now()}const ok=save();const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml((db.studyPlan||{}).weekSchedule||[]);else render();if(ok&&cloud)syncUp();}
 function plannerEditFixedEvent(id){
- const events=agendaEvents(),e=events.find(x=>String(x.id)===String(id));if(!e)return;
+ const events=Array.isArray(db.agendaEvents)?db.agendaEvents:[];
+ let e=events.find(x=>String(x.id)===String(id));
+ if(!e){const visible=agendaEvents().find(x=>String(x.id)===String(id));if(!visible){toast('Não encontrei esse compromisso.');return;}e={...visible};events.push(e);}
  const title=prompt('Editar compromisso:',e.title||'');if(title===null)return;
  const date=prompt('Data (AAAA-MM-DD):',e.date||'');if(date===null)return;
  const time=prompt('Horário (HH:MM, deixe vazio se não houver):',e.time||'');if(time===null)return;
- if(!title.trim()||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)){toast('Confira o título e a data.');return}
- e.title=title.trim();e.date=date;e.time=time.trim();e.updatedAt=Date.now();db.agendaEvents=events;const ok=save();toast(ok?'Compromisso atualizado e salvo.':'Não foi possível confirmar o salvamento.');const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml((db.studyPlan||{}).weekSchedule||[]);if(ok&&cloud)syncUp();
+ if(!title.trim()||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(date)){toast('Confira o título e a data no formato AAAA-MM-DD.');return}
+ if(time.trim()&&!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(time.trim())){toast('Confira o horário no formato HH:MM.');return}
+ e.title=title.trim();e.date=date;e.time=time.trim();e.updatedAt=Date.now();db.agendaEvents=events;
+ const ok=save();if(ok&&cloud)syncUp().then(()=>{if(saveState)saveState.textContent='salvo na nuvem'});
+ const el=document.getElementById('spWeeklySchedule');if(el)el.innerHTML=plannerWeeklyScheduleHtml((db.studyPlan||{}).weekSchedule||[]);
+ toast(ok?'Compromisso atualizado e salvo.':'Não foi possível confirmar o salvamento.');
 }
 function plannerToggleAgendaEvent(id,done){let events=Array.isArray(db.agendaEvents)?db.agendaEvents:[];let e=events.find(x=>String(x.id)===String(id));if(!e){const visible=agendaEvents().find(x=>String(x.id)===String(id));if(!visible)return;e={...visible};events.push(e);db.agendaEvents=events;}e.done=!!done;e.completedAt=done?new Date().toISOString():null;e.updatedAt=Date.now();db.agendaEvents=events;const ok=save();const host=document.getElementById('spWeeklySchedule');if(host)host.innerHTML=plannerWeeklyScheduleHtml((db.studyPlan||{}).weekSchedule||[]);if(route==='Dashboard')render();if(ok&&cloud)syncUp().then(()=>{if(saveState)saveState.textContent='salvo na nuvem'});if(!ok)toast('Não foi possível salvar a conclusão do compromisso.');}
 
@@ -167,6 +173,11 @@ function plannerDeduplicateEvents(events){
 }
 function plannerWeeklyScheduleHtml(items){
  if(typeof agendaCleanupUnwantedActivities==='function')agendaCleanupUnwantedActivities();
+ let seminarTimeChanged=false;
+ for(const e of (Array.isArray(db.agendaEvents)?db.agendaEvents:[])){
+  if(/semin.rio/i.test(String(e.title||''))&&!String(e.time||'').trim()){e.time='19:00';e.updatedAt=Date.now();seminarTimeChanged=true;}
+ }
+ if(seminarTimeChanged){const saved=save();if(saved&&cloud)syncUp();}
  if(!plannerWeekManuallyNavigated)plannerWeekOffset=plannerDefaultWeekOffset();
  const today=new Date();today.setHours(12,0,0,0);const monday=new Date(today);monday.setDate(today.getDate()-((today.getDay()+6)%7)+plannerWeekOffset*7);const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
  const startKey=agendaDateKey(monday),endKey=agendaDateKey(sunday),allItems=(items||[]).filter(x=>typeof agendaIsUnwantedCalendarActivity!=='function'||!agendaIsUnwantedCalendarActivity(x)),days=[];
