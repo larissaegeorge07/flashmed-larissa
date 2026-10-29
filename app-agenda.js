@@ -3,8 +3,8 @@ let agendaState={mode:'month',month:(()=>{const d=new Date();return new Date(d.g
 function agendaDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function agendaDateFromKey(k){if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(k))return null;const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0)}
 function agendaFormatDate(k,opts={weekday:'long',day:'2-digit',month:'long'}){const d=agendaDateFromKey(k);return d?d.toLocaleDateString('pt-BR',opts):''}
-function agendaNormalizeActivityTitle(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim()}
-function agendaIsUnwantedCalendarActivity(item){const title=agendaNormalizeActivityTitle(item?.title);return /\\batividade fisica\\b/.test(title)||/\\borganizar o quarto\\b/.test(title)||/\\bfazer exercicio(s)?\\b/.test(title)||/\\bexercicio fisico\\b/.test(title)}
+function agendaNormalizeActivityTitle(value){return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim()}
+function agendaIsUnwantedCalendarActivity(item){const title=agendaNormalizeActivityTitle(item?.title);return /\batividade fisica\b/.test(title)||/\borganizar o quarto\b/.test(title)||/\bfazer exercicio(s)?\b/.test(title)||/\bexercicio fisico\b/.test(title)}
 function agendaCleanupUnwantedActivities(){
  const p=db.studyPlan||(db.studyPlan={}),events=Array.isArray(db.agendaEvents)?db.agendaEvents:[],tasks=Array.isArray(p.weeklyTasks)?p.weeklyTasks:[],slots=Array.isArray(p.weekSchedule)?p.weekSchedule:[],pending=Array.isArray(p.weekPendingTasks)?p.weekPendingTasks:[];
  const removedEvents=events.filter(agendaIsUnwantedCalendarActivity),removedTasks=tasks.filter(agendaIsUnwantedCalendarActivity),removedSlots=slots.filter(agendaIsUnwantedCalendarActivity),removedPending=pending.filter(agendaIsUnwantedCalendarActivity);
