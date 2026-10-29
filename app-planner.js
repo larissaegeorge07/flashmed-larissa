@@ -166,9 +166,10 @@ function plannerDeduplicateEvents(events){
  const seen=new Set();return events.filter(e=>{const original=String(e.title||'').toLocaleLowerCase('pt-BR').trim();const isGyn=/^(aula de ginecologia|seminário de ginecologia)$/.test(original);const title=isGyn?'ginecologia':(original==='aula de obstetrícia'||original==='seminário de obstetrícia')?'obstetrícia':original;const key=String(e.date||'')+'|'+title;if(seen.has(key))return false;seen.add(key);return true}).map(e=>{const title=String(e.title||'').toLocaleLowerCase('pt-BR').trim();if(title==='aula de obstetrícia')return {...e,title:'Seminário de Obstetrícia'};if(title==='seminário de ginecologia')return {...e,title:'Aula de Ginecologia'};return e})
 }
 function plannerWeeklyScheduleHtml(items){
+ if(typeof agendaCleanupUnwantedActivities==='function')agendaCleanupUnwantedActivities();
  if(!plannerWeekManuallyNavigated)plannerWeekOffset=plannerDefaultWeekOffset();
  const today=new Date();today.setHours(12,0,0,0);const monday=new Date(today);monday.setDate(today.getDate()-((today.getDay()+6)%7)+plannerWeekOffset*7);const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
- const startKey=agendaDateKey(monday),endKey=agendaDateKey(sunday),allItems=(items||[]),days=[];
+ const startKey=agendaDateKey(monday),endKey=agendaDateKey(sunday),allItems=(items||[]).filter(x=>typeof agendaIsUnwantedCalendarActivity!=='function'||!agendaIsUnwantedCalendarActivity(x)),days=[];
  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);const key=agendaDateKey(d);days.push({d,key,tasks:allItems.filter(x=>x.date===key),events:plannerDeduplicateEvents(agendaEvents().filter(e=>e&&e.date===key&&!e.studyTaskId)).sort((x,y)=>(x.time||'').localeCompare(y.time||''))})}
  if(!days.some(x=>x.key===plannerDayKey))plannerDayKey=startKey;
  const activeDay=days.find(x=>x.key===plannerDayKey)||days[0];
