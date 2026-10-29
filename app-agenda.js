@@ -3,29 +3,33 @@ let agendaState={mode:'month',month:(()=>{const d=new Date();return new Date(d.g
 function agendaDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function agendaDateFromKey(k){if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(k))return null;const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0)}
 function agendaFormatDate(k,opts={weekday:'long',day:'2-digit',month:'long'}){const d=agendaDateFromKey(k);return d?d.toLocaleDateString('pt-BR',opts):''}
-let agendaPhysicalActivityCleanupDone=false;
+function agendaNormalizeActivityTitle(value){return String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,' ').trim()}
+function agendaIsUnwantedCalendarActivity(item){const title=agendaNormalizeActivityTitle(item?.title);return /\\batividade fisica\\b/.test(title)||/\\borganizar o quarto\\b/.test(title)||/\\bfazer exercicio(s)?\\b/.test(title)||/\\bexercicio fisico\\b/.test(title)}
+function agendaCleanupUnwantedActivities(){
+ const p=db.studyPlan||(db.studyPlan={}),events=Array.isArray(db.agendaEvents)?db.agendaEvents:[],tasks=Array.isArray(p.weeklyTasks)?p.weeklyTasks:[],slots=Array.isArray(p.weekSchedule)?p.weekSchedule:[],pending=Array.isArray(p.weekPendingTasks)?p.weekPendingTasks:[];
+ const removedEvents=events.filter(agendaIsUnwantedCalendarActivity),removedTasks=tasks.filter(agendaIsUnwantedCalendarActivity),removedSlots=slots.filter(agendaIsUnwantedCalendarActivity),removedPending=pending.filter(agendaIsUnwantedCalendarActivity);
+ if(!removedEvents.length&&!removedTasks.length&&!removedSlots.length&&!removedPending.length)return false;
+ const ids=new Set(removedEvents.map(e=>String(e.id)).filter(Boolean)),taskIds=new Set([...removedTasks.map(t=>String(t.id)),...removedSlots.map(t=>String(t.taskId||t.id)),...removedEvents.map(e=>String(e.studyTaskId||''))].filter(Boolean));
+ db.deletedAgendaEventIds=Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds.map(String):[];
+ ids.forEach(id=>{if(!db.deletedAgendaEventIds.includes(id))db.deletedAgendaEventIds.push(id)});
+ db.deletedWeeklyTaskIds=Array.isArray(db.deletedWeeklyTaskIds)?db.deletedWeeklyTaskIds.map(String):[];
+ taskIds.forEach(id=>{if(!db.deletedWeeklyTaskIds.includes(id))db.deletedWeeklyTaskIds.push(id)});
+ db.deletedWeeklyTaskKeys=Array.isArray(db.deletedWeeklyTaskKeys)?db.deletedWeeklyTaskKeys.map(String):[];
+ const signatures=[...removedEvents,...removedTasks,...removedSlots,...removedPending].map(x=>agendaNormalizeActivityTitle(x.title)+'|'+String(x.date||'')).filter(x=>!x.startsWith('|'));
+ signatures.forEach(key=>{if(!db.deletedWeeklyTaskKeys.includes(key))db.deletedWeeklyTaskKeys.push(key)});
+ db.agendaEvents=events.filter(e=>!agendaIsUnwantedCalendarActivity(e));
+ p.weeklyTasks=tasks.filter(t=>!agendaIsUnwantedCalendarActivity(t));
+ p.weekSchedule=slots.filter(t=>!agendaIsUnwantedCalendarActivity(t));
+ p.weekPendingTasks=pending.filter(t=>!agendaIsUnwantedCalendarActivity(t));
+ p.updatedAt=Date.now();save();if(cloud&&currentUser)syncUp();return true
+}
 function agendaEvents(){
- const events=Array.isArray(db.agendaEvents)?db.agendaEvents:[],deleted=new Set(Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds.map(String):[]);
- const isPhysicalActivity=e=>/\batividade\s+f[ií]sica\b|\bfazer\s+exerc[ií]cio(s)?\b|\bexerc[ií]cio\s+f[ií]sico\b/i.test(String(e?.title||''));
- if(!agendaPhysicalActivityCleanupDone){
-  agendaPhysicalActivityCleanupDone=true;
-  const removed=events.filter(isPhysicalActivity);
-  if(removed.length){
-   const ids=new Set(removed.map(e=>String(e.id)));
-   db.agendaEvents=events.filter(e=>!ids.has(String(e.id)));
-   db.deletedAgendaEventIds=Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds:[];
-   ids.forEach(id=>{if(!db.deletedAgendaEventIds.map(String).includes(id))db.deletedAgendaEventIds.push(id)});
-   const p=db.studyPlan||(db.studyPlan={});
-   p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!isPhysicalActivity(t));
-   p.weekSchedule=(p.weekSchedule||[]).filter(t=>!isPhysicalActivity(t));
-   save();
-   if(cloud&&currentUser)syncUp();
-  }
- }
+ agendaCleanupUnwantedActivities();
+ const deleted=new Set(Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds.map(String):[]);
  const crem={id:"fm-cremeb-crm-docs-20261103",title:"Ida ao CREMEB — entrega de documentação para o CRM",date:"2026-11-03",time:"",category:"Compromisso importante",priority:"alta",duration:0,important:true};
  const current=Array.isArray(db.agendaEvents)?db.agendaEvents:[];
  const all=current.some(e=>String(e.id)===crem.id)?current:current.concat([crem]);
- return all.filter(e=>!deleted.has(String(e.id))&&!isPhysicalActivity(e))
+ return all.filter(e=>!deleted.has(String(e.id))&&!agendaIsUnwantedCalendarActivity(e))
 }
 function agendaParseQuickText(raw){
  const text=String(raw||'').trim();if(!text)return {title:'',date:'',time:''};
