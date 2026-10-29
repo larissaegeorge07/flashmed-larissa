@@ -3,7 +3,30 @@ let agendaState={mode:'month',month:(()=>{const d=new Date();return new Date(d.g
 function agendaDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function agendaDateFromKey(k){if(!k||!/^\d{4}-\d{2}-\d{2}$/.test(k))return null;const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d,12,0,0,0)}
 function agendaFormatDate(k,opts={weekday:'long',day:'2-digit',month:'long'}){const d=agendaDateFromKey(k);return d?d.toLocaleDateString('pt-BR',opts):''}
-function agendaEvents(){const events=Array.isArray(db.agendaEvents)?db.agendaEvents:[],deleted=new Set(Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds.map(String):[]);const crem={id:"fm-cremeb-crm-docs-20261103",title:"Ida ao CREMEB — entrega de documentação para o CRM",date:"2026-11-03",time:"",category:"Compromisso importante",priority:"alta",duration:0,important:true};const all=events.some(e=>String(e.id)===crem.id)?events:events.concat([crem]);return all.filter(e=>!deleted.has(String(e.id)))}
+let agendaPhysicalActivityCleanupDone=false;
+function agendaEvents(){
+ const events=Array.isArray(db.agendaEvents)?db.agendaEvents:[],deleted=new Set(Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds.map(String):[]);
+ const isPhysicalActivity=e=>/\batividade\s+f[ií]sica\b|\bfazer\s+exerc[ií]cio(s)?\b|\bexerc[ií]cio\s+f[ií]sico\b/i.test(String(e?.title||''));
+ if(!agendaPhysicalActivityCleanupDone){
+  agendaPhysicalActivityCleanupDone=true;
+  const removed=events.filter(isPhysicalActivity);
+  if(removed.length){
+   const ids=new Set(removed.map(e=>String(e.id)));
+   db.agendaEvents=events.filter(e=>!ids.has(String(e.id)));
+   db.deletedAgendaEventIds=Array.isArray(db.deletedAgendaEventIds)?db.deletedAgendaEventIds:[];
+   ids.forEach(id=>{if(!db.deletedAgendaEventIds.map(String).includes(id))db.deletedAgendaEventIds.push(id)});
+   const p=db.studyPlan||(db.studyPlan={});
+   p.weeklyTasks=(p.weeklyTasks||[]).filter(t=>!isPhysicalActivity(t));
+   p.weekSchedule=(p.weekSchedule||[]).filter(t=>!isPhysicalActivity(t));
+   save();
+   if(cloud&&currentUser)syncUp();
+  }
+ }
+ const crem={id:"fm-cremeb-crm-docs-20261103",title:"Ida ao CREMEB — entrega de documentação para o CRM",date:"2026-11-03",time:"",category:"Compromisso importante",priority:"alta",duration:0,important:true};
+ const current=Array.isArray(db.agendaEvents)?db.agendaEvents:[];
+ const all=current.some(e=>String(e.id)===crem.id)?current:current.concat([crem]);
+ return all.filter(e=>!deleted.has(String(e.id))&&!isPhysicalActivity(e))
+}
 function agendaParseQuickText(raw){
  const text=String(raw||'').trim();if(!text)return {title:'',date:'',time:''};
  let work=text,date='',time='';
